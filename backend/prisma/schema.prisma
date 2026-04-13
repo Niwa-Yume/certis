@@ -4,10 +4,65 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Asset {
+  id            String      @id @default(uuid())
+  name          String
+  brand         String
+  model         String
+  reference     String
+  status        AssetStatus @default(ACTIVE)
+  integrityHash String
+  ownerId       String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  nonces        AuthNonce[]
+  events        Event[]
+  transfers     Transfer[]
+}
+
+model AuthNonce {
+  id         String    @id @default(uuid())
+  nonceValue String    @unique
+  expiresAt  DateTime
+  used       Boolean   @default(false)
+  usedAt     DateTime? //horodatage au moment où le nonce a été consommé permet de vérifier que le nonce n'est pas réutilisé après son expiration (en gros traçabilité !!!)
+  createdAt  DateTime  @default(now())
+
+  assetId    String
+  asset      Asset     @relation(fields: [assetId], references: [id])
+}
+
+model Event {
+  id          String    @id @default(uuid())
+  type        String
+  description String
+  createdAt   DateTime  @default(now())
+
+  assetId     String
+  asset       Asset     @relation(fields: [assetId], references: [id])
+}
+
+model Transfer {
+  id          String    @id @default(uuid())
+  fromOwnerId String
+  toOwnerId   String
+  createdAt   DateTime  @default(now())
+
+  assetId     String
+  asset       Asset     @relation(fields: [assetId], references: [id])
+}
+
+enum AssetStatus {
+  ACTIVE
+  INACTIVE
+  TRANSFERRED
 }
