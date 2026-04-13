@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: certis_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: certis
+      POSTGRES_PASSWORD: certis_password
+      POSTGRES_DB: certis_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - certis_pgdata:/var/lib/postgresql/data
+
+volumes:
+  certis_pgdata:
