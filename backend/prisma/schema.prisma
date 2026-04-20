@@ -5,7 +5,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -24,9 +23,9 @@ model Asset {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  nonces        AuthNonce[]
-  events        Event[]
-  transfers     Transfer[]
+  nonces    AuthNonce[]
+  events    Event[]
+  transfers Transfer[]
 }
 
 model AuthNonce {
@@ -37,28 +36,28 @@ model AuthNonce {
   usedAt     DateTime? //horodatage au moment où le nonce a été consommé permet de vérifier que le nonce n'est pas réutilisé après son expiration (en gros traçabilité !!!)
   createdAt  DateTime  @default(now())
 
-  assetId    String
-  asset      Asset     @relation(fields: [assetId], references: [id])
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id])
 }
 
 model Event {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   type        String
   description String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
-  assetId     String
-  asset       Asset     @relation(fields: [assetId], references: [id])
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id])
 }
 
 model Transfer {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   fromOwnerId String
   toOwnerId   String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
-  assetId     String
-  asset       Asset     @relation(fields: [assetId], references: [id])
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id])
 }
 
 enum AssetStatus {
