@@ -20,4 +20,8 @@ export class AssetController {
     findOne(@Param('id') id: string) {
         return this.assetService.findOne(id);
     }
+    @Get(':id/verify')
+    verify(@Param('id') id: string) {
+        return this.assetService.verify(id);
+    }
 }

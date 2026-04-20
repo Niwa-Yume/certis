@@ -6,7 +6,7 @@ import { AssetModule } from './asset/asset.module';
 import { CryptoModule } from './crypto/crypto.module';
 
 @Module({
-  imports: [PrismaModule, AssetModule, CryptoModule],
+    imports: [PrismaModule, CryptoModule, AssetModule],
   controllers: [AppController],
   providers: [AppService],
 })

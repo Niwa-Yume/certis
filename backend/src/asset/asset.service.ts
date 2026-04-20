@@ -1,17 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import {CreateAssetDto} from "./dto/create-asset.dto";
-import {PrismaService} from "../prisma/prisma.service";
-
+import { PrismaService } from '../prisma/prisma.service';
+import { CryptoService } from '../crypto/crypto.service';
+import { CreateAssetDto } from './dto/create-asset.dto';
 
 @Injectable()
 export class AssetService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly crypto: CryptoService,
+    ) {}
 
     async create(dto: CreateAssetDto) {
+        const integrityHash = this.crypto.sign({
+            brand: dto.brand,
+            model: dto.model,
+            reference: dto.reference,
+            ownerId: dto.ownerId,
+        });
+
         return this.prisma.asset.create({
             data: {
                 ...dto,
-                integrityHash: 'placeholder',
+                integrityHash,
             },
         });
     }
@@ -24,5 +34,23 @@ export class AssetService {
         return this.prisma.asset.findUniqueOrThrow({
             where: { id },
         });
+    }
+
+    async verify(id: string): Promise<{ valid: boolean }> {
+        const asset = await this.prisma.asset.findUniqueOrThrow({
+            where: { id },
+        });
+
+        const valid = this.crypto.verify(
+            {
+                brand: asset.brand,
+                model: asset.model,
+                reference: asset.reference,
+                ownerId: asset.ownerId,
+            },
+            asset.integrityHash,
+        );
+
+        return { valid };
     }
 }
