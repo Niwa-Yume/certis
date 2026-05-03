@@ -8,7 +8,7 @@ export class NonceService {
 
     async generate(assetId: string) {
         const nonceValue = randomUUID();
-        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+        const expiresAt = new Date(Date.now() + 30_000); // 1 minutes
 
         const nonce = await this.prisma.authNonce.create({
             data: {
