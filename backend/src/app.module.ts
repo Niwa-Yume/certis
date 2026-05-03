@@ -4,9 +4,10 @@ import { AppService } from './app.service';
 import {PrismaModule} from "./prisma/prisma.module";
 import { AssetModule } from './asset/asset.module';
 import { CryptoModule } from './crypto/crypto.module';
+import { NonceModule } from './nonce/nonce.module';
 
 @Module({
-    imports: [PrismaModule, CryptoModule, AssetModule],
+    imports: [PrismaModule, CryptoModule, AssetModule, NonceModule, NonceModule],
   controllers: [AppController],
   providers: [AppService],
 })
