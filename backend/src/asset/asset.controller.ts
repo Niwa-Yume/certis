@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { AssetService } from './asset.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
 
@@ -20,8 +20,19 @@ export class AssetController {
     findOne(@Param('id') id: string) {
         return this.assetService.findOne(id);
     }
+
     @Get(':id/verify')
     verify(@Param('id') id: string) {
         return this.assetService.verify(id);
+    }
+
+    @Get(':id/nonce')
+    generateNonce(@Param('id') id: string) {
+        return this.assetService.generateNonce(id);
+    }
+
+    @Get(':id/authenticate')
+    authenticate(@Param('id') id: string, @Query('nonce') nonce: string) {
+        return this.assetService.authenticate(id, nonce);
     }
 }

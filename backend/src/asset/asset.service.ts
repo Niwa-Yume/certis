@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CryptoService } from '../crypto/crypto.service';
+import { NonceService } from '../nonce/nonce.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class AssetService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly crypto: CryptoService,
+        private readonly nonce: NonceService,
     ) {}
 
     async create(dto: CreateAssetDto) {
@@ -52,5 +54,15 @@ export class AssetService {
         );
 
         return { valid };
+    }
+    //Vérifie si l'asset existe et si le hash est valide, puis génère un nonce pour l'authentification
+    async generateNonce(id: string) {
+        await this.prisma.asset.findUniqueOrThrow({ where: { id } });
+        return this.nonce.generate(id);
+    }
+    // Consomme le nonce puis verifie la signature
+    async authenticate(id: string, nonceValue: string) {
+        await this.nonce.consume(nonceValue);
+        return this.verify(id);
     }
 }
