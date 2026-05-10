@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CryptoService } from '../crypto/crypto.service';
 import { NonceService } from '../nonce/nonce.service';
@@ -33,15 +33,13 @@ export class AssetService {
     }
 
     async findOne(id: string) {
-        return this.prisma.asset.findUniqueOrThrow({
-            where: { id },
-        });
+        const asset = await this.prisma.asset.findUnique({ where: { id } });
+        if (!asset) throw new NotFoundException(`Asset ${id} introuvable`);
+        return asset;
     }
 
     async verify(id: string): Promise<{ valid: boolean }> {
-        const asset = await this.prisma.asset.findUniqueOrThrow({
-            where: { id },
-        });
+        const asset = await this.findOne(id);
 
         const valid = this.crypto.verify(
             {
@@ -56,8 +54,9 @@ export class AssetService {
         return { valid };
     }
     //Vérifie si l'asset existe et si le hash est valide, puis génère un nonce pour l'authentification
+
     async generateNonce(id: string) {
-        await this.prisma.asset.findUniqueOrThrow({ where: { id } });
+        await this.findOne(id);
         return this.nonce.generate(id);
     }
     // Consomme le nonce puis verifie la signature

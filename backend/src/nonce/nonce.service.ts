@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, GoneException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
 
@@ -8,7 +8,7 @@ export class NonceService {
 
     async generate(assetId: string) {
         const nonceValue = randomUUID();
-        const expiresAt = new Date(Date.now() + 30_000); // 1 minutes
+        const expiresAt = new Date(Date.now() + 30 * 1000);
 
         const nonce = await this.prisma.authNonce.create({
             data: {
@@ -27,15 +27,15 @@ export class NonceService {
         });
 
         if (!nonce) {
-            throw new Error('NONCE_NOT_FOUND');
+            throw new NotFoundException('Nonce introuvable');
         }
 
         if (nonce.used) {
-            throw new Error('NONCE_ALREADY_USED');
+            throw new GoneException('Nonce déjà utilisé');
         }
 
         if (new Date() > nonce.expiresAt) {
-            throw new Error('NONCE_EXPIRED');
+            throw new GoneException('Nonce expiré');
         }
 
         await this.prisma.authNonce.update({
@@ -46,5 +46,4 @@ export class NonceService {
             },
         });
     }
-
 }

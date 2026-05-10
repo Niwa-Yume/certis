@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CryptoService } from '../crypto/crypto.service';
 
@@ -10,11 +10,9 @@ export class TransferService {
     ) {}
 
     async transfer(assetId: string, toOwnerId: string) {
-        const asset = await this.prisma.asset.findUniqueOrThrow({
-            where: { id: assetId },
-        });
+        const asset = await this.prisma.asset.findUnique({ where: { id: assetId } });
+        if (!asset) throw new NotFoundException(`Asset ${assetId} introuvable`);
 
-        // 1. Enregistrer le transfert
         await this.prisma.transfer.create({
             data: {
                 assetId,
@@ -23,7 +21,6 @@ export class TransferService {
             },
         });
 
-        // 2. Recalculer la signature ECDSA avec le nouveau ownerId
         const integrityHash = this.crypto.sign({
             brand: asset.brand,
             model: asset.model,
@@ -31,7 +28,6 @@ export class TransferService {
             ownerId: toOwnerId,
         });
 
-        // 3. Mettre à jour l'asset
         return this.prisma.asset.update({
             where: { id: assetId },
             data: {
