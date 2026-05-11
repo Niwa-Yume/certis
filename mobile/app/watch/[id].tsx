@@ -45,7 +45,7 @@ export default function WatchScreen() {
     };
 
     const getQrValue = () => {
-        return `http://192.168.1.140:3001/assets/${id}/authenticate?nonce=${nonce}`;
+        return `exp://192.168.1.140:8081/--/verify?id=${id}&nonce=${nonce}`;
     };
 
     if (loading) {
