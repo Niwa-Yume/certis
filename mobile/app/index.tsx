@@ -43,7 +43,7 @@ export default function DashboardScreen() {
                 renderItem={({ item }) => (
                     <Card
                         style={styles.card}
-                        onPress={() => router.push(`/asset/${item.id}`)}
+                        onPress={() => router.push(`/watch/${item.id}`)}
                     >
                         <Card.Content>
                             <Text variant="titleMedium">{item.brand} — {item.model}</Text>
