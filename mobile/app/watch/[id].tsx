@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Text, Card, Button, ActivityIndicator, Chip } from 'react-native-paper';
-import { useLocalSearchParams } from 'expo-router';
+import {router, useLocalSearchParams, useRouter} from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 import api from '../../lib/api';
 import { styles, getCountdownColor } from './watch.styles';
@@ -25,6 +25,7 @@ export default function WatchScreen() {
     const [expiresAt, setExpiresAt] = useState<Date | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         api.get(`/assets/${id}`)
@@ -124,6 +125,13 @@ export default function WatchScreen() {
                         loading={refreshing}
                     >
                         {nonce ? 'Régénérer le QR' : 'Générer le QR'}
+                    </Button>
+                    <Button
+                        mode="outlined"
+                        onPress={() => router.push(`/transfer/${id}`)}
+                        style={styles.transferButton}
+                    >
+                        Transférer la propriété
                     </Button>
                 </Card.Content>
             </Card>

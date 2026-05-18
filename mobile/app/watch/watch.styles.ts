@@ -11,6 +11,7 @@ export const styles = StyleSheet.create({
   qrContainer: { alignItems: 'center' },
   hint: { color: palette.neutralText, marginBottom: spacing.md, textAlign: 'center' },
   countdown: { fontSize: 48, fontWeight: '700', marginTop: spacing.md },
+    transferButton: { marginTop: 8 },
 });
 
 export const getCountdownColor = (secondsLeft: number) => {
