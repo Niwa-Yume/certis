@@ -20,6 +20,7 @@ export default function WatchScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const [watch, setWatch] = useState<Watch | null>(null);
     const [nonce, setNonce] = useState<string | null>(null);
+    const [secondsLeft, setSecondsLeft] = useState<number>(0);
     const [expiresAt, setExpiresAt] = useState<Date | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -30,6 +31,25 @@ export default function WatchScreen() {
             .catch(console.error)
             .finally(() => setLoading(false));
     }, [id]);
+
+    // Countdown
+    useEffect(() => {
+        if (!expiresAt) return;
+
+        const interval = setInterval(() => {
+            const remaining = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
+
+            setSecondsLeft(remaining);
+
+            if (remaining === 0) {
+                clearInterval(interval);
+                setNonce(null);
+                setExpiresAt(null);
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [expiresAt]);
 
     const generateNonce = async () => {
         setRefreshing(true);
@@ -63,6 +83,11 @@ export default function WatchScreen() {
             </View>
         );
     }
+    const getCountdownColor = () => {
+        if (secondsLeft > 15) return '#2e7d32';
+        if (secondsLeft > 5) return '#f57c00';
+        return '#c62828';
+    };
 
     return (
         <ScrollView style={styles.container}>
@@ -88,8 +113,8 @@ export default function WatchScreen() {
                     {nonce ? (
                         <>
                             <QRCode value={getQrValue()} size={220} />
-                            <Text variant="bodySmall" style={styles.expiry}>
-                                Expire à : {expiresAt?.toLocaleTimeString()}
+                            <Text style={[styles.countdown, { color: getCountdownColor() }]}>
+                                {secondsLeft}s
                             </Text>
                         </>
                     ) : (
@@ -123,4 +148,5 @@ const styles = StyleSheet.create({
     hint: { color: '#888', marginBottom: 16, textAlign: 'center' },
     expiry: { marginTop: 12, color: '#888' },
     button: { marginTop: 16, width: '100%' },
+    countdown: { fontSize: 48, fontWeight: 'bold', marginTop: 12 },
 });
