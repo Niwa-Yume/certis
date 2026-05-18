@@ -17,12 +17,14 @@ Le frontend consomme l'API backend NestJS (`/assets`, `/assets/:id`, `/assets/:i
 - Framework: Expo + React Native
 - Navigation: Expo Router (`app/`)
 - UI: React Native Paper
+- Theme global: React Native Paper (`theme/theme.ts`)
 - HTTP: Axios (`lib/api.ts`)
 - Langage: TypeScript
 
 Conventions de code :
 - garder les ecrans dans `app/` (route-file based) ;
 - factoriser les appels API et la configuration reseau dans `lib/` ;
+- separer le style des ecrans dans des fichiers dedies `*.styles.ts` ;
 - preferer des composants simples et lisibles ;
 - eviter les changements de structure non necessaires.
 
@@ -30,9 +32,14 @@ Conventions de code :
 
 - `app/_layout.tsx` : provider Paper + stack router
 - `app/index.tsx` : dashboard (liste des assets)
+- `app/index.styles.ts` : styles du dashboard
 - `app/watch/[id].tsx` : detail asset + generation nonce + QR
+- `app/watch/watch.styles.ts` : styles du detail asset
 - `app/verify.tsx` : verification d'authenticite avec `id` + `nonce`
+- `app/verify.styles.ts` : styles de l'ecran verify
 - `lib/api.ts` : instance Axios et `baseURL`
+- `theme/theme.ts` : theme global + palette (accent vert porsche)
+- `theme/tokens.ts` : tokens design (couleurs + espacements)
 
 ## 4) Flux metier principal
 

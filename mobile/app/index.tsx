@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
-import { Text, Card, FAB, ActivityIndicator } from 'react-native-paper';
+import { View, FlatList } from 'react-native';
+import { Text, Card, ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import api from '../lib/api';
+import { styles } from './index.styles';
 
 type Asset = {
     id: string;
@@ -56,11 +57,3 @@ export default function DashboardScreen() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16, backgroundColor: '#fff', paddingTop: 60 },
-    centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    title: { marginBottom: 16, fontWeight: 'bold' },
-    card: { marginBottom: 12 },
-    status: { marginTop: 4, color: '#888' },
-});

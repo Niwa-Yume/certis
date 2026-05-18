@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { Text, Card, Button, ActivityIndicator, Chip } from 'react-native-paper';
 import { useLocalSearchParams } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 import api from '../../lib/api';
+import { styles, getCountdownColor } from './watch.styles';
 
 type Watch = {
     id: string;
@@ -83,12 +84,6 @@ export default function WatchScreen() {
             </View>
         );
     }
-    const getCountdownColor = () => {
-        if (secondsLeft > 15) return '#2e7d32';
-        if (secondsLeft > 5) return '#f57c00';
-        return '#c62828';
-    };
-
     return (
         <ScrollView style={styles.container}>
             <Text variant="headlineMedium" style={styles.title}>{watch.name}</Text>
@@ -106,14 +101,14 @@ export default function WatchScreen() {
 
             <Card style={styles.card}>
                 <Card.Content style={styles.qrContainer}>
-                    <Text variant="titleMedium" style={styles.qrTitle}>
+                    <Text variant="titleMedium">
                         QR Code d'authentification
                     </Text>
 
                     {nonce ? (
                         <>
                             <QRCode value={getQrValue()} size={220} />
-                            <Text style={[styles.countdown, { color: getCountdownColor() }]}>
+                            <Text style={[styles.countdown, { color: getCountdownColor(secondsLeft) }]}>
                                 {secondsLeft}s
                             </Text>
                         </>
@@ -127,7 +122,6 @@ export default function WatchScreen() {
                         mode="contained"
                         onPress={generateNonce}
                         loading={refreshing}
-                        style={styles.button}
                     >
                         {nonce ? 'Régénérer le QR' : 'Générer le QR'}
                     </Button>
@@ -137,16 +131,3 @@ export default function WatchScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16, backgroundColor: '#fff', paddingTop: 60 },
-    centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    title: { marginBottom: 16, fontWeight: 'bold' },
-    card: { marginBottom: 16 },
-    chip: { marginTop: 8, alignSelf: 'flex-start' },
-    qrContainer: { alignItems: 'center' },
-    qrTitle: { marginBottom: 16 },
-    hint: { color: '#888', marginBottom: 16, textAlign: 'center' },
-    expiry: { marginTop: 12, color: '#888' },
-    button: { marginTop: 16, width: '100%' },
-    countdown: { fontSize: 48, fontWeight: 'bold', marginTop: 12 },
-});

@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { useLocalSearchParams } from 'expo-router';
 import api from '../lib/api';
+import {
+    styles,
+    getVerifyBackgroundColor,
+    getVerifyResultColor,
+} from './verify.styles';
 
 export default function VerifyScreen() {
     const { id, nonce } = useLocalSearchParams<{ id: string; nonce: string }>();
@@ -26,9 +31,9 @@ export default function VerifyScreen() {
     }
 
     return (
-        <View style={[styles.centered, { backgroundColor: valid ? '#e8f5e9' : '#ffebee' }]}>
+        <View style={[styles.centered, { backgroundColor: getVerifyBackgroundColor(valid) }]}>
             <Text style={styles.icon}>{valid ? '✅' : '❌'}</Text>
-            <Text variant="headlineMedium" style={[styles.result, { color: valid ? '#2e7d32' : '#c62828' }]}>
+            <Text variant="headlineMedium" style={[styles.result, { color: getVerifyResultColor(valid) }]}>
                 {valid ? 'Montre authentique' : 'Authenticité invalide'}
             </Text>
             <Text variant="bodyMedium" style={styles.subtitle}>
@@ -40,10 +45,3 @@ export default function VerifyScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-    icon: { fontSize: 80, marginBottom: 24 },
-    result: { fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
-    subtitle: { textAlign: 'center', color: '#555' },
-    loadingText: { marginTop: 16, color: '#888' },
-});
