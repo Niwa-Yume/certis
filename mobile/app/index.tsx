@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { View, FlatList } from 'react-native';
-import { Text, Card, ActivityIndicator } from 'react-native-paper';
-import { useRouter } from 'expo-router';
+import { Text, Card, ActivityIndicator, Button } from 'react-native-paper';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import api from '../lib/api';
 import watchImages from '../lib/watchImages';
+import BrandLogo from '../components/BrandLogo';
 import { styles } from './index.styles';
 
 type Asset = {
@@ -18,15 +19,17 @@ type Asset = {
 
 export default function DashboardScreen() {
     const router = useRouter();
+    const { refresh } = useLocalSearchParams<{ refresh?: string }>();
     const [assets, setAssets] = useState<Asset[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setLoading(true);
         api.get('/assets')
             .then(res => setAssets(res.data))
             .catch(console.error)
             .finally(() => setLoading(false));
-    }, []);
+    }, [refresh]);
 
     if (loading) {
         return (
@@ -38,7 +41,18 @@ export default function DashboardScreen() {
 
     return (
         <View style={styles.container}>
-            <Text variant="headlineMedium" style={styles.title}>Certis</Text>
+            <View style={styles.headerRow}>
+                <BrandLogo size={44} />
+                <Text variant="headlineMedium" style={styles.title}>Certis</Text>
+            </View>
+            <Button
+                mode="contained"
+                icon="plus"
+                onPress={() => router.push('/watch/new')}
+                style={styles.addButton}
+            >
+                Ajouter une montre
+            </Button>
             <FlatList
                 data={assets}
                 keyExtractor={item => item.id}

@@ -5,20 +5,22 @@
     "scheme": "certis",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo-certis.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo-certis.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "icon": "./assets/logo-certis.png",
       "supportsTablet": true
     },
     "android": {
+      "icon": "./assets/logo-certis.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo-certis.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,

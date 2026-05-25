@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { useLocalSearchParams } from 'expo-router';
 import api from '../lib/api';
+import BrandLogo from '../components/BrandLogo';
 import {
     styles,
     getVerifyBackgroundColor,
@@ -24,6 +25,7 @@ export default function VerifyScreen() {
     if (loading) {
         return (
             <View style={styles.centered}>
+                <BrandLogo size={50} />
                 <ActivityIndicator size="large" />
                 <Text style={styles.loadingText}>Vérification en cours...</Text>
             </View>
@@ -32,6 +34,7 @@ export default function VerifyScreen() {
 
     return (
         <View style={[styles.centered, { backgroundColor: getVerifyBackgroundColor(valid) }]}>
+            <BrandLogo size={50} />
             <Text style={styles.icon}>{valid ? '✅' : '❌'}</Text>
             <Text variant="headlineMedium" style={[styles.result, { color: getVerifyResultColor(valid) }]}>
                 {valid ? 'Montre authentique' : 'Authenticité invalide'}

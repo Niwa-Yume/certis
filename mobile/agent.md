@@ -7,10 +7,11 @@ Ce document sert de guide pour tout agent IA/contributeur qui intervient sur le 
 L'application mobile Certis permet de :
 - lister les assets disponibles ;
 - consulter le detail d'un asset ;
+- ajouter un nouvel asset depuis un formulaire ;
 - generer un QR d'authentification temporaire (nonce) ;
 - verifier l'authenticite via un lien profond Expo.
 
-Le frontend consomme l'API backend NestJS (`/assets`, `/assets/:id`, `/assets/:id/nonce`, `/assets/:id/authenticate`).
+Le frontend consomme l'API backend NestJS (`/assets`, `/assets/:id`, `/assets/:id/nonce`, `/assets/:id/authenticate`, `/branding`).
 
 ## 2) Stack et conventions
 
@@ -34,9 +35,12 @@ Conventions de code :
 - `app/index.tsx` : dashboard (liste des assets)
 - `app/index.styles.ts` : styles du dashboard
 - `app/watch/[id].tsx` : detail asset + generation nonce + QR
+- `app/watch/new.tsx` : formulaire d'ajout d'une montre
 - `app/watch/watch.styles.ts` : styles du detail asset
+- `app/watch/new.styles.ts` : styles du formulaire d'ajout
 - `app/verify.tsx` : verification d'authenticite avec `id` + `nonce`
 - `app/verify.styles.ts` : styles de l'ecran verify
+- `components/BrandLogo.tsx` : logo reutilisable dans les ecrans
 - `lib/api.ts` : instance Axios et `baseURL`
 - `theme/theme.ts` : theme global + palette (accent vert porsche)
 - `theme/tokens.ts` : tokens design (couleurs + espacements)
@@ -49,6 +53,12 @@ Conventions de code :
 4. Construction d'un lien deep link Expo pour la route `/verify?id=...&nonce=...`.
 5. Ecran Verify appelle `GET /assets/:id/authenticate?nonce=...`.
 6. Affichage du resultat: valide/invalide.
+7. Creation d'un nouvel asset via `POST /assets` depuis le formulaire `/watch/new`.
+
+## Branding et logo
+
+- Expo lit les icones/splash depuis `app.json` (`assets/icon.png`, `assets/splash-icon.png`, `assets/adaptive-icon.png`, `assets/favicon.png`).
+- Le backend expose aussi le logo via `/public/branding/certis-logo.png` et les metadonnees via `GET /branding`.
 
 ## 5) Config reseau
 

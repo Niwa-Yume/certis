@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, TextInput, Button, Card } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import api from '../../lib/api';
+import BrandLogo from '../../components/BrandLogo';
 
 export default function TransferScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -66,9 +67,12 @@ export default function TransferScreen() {
             <Button mode="text" icon="arrow-left" onPress={goBack} style={styles.backButton}>
                 Retour
             </Button>
-            <Text variant="headlineMedium" style={styles.title}>
-                Transfert de propriété
-            </Text>
+            <View style={styles.headerRow}>
+                <BrandLogo size={40} />
+                <Text variant="headlineMedium" style={styles.title}>
+                    Transfert de propriete
+                </Text>
+            </View>
 
             <Card style={styles.card}>
                 <Card.Content>
@@ -107,7 +111,8 @@ const styles = StyleSheet.create({
     container: { flex: 1, padding: 16, backgroundColor: '#fff', paddingTop: 60 },
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
     backButton: { alignSelf: 'flex-start', marginBottom: 8 },
-    title: { marginBottom: 16, fontWeight: 'bold' },
+    headerRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+    title: { marginBottom: 0, fontWeight: 'bold' },
     card: { marginBottom: 16, backgroundColor: '#fff' },
     hint: { color: '#888', marginBottom: 12 },
     input: { marginBottom: 16 },

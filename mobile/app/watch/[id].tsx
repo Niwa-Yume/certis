@@ -5,7 +5,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 import api from '../../lib/api';
 import { styles, getCountdownColor } from './watch.styles';
-import watchImages from "../../lib/watchImages";
+import watchImages from '../../lib/watchImages';
+import BrandLogo from '../../components/BrandLogo';
 
 type Watch = {
     id: string;
@@ -103,7 +104,10 @@ export default function WatchScreen() {
             <Button mode="text" icon="arrow-left" onPress={goBackToList} style={styles.backButton}>
                 Retour a la liste
             </Button>
-            <Text variant="headlineMedium" style={styles.title}>{watch.name}</Text>
+            <View style={styles.headerRow}>
+                <BrandLogo size={40} />
+                <Text variant="headlineMedium" style={styles.title}>{watch.name}</Text>
+            </View>
 
             <Card style={styles.card}>
                 {watchImages[watch.reference] && (

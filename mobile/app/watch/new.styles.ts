@@ -9,17 +9,13 @@ export const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   title: { ...sharedStyles.screenTitle, marginBottom: 0 },
   card: { marginBottom: spacing.md, borderRadius: spacing.md, backgroundColor: palette.white },
-  chip: { marginTop: spacing.sm, alignSelf: 'flex-start', backgroundColor: palette.porscheGreenSoft },
-  qrContainer: { alignItems: 'center' },
-  hint: { color: palette.neutralText, marginBottom: spacing.md, textAlign: 'center' },
-  countdown: { fontSize: 48, fontWeight: '700', marginTop: spacing.md },
-    transferButton: { marginTop: 8 },
-    watchImage: { height: 250, borderRadius: spacing.md },
+  hint: { color: palette.neutralText, marginBottom: spacing.md },
+  input: { marginBottom: spacing.sm },
+  error: { color: palette.danger, marginBottom: spacing.sm },
+  submitButton: { marginTop: spacing.sm },
+  cancelButton: { marginTop: spacing.sm },
+  successIcon: { fontSize: 58, marginBottom: spacing.sm },
+  successText: { fontWeight: '700', marginBottom: spacing.sm / 2 },
+  successHint: { color: palette.neutralText, textAlign: 'center', marginBottom: spacing.lg },
 });
-
-export const getCountdownColor = (secondsLeft: number) => {
-  if (secondsLeft > 15) return palette.success;
-  if (secondsLeft > 5) return palette.warning;
-  return palette.danger;
-};
 
