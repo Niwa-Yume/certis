@@ -3,6 +3,7 @@ import { View, FlatList } from 'react-native';
 import { Text, Card, ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import api from '../lib/api';
+import watchImages from '../lib/watchImages';
 import { styles } from './index.styles';
 
 type Asset = {
@@ -46,6 +47,9 @@ export default function DashboardScreen() {
                         style={styles.card}
                         onPress={() => router.push(`/watch/${item.id}`)}
                     >
+                        {watchImages[item.reference] && (
+                            <Card.Cover source={watchImages[item.reference]} style={styles.watchImage} />
+                        )}
                         <Card.Content>
                             <Text variant="titleMedium">{item.brand} — {item.model}</Text>
                             <Text variant="bodySmall">{item.reference}</Text>

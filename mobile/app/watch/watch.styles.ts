@@ -5,13 +5,15 @@ import { sharedStyles } from '../shared.styles';
 export const styles = StyleSheet.create({
   container: sharedStyles.screenContainer,
   centered: sharedStyles.centered,
+  backButton: { alignSelf: 'flex-start', marginBottom: spacing.sm / 2 },
   title: sharedStyles.screenTitle,
-  card: { marginBottom: spacing.md, borderRadius: spacing.md },
+  card: { marginBottom: spacing.md, borderRadius: spacing.md, backgroundColor: palette.white },
   chip: { marginTop: spacing.sm, alignSelf: 'flex-start', backgroundColor: palette.porscheGreenSoft },
   qrContainer: { alignItems: 'center' },
   hint: { color: palette.neutralText, marginBottom: spacing.md, textAlign: 'center' },
   countdown: { fontSize: 48, fontWeight: '700', marginTop: spacing.md },
     transferButton: { marginTop: 8 },
+    watchImage: { height: 250, borderRadius: spacing.md },
 });
 
 export const getCountdownColor = (secondsLeft: number) => {

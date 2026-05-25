@@ -12,6 +12,15 @@ export default function TransferScreen() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
+    const goBack = () => {
+        if (router.canGoBack()) {
+            router.back();
+            return;
+        }
+
+        router.replace('/');
+    };
+
     const handleTransfer = async () => {
         if (!toOwnerId.trim()) {
             setError('Veuillez entrer un identifiant de propriétaire');
@@ -54,6 +63,9 @@ export default function TransferScreen() {
 
     return (
         <View style={styles.container}>
+            <Button mode="text" icon="arrow-left" onPress={goBack} style={styles.backButton}>
+                Retour
+            </Button>
             <Text variant="headlineMedium" style={styles.title}>
                 Transfert de propriété
             </Text>
@@ -82,6 +94,9 @@ export default function TransferScreen() {
                     >
                         Transférer
                     </Button>
+                    <Button mode="outlined" onPress={goBack} style={styles.cancelButton}>
+                        Annuler
+                    </Button>
                 </Card.Content>
             </Card>
         </View>
@@ -91,12 +106,14 @@ export default function TransferScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 16, backgroundColor: '#fff', paddingTop: 60 },
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
+    backButton: { alignSelf: 'flex-start', marginBottom: 8 },
     title: { marginBottom: 16, fontWeight: 'bold' },
-    card: { marginBottom: 16 },
+    card: { marginBottom: 16, backgroundColor: '#fff' },
     hint: { color: '#888', marginBottom: 12 },
     input: { marginBottom: 16 },
     error: { color: '#c62828', marginBottom: 12 },
     button: { marginTop: 8 },
+    cancelButton: { marginTop: 8 },
     icon: { fontSize: 64, marginBottom: 16 },
     successText: { fontWeight: 'bold', marginBottom: 8 },
     subtitle: { color: '#555', textAlign: 'center', marginBottom: 24 },
