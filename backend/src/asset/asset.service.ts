@@ -12,24 +12,25 @@ export class AssetService {
         private readonly nonce: NonceService,
     ) {}
 
-    async create(dto: CreateAssetDto) {
+    async create(dto: CreateAssetDto, ownerId: string) {
         const integrityHash = this.crypto.sign({
             brand: dto.brand,
             model: dto.model,
             reference: dto.reference,
-            ownerId: dto.ownerId,
+            ownerId,
         });
 
         return this.prisma.asset.create({
             data: {
                 ...dto,
+                ownerId,
                 integrityHash,
             },
         });
     }
 
-    async findAll() {
-        return this.prisma.asset.findMany();
+    async findAll(ownerId: string) {
+        return this.prisma.asset.findMany({ where: { ownerId } });
     }
 
     async findOne(id: string) {

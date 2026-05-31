@@ -3,5 +3,5 @@ export class CreateAssetDto {
     brand: string;
     model: string;
     reference: string;
-    ownerId: string;
+    imageUrl?: string;
 }

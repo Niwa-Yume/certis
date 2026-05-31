@@ -6,9 +6,11 @@ import { AssetModule } from './asset/asset.module';
 import { CryptoModule } from './crypto/crypto.module';
 import { NonceModule } from './nonce/nonce.module';
 import { TransferModule } from './transfer/transfer.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-    imports: [PrismaModule, CryptoModule, AssetModule, NonceModule, NonceModule, TransferModule],
+    imports: [PrismaModule, UserModule, AuthModule, CryptoModule, AssetModule, NonceModule, NonceModule, TransferModule],
   controllers: [AppController],
   providers: [AppService],
 })

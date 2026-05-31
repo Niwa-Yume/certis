@@ -20,12 +20,23 @@ model Asset {
   status        AssetStatus @default(ACTIVE)
   integrityHash String
   ownerId       String
+  imageUrl      String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
+  owner     User      @relation(fields: [ownerId], references: [id])
   nonces    AuthNonce[]
   events    Event[]
   transfers Transfer[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  assets Asset[]
 }
 
 model AuthNonce {
