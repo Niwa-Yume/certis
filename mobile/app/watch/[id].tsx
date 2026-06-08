@@ -6,7 +6,6 @@ import QRCode from 'react-native-qrcode-svg';
 import api from '../../lib/api';
 import { styles, getCountdownColor } from './watch.styles';
 import watchImages from '../../lib/watchImages';
-import BrandLogo from '../../components/BrandLogo';
 
 type Watch = {
     id: string;
@@ -17,6 +16,7 @@ type Watch = {
     status: string;
     ownerId: string;
     integrityHash: string;
+    imageUrl?: string;
 };
 
 export default function WatchScreen() {
@@ -25,6 +25,9 @@ export default function WatchScreen() {
     const [nonce, setNonce] = useState<string | null>(null);
     const [secondsLeft, setSecondsLeft] = useState<number>(0);
     const [expiresAt, setExpiresAt] = useState<Date | null>(null);
+    const [transferNonce, setTransferNonce] = useState<string | null>(null);
+    const [transferSecondsLeft, setTransferSecondsLeft] = useState<number>(0);
+    const [transferExpiresAt, setTransferExpiresAt] = useState<Date | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const router = useRouter();
@@ -34,8 +37,7 @@ export default function WatchScreen() {
             router.back();
             return;
         }
-
-        router.replace('/');
+        router.replace('/dashboard');
     };
 
     useEffect(() => {
@@ -45,24 +47,27 @@ export default function WatchScreen() {
             .finally(() => setLoading(false));
     }, [id]);
 
-    // Countdown
+    // Countdown nonce auth
     useEffect(() => {
         if (!expiresAt) return;
-
         const interval = setInterval(() => {
             const remaining = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
-
             setSecondsLeft(remaining);
-
-            if (remaining === 0) {
-                clearInterval(interval);
-                setNonce(null);
-                setExpiresAt(null);
-            }
+            if (remaining === 0) { clearInterval(interval); setNonce(null); setExpiresAt(null); }
         }, 1000);
-
         return () => clearInterval(interval);
     }, [expiresAt]);
+
+    // Countdown nonce transfert
+    useEffect(() => {
+        if (!transferExpiresAt) return;
+        const interval = setInterval(() => {
+            const remaining = Math.max(0, Math.floor((transferExpiresAt.getTime() - Date.now()) / 1000));
+            setTransferSecondsLeft(remaining);
+            if (remaining === 0) { clearInterval(interval); setTransferNonce(null); setTransferExpiresAt(null); }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [transferExpiresAt]);
 
     const generateNonce = async () => {
         setRefreshing(true);
@@ -79,6 +84,20 @@ export default function WatchScreen() {
 
     const getQrValue = () => {
         return `exp://192.168.1.140:8081/--/verify?id=${id}&nonce=${nonce}`;
+    };
+
+    const generateTransferNonce = async () => {
+        try {
+            const res = await api.get(`/assets/${id}/nonce`);
+            setTransferNonce(res.data.nonce);
+            setTransferExpiresAt(new Date(res.data.expiresAt));
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const getTransferQrValue = () => {
+        return `exp://192.168.1.140:8081/--/claim?id=${id}&nonce=${transferNonce}`;
     };
 
     if (loading) {
@@ -104,15 +123,12 @@ export default function WatchScreen() {
             <Button mode="text" icon="arrow-left" onPress={goBackToList} style={styles.backButton}>
                 Retour a la liste
             </Button>
-            <View style={styles.headerRow}>
-                <BrandLogo size={40} />
-                <Text variant="headlineMedium" style={styles.title}>{watch.name}</Text>
-            </View>
+            <Text variant="headlineMedium" style={styles.title}>{watch.name}</Text>
 
             <Card style={styles.card}>
-                {watchImages[watch.reference] && (
+                {(watch.imageUrl || watchImages[watch.reference]) && (
                     <Card.Cover
-                        source={watchImages[watch.reference]}
+                        source={watch.imageUrl ? { uri: watch.imageUrl } : watchImages[watch.reference]}
                         style={styles.watchImage}
                     />
                 )}
@@ -152,12 +168,31 @@ export default function WatchScreen() {
                     >
                         {nonce ? 'Régénérer le QR' : 'Générer le QR'}
                     </Button>
-                    <Button
-                        mode="outlined"
-                        onPress={() => router.push(`/transfer/${id}`)}
-                        style={styles.transferButton}
-                    >
-                        Transférer la propriété
+                </Card.Content>
+            </Card>
+
+            <Card style={styles.card}>
+                <Card.Content style={styles.qrContainer}>
+                    <Text variant="titleMedium">Transférer la propriété</Text>
+                    <Text variant="bodyMedium" style={styles.hint}>
+                        Le receveur scanne ce QR depuis son compte Certis pour récupérer la montre.
+                    </Text>
+
+                    {transferNonce ? (
+                        <>
+                            <QRCode value={getTransferQrValue()} size={220} />
+                            <Text style={[styles.countdown, { color: getCountdownColor(transferSecondsLeft) }]}>
+                                {transferSecondsLeft}s
+                            </Text>
+                        </>
+                    ) : (
+                        <Text variant="bodyMedium" style={styles.hint}>
+                            Génère un QR de transfert à faire scanner par le receveur
+                        </Text>
+                    )}
+
+                    <Button mode="outlined" onPress={generateTransferNonce}>
+                        {transferNonce ? 'Régénérer le QR de transfert' : 'Générer le QR de transfert'}
                     </Button>
                 </Card.Content>
             </Card>

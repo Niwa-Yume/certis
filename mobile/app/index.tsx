@@ -1,77 +1,59 @@
 import { useEffect, useState } from 'react';
-import { View, FlatList } from 'react-native';
-import { Text, Card, ActivityIndicator, Button } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import api from '../lib/api';
-import watchImages from '../lib/watchImages';
+import { View } from 'react-native';
+import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+import { ActivityIndicator, Button, Text } from 'react-native-paper';
 import BrandLogo from '../components/BrandLogo';
-import { styles } from './index.styles';
+import { sharedStyles } from './shared.styles';
+import { palette, spacing } from '../theme/tokens';
 
-type Asset = {
-    id: string;
-    name: string;
-    brand: string;
-    model: string;
-    reference: string;
-    status: string;
-    ownerId: string;
-};
+export const ACCESS_TOKEN_KEY = 'certis_access_token';
 
-export default function DashboardScreen() {
+export default function IndexScreen() {
     const router = useRouter();
-    const { refresh } = useLocalSearchParams<{ refresh?: string }>();
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [checking, setChecking] = useState(true);
 
     useEffect(() => {
-        setLoading(true);
-        api.get('/assets')
-            .then(res => setAssets(res.data))
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, [refresh]);
+        SecureStore.getItemAsync(ACCESS_TOKEN_KEY).then((token) => {
+            if (token) {
+                router.replace('/dashboard');
+            } else {
+                setChecking(false);
+            }
+        });
+    }, []);
 
-    if (loading) {
+    if (checking) {
         return (
-            <View style={styles.centered}>
+            <View style={sharedStyles.centered}>
                 <ActivityIndicator size="large" />
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.headerRow}>
-                <BrandLogo size={44} />
-                <Text variant="headlineMedium" style={styles.title}>Certis</Text>
-            </View>
+        <View style={[sharedStyles.screenContainer, { alignItems: 'center', justifyContent: 'center' }]}>
+            <BrandLogo size={80} />
+            <Text variant="headlineMedium" style={{ marginTop: spacing.lg, marginBottom: spacing.sm, fontWeight: '700', color: palette.textStrong }}>
+                Certis
+            </Text>
+            <Text variant="bodyMedium" style={{ color: palette.neutralText, marginBottom: spacing.xl, textAlign: 'center' }}>
+                Authentifiez vos montres de luxe via ECDSA
+            </Text>
             <Button
                 mode="contained"
-                icon="plus"
-                onPress={() => router.push('/watch/new')}
-                style={styles.addButton}
+                onPress={() => router.push('/login')}
+                style={{ width: '100%', marginBottom: spacing.md }}
             >
-                Ajouter une montre
+                Se connecter
             </Button>
-            <FlatList
-                data={assets}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                    <Card
-                        style={styles.card}
-                        onPress={() => router.push(`/watch/${item.id}`)}
-                    >
-                        {watchImages[item.reference] && (
-                            <Card.Cover source={watchImages[item.reference]} style={styles.watchImage} />
-                        )}
-                        <Card.Content>
-                            <Text variant="titleMedium">{item.brand} — {item.model}</Text>
-                            <Text variant="bodySmall">{item.reference}</Text>
-                            <Text variant="bodySmall" style={styles.status}>{item.status}</Text>
-                        </Card.Content>
-                    </Card>
-                )}
-            />
+            <Button
+                mode="outlined"
+                onPress={() => router.push('/register')}
+                style={{ width: '100%' }}
+            >
+                Créer un compte
+            </Button>
         </View>
     );
 }
