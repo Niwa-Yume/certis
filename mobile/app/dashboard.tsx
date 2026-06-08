@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, FlatList } from 'react-native';
 import { Text, Card, ActivityIndicator, Button } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import api from '../lib/api';
 import watchImages from '../lib/watchImages';
@@ -26,13 +27,27 @@ export default function DashboardScreen() {
     const [assets, setAssets] = useState<Asset[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const loadAssets = useCallback(() => {
+        let cancelled = false;
         setLoading(true);
+
         api.get('/assets')
-            .then(res => setAssets(res.data))
+            .then((res) => {
+                if (!cancelled) setAssets(res.data);
+            })
             .catch(console.error)
-            .finally(() => setLoading(false));
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
     }, [refresh]);
+
+    useFocusEffect(
+        useCallback(() => loadAssets(), [loadAssets]),
+    );
 
     const logout = async () => {
         await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
@@ -89,4 +104,3 @@ export default function DashboardScreen() {
         </View>
     );
 }
-
