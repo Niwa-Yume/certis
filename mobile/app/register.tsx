@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Button, HelperText, Text, TextInput } from 'react-native-paper';
 import api from '../lib/api';
 import { sharedStyles } from './shared.styles';
+import BrandLogo from '../components/BrandLogo';
+import { palette, radius, spacing } from '../theme/tokens';
 
 export default function RegisterScreen() {
     const router = useRouter();
@@ -33,36 +35,62 @@ export default function RegisterScreen() {
 
     return (
         <View style={sharedStyles.screenContainer}>
-            <Text variant="headlineMedium" style={sharedStyles.screenTitle}>Inscription</Text>
-            <TextInput
-                mode="outlined"
-                label="Email"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-                style={{ marginBottom: 12 }}
-            />
-            <TextInput
-                mode="outlined"
-                label="Mot de passe"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-                style={{ marginBottom: 4 }}
-            />
-            <HelperText type="error" visible={Boolean(error)}>
-                {error ?? ' '}
-            </HelperText>
-            <Button mode="contained" onPress={submit} loading={loading} disabled={loading}>
-                Creer mon compte
-            </Button>
+            <View style={styles.header}>
+                <BrandLogo size={42} />
+                <Text variant="headlineMedium" style={styles.title}>Créer un compte</Text>
+            </View>
+            <Text variant="bodyMedium" style={styles.subtitle}>
+                Lancez votre coffre numérique d'actifs horlogers en moins d'une minute.
+            </Text>
+
+            <View style={styles.card}>
+                <TextInput
+                    mode="outlined"
+                    label="Email"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                    style={styles.input}
+                />
+                <TextInput
+                    mode="outlined"
+                    label="Mot de passe"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                    style={styles.passwordInput}
+                />
+                <HelperText type="error" visible={Boolean(error)}>
+                    {error ?? ' '}
+                </HelperText>
+                <Button mode="contained" onPress={submit} loading={loading} disabled={loading}>
+                    Créer mon compte
+                </Button>
+            </View>
+
             <Link href="/login" asChild>
-                <Button mode="text" style={{ marginTop: 12 }}>
-                    Deja un compte ? Se connecter
+                <Button mode="text" style={styles.linkButton}>
+                    Déjà un compte ? Se connecter
                 </Button>
             </Link>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    header: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+    title: { color: palette.textStrong, fontWeight: '700' },
+    subtitle: { color: palette.neutralText, marginBottom: spacing.lg },
+    card: {
+        borderWidth: 1,
+        borderColor: palette.border,
+        borderRadius: radius.lg,
+        backgroundColor: palette.surfaceElevated,
+        padding: spacing.md,
+    },
+    input: { marginBottom: spacing.sm },
+    passwordInput: { marginBottom: spacing.xs },
+    linkButton: { marginTop: spacing.md },
+});
 

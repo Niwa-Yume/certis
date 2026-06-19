@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
 export const getVerifyBackgroundColor = (valid: boolean | null) => {
   if (valid === true) return palette.successSoft;
   if (valid === false) return palette.dangerSoft;
-  return palette.white;
+  return palette.background;
 };
 
 export const getVerifyResultColor = (valid: boolean | null) => {

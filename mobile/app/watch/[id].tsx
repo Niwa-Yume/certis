@@ -100,6 +100,16 @@ export default function WatchScreen() {
         return `exp://192.168.1.140:8081/--/claim?id=${id}&nonce=${transferNonce}`;
     };
 
+    const formatOwner = (ownerId: string) => {
+        if (ownerId.length <= 14) return ownerId;
+        return `${ownerId.slice(0, 8)}...${ownerId.slice(-6)}`;
+    };
+
+    const formatHash = (hash: string) => {
+        if (hash.length <= 20) return hash;
+        return `${hash.slice(0, 12)}...${hash.slice(-8)}`;
+    };
+
     if (loading) {
         return (
             <View style={styles.centered}>
@@ -119,11 +129,14 @@ export default function WatchScreen() {
         );
     }
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             <Button mode="text" icon="arrow-left" onPress={goBackToList} style={styles.backButton}>
                 Retour a la liste
             </Button>
             <Text variant="headlineMedium" style={styles.title}>{watch.name}</Text>
+            <Text variant="bodyMedium" style={styles.subtitle}>
+                {watch.brand} {watch.model} - Reference {watch.reference}
+            </Text>
 
             <Card style={styles.card}>
                 {(watch.imageUrl || watchImages[watch.reference]) && (
@@ -132,25 +145,52 @@ export default function WatchScreen() {
                         style={styles.watchImage}
                     />
                 )}
-                <Card.Content>
-                    <Text variant="titleMedium">Informations</Text>
-                    <Text variant="bodyMedium">Marque : {watch.brand}</Text>
-                    <Text variant="bodyMedium">Modèle : {watch.model}</Text>
-                    <Text variant="bodyMedium">Référence : {watch.reference}</Text>
-                    <Text variant="bodyMedium">Propriétaire : {watch.ownerId}</Text>
-                    <Chip style={styles.chip}>{watch.status}</Chip>
+                {!(watch.imageUrl || watchImages[watch.reference]) && (
+                    <View style={styles.emptyImage}>
+                        <Text style={styles.emptyImageText}>Aucune image disponible</Text>
+                    </View>
+                )}
+                <Card.Content style={styles.detailsCardContent}>
+                    <Text variant="titleMedium" style={styles.sectionTitle}>Fiche d'identite</Text>
+
+                    <View style={styles.row}>
+                        <Text variant="bodyMedium" style={styles.rowLabel}>Marque</Text>
+                        <Text variant="bodyMedium" style={styles.rowValue}>{watch.brand}</Text>
+                    </View>
+                    <View style={styles.row}>
+                        <Text variant="bodyMedium" style={styles.rowLabel}>Modele</Text>
+                        <Text variant="bodyMedium" style={styles.rowValue}>{watch.model}</Text>
+                    </View>
+                    <View style={styles.row}>
+                        <Text variant="bodyMedium" style={styles.rowLabel}>Reference</Text>
+                        <Text variant="bodyMedium" style={styles.rowValue}>{watch.reference}</Text>
+                    </View>
+
+                    <View style={styles.divider} />
+
+                    <View style={styles.row}>
+                        <Text variant="bodyMedium" style={styles.rowLabel}>Proprietaire</Text>
+                        <Text variant="bodyMedium" style={styles.rowValue}>{formatOwner(watch.ownerId)}</Text>
+                    </View>
+                    <View style={styles.row}>
+                        <Text variant="bodyMedium" style={styles.rowLabel}>Empreinte</Text>
+                        <Text variant="bodyMedium" style={styles.rowValue}>{formatHash(watch.integrityHash)}</Text>
+                    </View>
+                    <Chip style={styles.chip} textStyle={styles.chipText}>{watch.status}</Chip>
                 </Card.Content>
             </Card>
 
             <Card style={styles.card}>
                 <Card.Content style={styles.qrContainer}>
-                    <Text variant="titleMedium">
-                        QR Code d'authentification
-                    </Text>
+                    <View style={styles.qrCardHeader}>
+                        <Text variant="titleMedium" style={styles.sectionTitle}>QR d'authentification</Text>
+                    </View>
 
                     {nonce ? (
                         <>
-                            <QRCode value={getQrValue()} size={220} />
+                            <View style={styles.qrWrap}>
+                                <QRCode value={getQrValue()} size={220} />
+                            </View>
                             <Text style={[styles.countdown, { color: getCountdownColor(secondsLeft) }]}>
                                 {secondsLeft}s
                             </Text>
@@ -173,25 +213,25 @@ export default function WatchScreen() {
 
             <Card style={styles.card}>
                 <Card.Content style={styles.qrContainer}>
-                    <Text variant="titleMedium">Transférer la propriété</Text>
-                    <Text variant="bodyMedium" style={styles.hint}>
-                        Le receveur scanne ce QR depuis son compte Certis pour récupérer la montre.
-                    </Text>
+                    <View style={styles.qrCardHeader}>
+                        <Text variant="titleMedium" style={styles.sectionTitle}>Transfert securise</Text>
+                        <Text variant="bodyMedium" style={styles.hint}>
+                            Le receveur scanne ce QR depuis son compte Certis pour recuperer la montre.
+                        </Text>
+                    </View>
 
                     {transferNonce ? (
                         <>
-                            <QRCode value={getTransferQrValue()} size={220} />
+                            <View style={styles.qrWrap}>
+                                <QRCode value={getTransferQrValue()} size={220} />
+                            </View>
                             <Text style={[styles.countdown, { color: getCountdownColor(transferSecondsLeft) }]}>
                                 {transferSecondsLeft}s
                             </Text>
                         </>
-                    ) : (
-                        <Text variant="bodyMedium" style={styles.hint}>
-                            Génère un QR de transfert à faire scanner par le receveur
-                        </Text>
-                    )}
+                    ) : null}
 
-                    <Button mode="outlined" onPress={generateTransferNonce}>
+                    <Button mode="outlined" onPress={generateTransferNonce} style={styles.transferButton}>
                         {transferNonce ? 'Régénérer le QR de transfert' : 'Générer le QR de transfert'}
                     </Button>
                 </Card.Content>

@@ -3,6 +3,7 @@ import { palette } from './tokens';
 
 export const appTheme: MD3Theme = {
   ...MD3LightTheme,
+  roundness: 16,
   colors: {
     ...MD3LightTheme.colors,
     primary: palette.porscheGreen,
@@ -17,9 +18,10 @@ export const appTheme: MD3Theme = {
     onTertiary: palette.white,
     tertiaryContainer: '#E0F0E1',
     onTertiaryContainer: '#183421',
-    background: palette.surface,
-    surface: palette.white,
+    background: palette.background,
+    surface: palette.surface,
     surfaceVariant: '#EEF2EF',
+    outline: palette.border,
     inversePrimary: '#66C58F',
   },
 };

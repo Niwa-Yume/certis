@@ -9,6 +9,7 @@ import watchImages from '../lib/watchImages';
 import BrandLogo from '../components/BrandLogo';
 import { styles } from './index.styles';
 import { ACCESS_TOKEN_KEY } from './index';
+import { palette } from '../theme/tokens';
 
 type Asset = {
     id: string;
@@ -71,6 +72,15 @@ export default function DashboardScreen() {
                     Déconnexion
                 </Button>
             </View>
+
+            <View style={styles.hero}>
+                <Text variant="labelLarge" style={styles.collectionTag}>Collection privee</Text>
+                <Text variant="titleLarge">{assets.length} pièce{assets.length > 1 ? 's' : ''} certifiée{assets.length > 1 ? 's' : ''}</Text>
+                <Text variant="bodyMedium" style={{ color: palette.neutralText, marginTop: 6 }}>
+                    Chaque actif dispose d'une preuve cryptographique, traçable en quelques secondes.
+                </Text>
+            </View>
+
             <Button
                 mode="contained"
                 icon="plus"
@@ -82,6 +92,15 @@ export default function DashboardScreen() {
             <FlatList
                 data={assets}
                 keyExtractor={item => item.id}
+                contentContainerStyle={styles.listContent}
+                ListEmptyComponent={(
+                    <View style={styles.emptyCard}>
+                        <Text variant="titleMedium">Votre collection est vide</Text>
+                        <Text variant="bodyMedium" style={styles.emptyHint}>
+                            Créez votre premier actif pour démarrer une expérience premium de certification.
+                        </Text>
+                    </View>
+                )}
                 renderItem={({ item }) => (
                     <Card
                         style={styles.card}

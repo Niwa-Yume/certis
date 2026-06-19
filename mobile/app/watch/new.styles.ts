@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { palette, spacing } from '../../theme/tokens';
+import { palette, radius, spacing } from '../../theme/tokens';
 import { sharedStyles } from '../shared.styles';
 
 export const styles = StyleSheet.create({
@@ -8,7 +8,13 @@ export const styles = StyleSheet.create({
   backButton: { alignSelf: 'flex-start', marginBottom: spacing.sm / 2 },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   title: { ...sharedStyles.screenTitle, marginBottom: 0 },
-  card: { marginBottom: spacing.md, borderRadius: spacing.md, backgroundColor: palette.white },
+  card: {
+    marginBottom: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: palette.surfaceElevated,
+    borderWidth: 1,
+    borderColor: palette.border,
+  },
   hint: { color: palette.neutralText, marginBottom: spacing.md },
   input: { marginBottom: spacing.sm },
   error: { color: palette.danger, marginBottom: spacing.sm },

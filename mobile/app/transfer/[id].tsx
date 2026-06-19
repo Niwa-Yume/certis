@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, Button, Card, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import api from '../../lib/api';
+import { palette, radius, spacing } from '../../theme/tokens';
 
 export default function TransferScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -104,17 +105,23 @@ export default function TransferScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16, backgroundColor: '#fff', paddingTop: 60 },
-    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
+    container: { flex: 1, padding: spacing.md, backgroundColor: palette.background, paddingTop: spacing.xxl },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, backgroundColor: palette.background },
     backButton: { alignSelf: 'flex-start', marginBottom: 8 },
-    title: { marginBottom: 16, fontWeight: 'bold' },
-    card: { marginBottom: 16, backgroundColor: '#fff' },
-    hint: { color: '#888', marginBottom: 12 },
-    input: { marginBottom: 16 },
-    error: { color: '#c62828', marginBottom: 12 },
+    title: { marginBottom: spacing.md, fontWeight: '700', color: palette.textStrong },
+    card: {
+        marginBottom: spacing.md,
+        backgroundColor: palette.surfaceElevated,
+        borderWidth: 1,
+        borderColor: palette.border,
+        borderRadius: radius.md,
+    },
+    hint: { color: palette.neutralText, marginBottom: spacing.sm },
+    input: { marginBottom: spacing.md },
+    error: { color: palette.danger, marginBottom: spacing.sm },
     button: { marginTop: 8 },
     cancelButton: { marginTop: 8 },
-    icon: { fontSize: 64, marginBottom: 16 },
-    successText: { fontWeight: 'bold', marginBottom: 8 },
-    subtitle: { color: '#555', textAlign: 'center', marginBottom: 24 },
+    icon: { fontSize: 64, marginBottom: spacing.md },
+    successText: { fontWeight: '700', marginBottom: spacing.sm, color: palette.textStrong },
+    subtitle: { color: palette.neutralText, textAlign: 'center', marginBottom: spacing.lg },
 });

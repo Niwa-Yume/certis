@@ -15,7 +15,11 @@
     },
     "ios": {
       "icon": "./assets/logo-certis.png",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jujuledev.mobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "icon": "./assets/logo-certis.png",
@@ -31,6 +35,12 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "cad0a25a-08c2-4105-9fba-5cae8af9aa4a"
+      }
+    }
   }
 }
