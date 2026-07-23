@@ -6,8 +6,7 @@ import { ActivityIndicator, Button, Text } from 'react-native-paper';
 import BrandLogo from '../components/BrandLogo';
 import { sharedStyles } from './shared.styles';
 import { palette, radius, spacing } from '../theme/tokens';
-
-export const ACCESS_TOKEN_KEY = 'certis_access_token';
+import { ACCESS_TOKEN_KEY } from '../lib/auth';
 
 export default function IndexScreen() {
     const router = useRouter();
@@ -37,12 +36,12 @@ export default function IndexScreen() {
                 <View style={styles.logoWrap}>
                     <BrandLogo size={84} />
                 </View>
-                <Text variant="headlineMedium" style={styles.brandName}>Certis</Text>
+                <Text variant="headlineMedium" style={styles.brandName}>Audemars Piguet</Text>
                 <Text variant="titleMedium" style={styles.title}>
-                    Infrastructure de confiance pour l'horlogerie
+                    Registre d'authenticité horlogère
                 </Text>
                 <Text variant="bodyMedium" style={styles.subtitle}>
-                    Une identité numérique inviolable pour chaque pièce, de l'acquisition au transfert.
+                    Suivez, authentifiez et transmettez chaque pièce dans un parcours sécurisé.
                 </Text>
             </View>
 
@@ -103,4 +102,3 @@ const styles = StyleSheet.create({
     primaryButton: { width: '100%', marginBottom: spacing.md },
     secondaryButton: { width: '100%' },
 });
-

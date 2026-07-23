@@ -216,7 +216,7 @@ export default function WatchScreen() {
                     <View style={styles.qrCardHeader}>
                         <Text variant="titleMedium" style={styles.sectionTitle}>Transfert securise</Text>
                         <Text variant="bodyMedium" style={styles.hint}>
-                            Le receveur scanne ce QR depuis son compte Certis pour recuperer la montre.
+                            Le receveur scanne ce QR depuis son compte pour recuperer la montre.
                         </Text>
                     </View>
 
@@ -239,4 +239,3 @@ export default function WatchScreen() {
         </ScrollView>
     );
 }
-

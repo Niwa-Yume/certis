@@ -1,20 +1,20 @@
 export const palette = {
-  porscheGreen: '#1E8F4E',
-  porscheGreenSoft: '#DFF3E8',
-  primaryGold: '#1E8F4E',
-  primaryGoldSoft: '#DFF3E8',
-  background: '#F7F9F8',
-  surface: '#FFFFFF',
-  surfaceElevated: '#FFFFFF',
-  border: '#D8E0DB',
+  porscheGreen: '#3AA06F',
+  porscheGreenSoft: '#143726',
+  primaryGold: '#5FCF97',
+  primaryGoldSoft: '#DDF3E8',
+  background: '#050806',
+  surface: '#0D1410',
+  surfaceElevated: '#111B15',
+  border: '#2A4437',
   white: '#FFFFFF',
-  success: '#2E7D32',
-  successSoft: '#E8F5E9',
-  warning: '#F57C00',
-  danger: '#C62828',
-  dangerSoft: '#FFEBEE',
-  neutralText: '#6B7280',
-  textStrong: '#111827',
+  success: '#5FCF97',
+  successSoft: '#123724',
+  warning: '#FFB74D',
+  danger: '#FF6B6B',
+  dangerSoft: '#3A1111',
+  neutralText: '#B9C8BF',
+  textStrong: '#F2F7F3',
 };
 
 export const spacing = {
@@ -32,4 +32,3 @@ export const radius = {
   lg: 24,
   pill: 999,
 };
-

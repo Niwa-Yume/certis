@@ -49,7 +49,7 @@ export default function ClaimScreen() {
                 Réception d'une montre
             </Text>
             <Text variant="bodyMedium" style={{ color: palette.neutralText, marginBottom: spacing.xl }}>
-                Tu es sur le point de récupérer la propriété d'une montre Certis.
+                Tu es sur le point de récupérer la propriété d'une montre certifiée.
                 Confirme pour l'ajouter à ton compte.
             </Text>
             {error && (
@@ -70,4 +70,3 @@ export default function ClaimScreen() {
         </View>
     );
 }
-
