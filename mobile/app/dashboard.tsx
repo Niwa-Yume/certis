@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, FlatList } from 'react-native';
+import axios from 'axios';
 import { Text, Card, ActivityIndicator, Button } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -36,7 +37,15 @@ export default function DashboardScreen() {
             .then((res) => {
                 if (!cancelled) setAssets(res.data);
             })
-            .catch(console.error)
+            .catch(async (error) => {
+                if (axios.isAxiosError(error) && error.response?.status === 401) {
+                    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+                    if (!cancelled) router.replace('/');
+                    return;
+                }
+
+                console.error(error);
+            })
             .finally(() => {
                 if (!cancelled) setLoading(false);
             });
@@ -44,7 +53,7 @@ export default function DashboardScreen() {
         return () => {
             cancelled = true;
         };
-    }, [refresh]);
+    }, [refresh, router]);
 
     useFocusEffect(
         useCallback(() => loadAssets(), [loadAssets]),
