@@ -5,7 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Button, HelperText, Text, TextInput } from 'react-native-paper';
 import api from '../lib/api';
 import { sharedStyles } from './shared.styles';
-import { ACCESS_TOKEN_KEY } from './index';
+import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import BrandLogo from '../components/BrandLogo';
 import { palette, radius, spacing } from '../theme/tokens';
 
@@ -43,7 +43,7 @@ export default function LoginScreen() {
                 <Text variant="headlineMedium" style={styles.title}>Espace privé</Text>
             </View>
             <Text variant="bodyMedium" style={styles.subtitle}>
-                Connectez-vous pour accéder à votre collection certifiée.
+                Connectez-vous pour accéder à votre collection privée.
             </Text>
 
             <View style={styles.card}>
@@ -96,4 +96,3 @@ const styles = StyleSheet.create({
     passwordInput: { marginBottom: spacing.xs },
     linkButton: { marginTop: spacing.md },
 });
-

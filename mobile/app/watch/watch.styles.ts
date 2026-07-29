@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
     backgroundColor: palette.porscheGreenSoft,
     borderRadius: radius.pill,
   },
-  chipText: { color: palette.porscheGreen, fontWeight: '700' },
+  chipText: { color: palette.primaryGoldSoft, fontWeight: '700' },
   qrContainer: { alignItems: 'center' },
   qrCardHeader: { width: '100%', marginBottom: spacing.md },
   hint: { color: palette.neutralText, marginBottom: spacing.md, textAlign: 'center' },
@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: palette.porscheGreenSoft,
   },
-  emptyImageText: { color: palette.porscheGreen, fontWeight: '600' },
+  emptyImageText: { color: palette.primaryGoldSoft, fontWeight: '600' },
 });
 
 export const getCountdownColor = (secondsLeft: number) => {
@@ -58,4 +58,3 @@ export const getCountdownColor = (secondsLeft: number) => {
   if (secondsLeft > 5) return palette.warning;
   return palette.danger;
 };
-

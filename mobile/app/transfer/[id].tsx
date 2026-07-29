@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, Button, Card, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import api from '../../lib/api';
+import BrandLogo from '../../components/BrandLogo';
 import { palette, radius, spacing } from '../../theme/tokens';
 
 export default function TransferScreen() {
@@ -44,6 +45,9 @@ export default function TransferScreen() {
     if (success) {
         return (
             <View style={styles.centered}>
+                <View style={{ marginBottom: spacing.lg }}>
+                    <BrandLogo size={64} />
+                </View>
                 <Text style={styles.icon}>✅</Text>
                 <Text variant="headlineSmall" style={styles.successText}>
                     Transfert effectué
@@ -64,6 +68,10 @@ export default function TransferScreen() {
 
     return (
         <View style={styles.container}>
+            <View style={styles.brandHeader}>
+                <BrandLogo size={40} />
+                <Text variant="titleLarge" style={styles.brandTitle}>Audemars Piguet</Text>
+            </View>
             <Button mode="text" icon="arrow-left" onPress={goBack} style={styles.backButton}>
                 Retour
             </Button>
@@ -107,6 +115,8 @@ export default function TransferScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, padding: spacing.md, backgroundColor: palette.background, paddingTop: spacing.xxl },
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, backgroundColor: palette.background },
+    brandHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+    brandTitle: { color: palette.primaryGoldSoft, fontWeight: '700' },
     backButton: { alignSelf: 'flex-start', marginBottom: 8 },
     title: { marginBottom: spacing.md, fontWeight: '700', color: palette.textStrong },
     card: {

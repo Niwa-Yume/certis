@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Text, Card, Button, ActivityIndicator, Chip } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Linking from 'expo-linking';
 import QRCode from 'react-native-qrcode-svg';
 import api from '../../lib/api';
 import { styles, getCountdownColor } from './watch.styles';
 import watchImages from '../../lib/watchImages';
+import BrandLogo from '../../components/BrandLogo';
 
 type Watch = {
     id: string;
@@ -83,7 +85,9 @@ export default function WatchScreen() {
     };
 
     const getQrValue = () => {
-        return `exp://192.168.1.140:8081/--/verify?id=${id}&nonce=${nonce}`;
+        return Linking.createURL('/verify', {
+            queryParams: { id, nonce: nonce ?? '' },
+        });
     };
 
     const generateTransferNonce = async () => {
@@ -97,7 +101,9 @@ export default function WatchScreen() {
     };
 
     const getTransferQrValue = () => {
-        return `exp://192.168.1.140:8081/--/claim?id=${id}&nonce=${transferNonce}`;
+        return Linking.createURL('/claim', {
+            queryParams: { id, nonce: transferNonce ?? '' },
+        });
     };
 
     const formatOwner = (ownerId: string) => {
@@ -133,6 +139,10 @@ export default function WatchScreen() {
             <Button mode="text" icon="arrow-left" onPress={goBackToList} style={styles.backButton}>
                 Retour a la liste
             </Button>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <BrandLogo size={36} />
+                <Text variant="titleMedium" style={{ fontWeight: '700' }}>Audemars Piguet</Text>
+            </View>
             <Text variant="headlineMedium" style={styles.title}>{watch.name}</Text>
             <Text variant="bodyMedium" style={styles.subtitle}>
                 {watch.brand} {watch.model} - Reference {watch.reference}
@@ -216,7 +226,7 @@ export default function WatchScreen() {
                     <View style={styles.qrCardHeader}>
                         <Text variant="titleMedium" style={styles.sectionTitle}>Transfert securise</Text>
                         <Text variant="bodyMedium" style={styles.hint}>
-                            Le receveur scanne ce QR depuis son compte Certis pour recuperer la montre.
+                            Le receveur scanne ce QR depuis son compte pour recuperer la montre.
                         </Text>
                     </View>
 
@@ -239,4 +249,3 @@ export default function WatchScreen() {
         </ScrollView>
     );
 }
-

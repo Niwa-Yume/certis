@@ -40,7 +40,7 @@ export default function RegisterScreen() {
                 <Text variant="headlineMedium" style={styles.title}>Créer un compte</Text>
             </View>
             <Text variant="bodyMedium" style={styles.subtitle}>
-                Lancez votre coffre numérique d'actifs horlogers en moins d'une minute.
+                Créez votre espace sécurisé pour gérer vos pièces horlogères.
             </Text>
 
             <View style={styles.card}>
@@ -93,4 +93,3 @@ const styles = StyleSheet.create({
     passwordInput: { marginBottom: spacing.xs },
     linkButton: { marginTop: spacing.md },
 });
-

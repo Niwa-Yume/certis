@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { ActivityIndicator, Button, Text } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import api from '../lib/api';
+import BrandLogo from '../components/BrandLogo';
 import { sharedStyles } from './shared.styles';
 import { palette, spacing } from '../theme/tokens';
 
@@ -29,6 +30,9 @@ export default function ClaimScreen() {
     if (claimed) {
         return (
             <View style={[sharedStyles.centered, { backgroundColor: palette.successSoft }]}>
+                <View style={{ marginBottom: spacing.lg }}>
+                    <BrandLogo size={68} />
+                </View>
                 <Text style={{ fontSize: 72, marginBottom: spacing.lg }}>✅</Text>
                 <Text variant="headlineMedium" style={{ fontWeight: '700', color: palette.success, marginBottom: spacing.sm, textAlign: 'center' }}>
                     Montre reçue !
@@ -45,11 +49,14 @@ export default function ClaimScreen() {
 
     return (
         <View style={sharedStyles.screenContainer}>
+            <View style={{ alignItems: 'center', marginBottom: spacing.md }}>
+                <BrandLogo size={72} />
+            </View>
             <Text variant="headlineMedium" style={sharedStyles.screenTitle}>
                 Réception d'une montre
             </Text>
             <Text variant="bodyMedium" style={{ color: palette.neutralText, marginBottom: spacing.xl }}>
-                Tu es sur le point de récupérer la propriété d'une montre Certis.
+                Tu es sur le point de récupérer la propriété d'une montre certifiée.
                 Confirme pour l'ajouter à ton compte.
             </Text>
             {error && (
@@ -70,4 +77,3 @@ export default function ClaimScreen() {
         </View>
     );
 }
-
