@@ -1,192 +1,151 @@
-# Guide de démarrage professeur — Certis (Expo Go + 2 téléphones)
+# Guide de demarrage professeur - Certis (Expo Go + 2 telephones)
 
-Ce guide explique **pas à pas** comment lancer le projet Certis pour une démonstration avec **2 téléphones** via **Expo Go**, même sans connaître le projet au préalable.
+Ce guide sert a lancer la demonstration complete de Certis sans preparation technique avancee.
 
-## 1) Comprendre rapidement le projet
+## 1) Resume en 30 secondes
 
-Certis est une application mobile qui permet de :
+Certis permet de :
 
-- créer un compte utilisateur ;
-- se connecter ;
-- ajouter des montres (assets) ;
-- prouver l’authenticité via un QR temporaire ;
-- transférer la propriété d’une montre d’un compte à un autre.
+- creer des comptes utilisateur ;
+- enregistrer des montres ;
+- generer un QR d'authentification ;
+- transferer la propriete d'une montre a un autre utilisateur via QR temporaire.
 
 Architecture :
 
-- **Frontend mobile** : Expo / React Native (dossier `mobile/`) ;
-- **Backend API** : NestJS (dossier `backend/`) ;
-- **Base de données** : PostgreSQL (lancée avec Docker).
+- mobile `mobile/` : Expo / React Native ;
+- API `backend/` : NestJS ;
+- base de donnees : PostgreSQL via Docker.
 
-## 2) Prérequis (à installer une seule fois)
+## 2) Prerequis
 
-Sur l’ordinateur (Mac/Windows/Linux) :
+Sur ordinateur :
 
-1. **Node.js LTS** (version 20 recommandée)
-2. **npm** (fourni avec Node.js)
-3. **Docker Desktop** (pour PostgreSQL)
+1. Node.js LTS (20 recommande)
+2. npm
+3. Docker Desktop
 
-Sur les 2 téléphones :
+Sur 2 telephones :
 
-1. Installer l’application **Expo Go** (App Store / Google Play)
-2. Connecter les 2 téléphones au **même Wi-Fi** que l’ordinateur
+1. Expo Go installe
+2. meme reseau Wi-Fi que l'ordinateur
 
-## 3) Préparer l’environnement backend
+## 3) Demarrage rapide (ordre recommande)
 
-Depuis la racine du projet :
+### Etape A - Base de donnees
 
 ```bash
-cd /chemin/vers/certis
+cd /Users/niwa/WebstormProjects/certis
 docker compose up -d
 ```
 
-Cela démarre PostgreSQL sur le port `5432`.
-
-Ensuite :
+### Etape B - Backend
 
 ```bash
-cd backend
+cd /Users/niwa/WebstormProjects/certis/backend
 npm install
 ```
 
-### 3.1 Fichier `.env` backend
-
-Créer ou vérifier `backend/.env` avec au minimum :
+Creer `backend/.env` (important : pas `backend/env`) :
 
 ```env
 DATABASE_URL="postgresql://certis:certis_password@localhost:5432/certis_db"
 PORT=3001
-JWT_SECRET="change-me-super-secret"
+JWT_SECRET="dev-jwt-secret-change-me"
 ECDSA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 ECDSA_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 ```
 
-Pour générer les clés ECDSA :
+Generer une paire de cles ECDSA :
 
 ```bash
+cd /Users/niwa/WebstormProjects/certis/backend
 npx ts-node scripts/generate-keys.ts
 ```
 
-Copier/coller les valeurs générées dans `.env`.
-
-### 3.2 Initialiser la base
-
-Toujours dans `backend/` :
+Initialiser la base :
 
 ```bash
+cd /Users/niwa/WebstormProjects/certis/backend
 npx prisma migrate deploy
 ```
 
-Optionnel (jeu de données de démonstration) :
+Option demo (reset + donnees exemples) :
 
 ```bash
+cd /Users/niwa/WebstormProjects/certis/backend
 npx ts-node prisma/seed.ts
 ```
 
-> ⚠️ Le seed **supprime les données existantes** puis recrée des utilisateurs/montres de démonstration.
-
-## 4) Démarrer l’API backend
-
-Dans un terminal (laissé ouvert) :
+Lancer l'API :
 
 ```bash
-cd /chemin/vers/certis/backend
+cd /Users/niwa/WebstormProjects/certis/backend
 npm run start:dev
 ```
 
-Le backend doit écouter sur `http://<IP_ORDINATEUR>:3001`.
-
-## 5) Préparer le mobile (Expo)
-
-Dans un **deuxième** terminal :
+### Etape C - Mobile Expo
 
 ```bash
-cd /chemin/vers/certis/mobile
+cd /Users/niwa/WebstormProjects/certis/mobile
 npm install
 ```
 
-### 5.1 Trouver l’IP locale de l’ordinateur
-
-Exemple sur macOS :
+Trouver l'IP locale de l'ordinateur (macOS) :
 
 ```bash
 ipconfig getifaddr en0
 ```
 
-Vous obtiendrez une IP du type `192.168.x.x`.
-
-### 5.2 Configurer l’URL API pour Expo
-
-Créer `mobile/.env` :
+Creer `mobile/.env` :
 
 ```env
-EXPO_PUBLIC_API_URL=http://192.168.x.x:3001
+EXPO_PUBLIC_API_URL=http://<IP_ORDINATEUR>:3001
 ```
 
-Remplacer `192.168.x.x` par l’IP réelle de l’ordinateur.
-
-Après création/modification de `mobile/.env`, redémarrer Expo (`Ctrl + C` puis `npm run start`).
-
-## 6) Démarrer Expo
-
-Toujours dans `mobile/` :
+Puis lancer Expo :
 
 ```bash
+cd /Users/niwa/WebstormProjects/certis/mobile
 npm run start
 ```
 
-Puis :
+Scanner le QR Expo Go sur les 2 telephones.
 
-1. Expo affiche un QR dans le terminal / navigateur ;
-2. Ouvrir Expo Go sur **Téléphone A** et scanner le QR ;
-3. Faire la même chose sur **Téléphone B**.
+## 4) Scenario de demo conseille (professeur)
 
-Les deux téléphones exécutent la même application, mais avec des sessions utilisateur séparées.
+1. Telephone A : creer un compte et se connecter.
+2. Telephone A : ajouter une montre.
+3. Telephone A : ouvrir la montre puis generer un QR de transfert.
+4. Telephone B : scanner le QR pour recevoir la montre.
+5. Telephone B : verifier que la montre apparait dans sa collection.
 
-## 7) Vérifications rapides en cas de problème
+## 5) Point important sur les QR
 
-1. **Erreur réseau dans l’app**  
-   Vérifier que `EXPO_PUBLIC_API_URL` pointe vers `http://IP_ORDINATEUR:3001`.
+Les QR de verification et de transfert sont generes dynamiquement selon l'URL Expo en cours.
+Si l'IP Wi-Fi change, regenerer simplement le QR depuis l'application.
 
-2. **Téléphone ne voit pas le backend**  
-   Vérifier que téléphone + ordinateur sont sur le **même Wi-Fi**.
+## 6) Depannage rapide
 
-3. **QR expiré**  
-   Les nonces expirent rapidement (~30 s), régénérer le QR.
+1. **Erreur reseau dans l'app** : verifier `mobile/.env` (`EXPO_PUBLIC_API_URL`).
+2. **Smartphone ne se connecte pas** : verifier meme Wi-Fi.
+3. **QR transfert expire** : regenerer (nonce court).
+4. **401 Unauthorized** : deconnexion/reconnexion utilisateur.
+5. **Probleme Expo LAN** : relancer Expo en tunnel.
 
-4. **401 / non autorisé**  
-   Vérifier que l’utilisateur est bien connecté dans l’app.
-
-5. **Base non initialisée**  
-   Relancer : `npx prisma migrate deploy`.
-
-6. **Port déjà utilisé**  
-   Vérifier les ports `3001` (API) et `8081`/ports Expo selon affichage.
-
-## 8) Commandes utiles (récapitulatif)
+Commande tunnel si necessaire :
 
 ```bash
-# Depuis la racine
-docker compose up -d
-
-# Backend
-cd backend
-npm install
-npx prisma migrate deploy
-npm run start:dev
-
-# Mobile
-cd ../mobile
-npm install
-npm run start
+cd /Users/niwa/WebstormProjects/certis/mobile
+npx expo start --tunnel
 ```
 
-## 10) Arrêter l’environnement
-
-Dans les terminaux backend/mobile : `Ctrl + C`  
-Pour PostgreSQL :
+## 7) Arret de l'environnement
 
 ```bash
-cd /chemin/vers/certis
+cd /Users/niwa/WebstormProjects/certis
 docker compose down
 ```
+
+Et stopper les terminaux backend/mobile avec `Ctrl + C`.
+
