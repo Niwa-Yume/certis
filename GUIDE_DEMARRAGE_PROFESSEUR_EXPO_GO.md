@@ -115,7 +115,12 @@ ipconfig getifaddr en0
 
 Vous obtiendrez une IP du type `192.168.x.x`.
 
-### 5.2 Configurer l’URL API pour Expo
+### 5.2 URL API : mode automatique (recommandé)
+
+Le frontend détecte automatiquement l’hôte Expo et construit l’URL API en `http://<hote>:3001`.
+Donc, en LAN (même Wi-Fi), vous n’avez normalement **rien à changer** quand vous passez de la maison au bureau.
+
+### 5.3 Forcer une URL API (optionnel)
 
 Créer `mobile/.env` :
 
@@ -150,6 +155,7 @@ Les deux téléphones exécutent la même application, mais avec des sessions ut
 
 2. **Téléphone ne voit pas le backend**  
    Vérifier que téléphone + ordinateur sont sur le **même Wi-Fi**.
+   Si vous êtes sous VPN d’entreprise, le LAN peut être bloqué : tester sans VPN ou forcer `EXPO_PUBLIC_API_URL`.
 
 3. **QR expiré**  
    Les nonces expirent rapidement (~30 s), régénérer le QR.

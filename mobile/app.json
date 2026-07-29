@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "Certis",
+    "name": "Audemars Piguet Certis",
     "slug": "mobile",
     "scheme": "certis",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo-certis.png",
+    "icon": "./assets/logo AP.jpeg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/logo-certis.png",
+      "image": "./assets/logo AP.jpeg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "icon": "./assets/logo-certis.png",
+      "icon": "./assets/logo AP.jpeg",
       "supportsTablet": true,
       "bundleIdentifier": "com.jujuledev.mobile",
       "infoPlist": {
@@ -22,9 +22,9 @@
       }
     },
     "android": {
-      "icon": "./assets/logo-certis.png",
+      "icon": "./assets/logo AP.jpeg",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo-certis.png",
+        "foregroundImage": "./assets/logo AP.jpeg",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,

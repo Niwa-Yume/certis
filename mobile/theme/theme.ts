@@ -1,29 +1,34 @@
-import { MD3LightTheme, type MD3Theme } from 'react-native-paper';
+import { MD3DarkTheme, type MD3Theme } from 'react-native-paper';
 import { palette } from './tokens';
 
 export const appTheme: MD3Theme = {
-  ...MD3LightTheme,
+  ...MD3DarkTheme,
   roundness: 16,
   colors: {
-    ...MD3LightTheme.colors,
-    primary: palette.porscheGreen,
-    onPrimary: palette.white,
-    primaryContainer: palette.porscheGreenSoft,
-    onPrimaryContainer: '#0D3D24',
-    secondary: '#2B5D45',
+    ...MD3DarkTheme.colors,
+    primary: palette.primaryGold,
+    onPrimary: '#0C1D15',
+    primaryContainer: '#1C5A3E',
+    onPrimaryContainer: '#DDF3E8',
+    secondary: '#73D5A3',
     onSecondary: palette.white,
-    secondaryContainer: '#E4EFE8',
-    onSecondaryContainer: '#1E2F25',
-    tertiary: '#3B7B4F',
+    secondaryContainer: '#1A4532',
+    onSecondaryContainer: '#DDF3E8',
+    tertiary: '#5FCF97',
     onTertiary: palette.white,
-    tertiaryContainer: '#E0F0E1',
-    onTertiaryContainer: '#183421',
+    tertiaryContainer: '#1A4532',
+    onTertiaryContainer: '#DDF3E8',
     background: palette.background,
     surface: palette.surface,
-    surfaceVariant: '#EEF2EF',
+    onSurface: palette.textStrong,
+    onSurfaceVariant: palette.neutralText,
+    surfaceVariant: '#16261D',
     outline: palette.border,
-    inversePrimary: '#66C58F',
+    outlineVariant: '#22392D',
+    inversePrimary: '#A5D6BC',
+    error: palette.danger,
+    onError: '#2A0B0B',
+    errorContainer: palette.dangerSoft,
+    onErrorContainer: '#FFDADA',
   },
 };
-
-
