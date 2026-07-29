@@ -1,15 +1,18 @@
-import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Image, StyleSheet, View } from 'react-native';
 import { palette } from '../theme/tokens';
+
+const apLogo = require('../assets/logo AP.jpeg');
 
 type BrandLogoProps = {
   size?: number;
 };
 
 export default function BrandLogo({ size = 56 }: BrandLogoProps) {
+  const borderRadius = Math.round(size * 0.15);
+
   return (
-    <View style={[styles.container, { width: size, height: size, borderRadius: Math.round(size * 0.15) }]}>
-      <Text style={[styles.monogram, { fontSize: Math.max(16, size * 0.42) }]}>AP</Text>
+    <View style={[styles.container, { width: size, height: size, borderRadius }] }>
+      <Image source={apLogo} style={{ width: size, height: size, borderRadius }} resizeMode="cover" />
     </View>
   );
 }
@@ -20,11 +23,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: palette.porscheGreen,
-    backgroundColor: '#070D09',
-  },
-  monogram: {
-    color: palette.primaryGoldSoft,
-    fontWeight: '700',
-    letterSpacing: 1.2,
+    overflow: 'hidden',
   },
 });
