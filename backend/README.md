@@ -42,7 +42,7 @@ Etat metier confirme:
 ## Lancer le projet
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis
+cd ..
 docker compose up -d
 
 cd backend
@@ -55,7 +55,6 @@ npm run start:dev
 Generation de paires de cles ECDSA (format pret pour `.env`):
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
 npx ts-node scripts/generate-keys.ts
 ```
 
