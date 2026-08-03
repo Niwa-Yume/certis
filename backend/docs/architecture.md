@@ -42,7 +42,6 @@
 - `Asset`: identite metier + signature + proprietaire courant
 - `AuthNonce`: nonce unique, expiration, statut d'usage
 - `Transfer`: trace des changements de proprietaire
-- `Event`: present dans le schema mais non expose par API actuellement
 
 ## Variables d'environnement attendues
 
@@ -54,7 +53,7 @@
 ## Demarrage rapide
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis
+cd ..
 
 docker compose up -d
 
@@ -68,7 +67,6 @@ npm run start:dev
 Le script `scripts/generate-keys.ts` genere des valeurs pretes a coller dans un `.env`.
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
 npx ts-node scripts/generate-keys.ts
 ```
 

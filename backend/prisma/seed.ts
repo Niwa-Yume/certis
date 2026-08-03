@@ -49,7 +49,6 @@ async function main() {
     // Nettoyage dans l'ordre des dépendances
     await prisma.$transaction([
         prisma.transfer.deleteMany(),
-        prisma.event.deleteMany(),
         prisma.authNonce.deleteMany(),
         prisma.asset.deleteMany(),
         prisma.user.deleteMany(),

@@ -44,7 +44,7 @@ Erreurs metier possibles:
 - Identite metier: `name`, `brand`, `model`, `reference`
 - Integrite: `integrityHash`
 - Proprietaire courant: `ownerId`
-- Relations: `nonces`, `events`, `transfers`
+- Relations: `nonces`, `transfers`
 
 ### AuthNonce
 
@@ -57,15 +57,9 @@ Erreurs metier possibles:
 - `fromOwnerId`, `toOwnerId`, `createdAt`
 - relation obligatoire vers `Asset`
 
-### Event
-
-- present dans le schema
-- pas d'endpoint expose actuellement
-
 ## Risques/ameliorations conseillees
 
 - Mapper les erreurs nonce vers des exceptions Nest (`BadRequestException`, etc.).
 - Ajouter validation d'entree (DTO + `class-validator`).
-- Envelopper le transfert dans une transaction Prisma.
-- Ajouter des tests e2e sur nonce expire/deja utilise et transfert.
+- Etendre la couverture e2e sur des cas supplementaires (concurrence, claim invalide, erreurs DB).
 

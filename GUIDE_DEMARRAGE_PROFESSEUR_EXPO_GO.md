@@ -35,14 +35,13 @@ Sur 2 telephones :
 ### Etape A - Base de donnees
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis
 docker compose up -d
 ```
 
 ### Etape B - Backend
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
+cd backend
 npm install
 ```
 
@@ -59,35 +58,35 @@ ECDSA_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 Generer une paire de cles ECDSA :
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
+cd backend
 npx ts-node scripts/generate-keys.ts
 ```
 
 Initialiser la base :
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
+cd backend
 npx prisma migrate deploy
 ```
 
 Option demo (reset + donnees exemples) :
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
+cd backend
 npx ts-node prisma/seed.ts
 ```
 
 Lancer l'API :
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
+cd backend
 npm run start:dev
 ```
 
 ### Etape C - Mobile Expo
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/mobile
+cd mobile
 npm install
 ```
 
@@ -106,7 +105,7 @@ EXPO_PUBLIC_API_URL=http://<IP_ORDINATEUR>:3001
 Puis lancer Expo :
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/mobile
+cd mobile
 npm run start
 ```
 
@@ -136,14 +135,13 @@ Si l'IP Wi-Fi change, regenerer simplement le QR depuis l'application.
 Commande tunnel si necessaire :
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/mobile
+cd mobile
 npx expo start --tunnel
 ```
 
 ## 7) Arret de l'environnement
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis
 docker compose down
 ```
 

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, GoneException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
 
@@ -21,8 +22,10 @@ export class NonceService {
         return { nonce: nonce.nonceValue, expiresAt: nonce.expiresAt };
     }
 
-    async consume(nonceValue: string): Promise<void> {
-        const nonce = await this.prisma.authNonce.findUnique({
+    async consume(nonceValue: string): Promise<void>;
+    async consume(nonceValue: string, prismaClient: Prisma.TransactionClient | PrismaService): Promise<void>;
+    async consume(nonceValue: string, prismaClient: Prisma.TransactionClient | PrismaService = this.prisma): Promise<void> {
+        const nonce = await prismaClient.authNonce.findUnique({
             where: { nonceValue },
         });
 
@@ -38,7 +41,7 @@ export class NonceService {
             throw new GoneException('Nonce expiré');
         }
 
-        await this.prisma.authNonce.update({
+        await prismaClient.authNonce.update({
             where: { nonceValue },
             data: {
                 used: true,
