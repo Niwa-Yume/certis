@@ -1,11 +1,14 @@
 # Certis - Travail de Bachelor
 
-Certis est une application mobile de certification horlogère.
+URL du repo github : https://github.com/Niwa-Yume/certis
+
+Certis est une application mobile de certification d'actif.
+
 Le projet permet de créer des actifs (montres), d'attester leur authenticité par signature cryptographique et de transférer la propriété entre utilisateurs via QR code temporaire.
 
 ## Objectif du travail
 
-- proposer un registre de propriété simple et vérifiable ;
+- proposer un registre de propriété simple ;
 - démontrer un flux de transfert sécurisé entre deux utilisateurs ;
 - utiliser une architecture moderne (mobile + API + base de données) ;
 - intégrer une preuve cryptographique (ECDSA) côté backend.
@@ -36,7 +39,7 @@ Le projet permet de créer des actifs (montres), d'attester leur authenticité p
 - Node.js LTS (20 recommandé) ;
 - npm ;
 - Docker Desktop ;
-- 2 téléphones avec Expo Go pour la démo de transfert.
+- 2 téléphones avec Expo Go pour la démo de transfert. (ils doivent être sur le même réseau wifi, 4g, etc...)
 
 ## Setup rapide
 
