@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { Button, HelperText, Text, TextInput } from 'react-native-paper';
 import api from '../lib/api';
 import { sharedStyles } from './shared.styles';
 import { ACCESS_TOKEN_KEY } from '../lib/auth';
+import { setItemAsync } from '../lib/storage';
 import BrandLogo from '../components/BrandLogo';
 import { palette, radius, spacing } from '../theme/tokens';
 
@@ -27,7 +27,7 @@ export default function LoginScreen() {
 
         try {
             const response = await api.post('/auth/login', { email, password });
-            await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, response.data.accessToken);
+            await setItemAsync(ACCESS_TOKEN_KEY, response.data.accessToken);
             router.replace('/dashboard');
         } catch {
             setError('Connexion impossible, verifie tes identifiants.');

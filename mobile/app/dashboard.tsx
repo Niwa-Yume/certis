@@ -4,12 +4,12 @@ import axios from 'axios';
 import { Text, Card, ActivityIndicator, Button } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import * as SecureStore from 'expo-secure-store';
 import api from '../lib/api';
 import watchImages from '../lib/watchImages';
 import BrandLogo from '../components/BrandLogo';
 import { styles } from './index.styles';
 import { ACCESS_TOKEN_KEY } from '../lib/auth';
+import { deleteItemAsync } from '../lib/storage';
 import { palette } from '../theme/tokens';
 
 type Asset = {
@@ -39,7 +39,7 @@ export default function DashboardScreen() {
             })
             .catch(async (error) => {
                 if (axios.isAxiosError(error) && error.response?.status === 401) {
-                    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+                    await deleteItemAsync(ACCESS_TOKEN_KEY);
                     if (!cancelled) router.replace('/');
                     return;
                 }
@@ -60,7 +60,7 @@ export default function DashboardScreen() {
     );
 
     const logout = async () => {
-        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+        await deleteItemAsync(ACCESS_TOKEN_KEY);
         router.replace('/');
     };
 

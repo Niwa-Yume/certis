@@ -1,8 +1,8 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { ACCESS_TOKEN_KEY } from './auth';
+import { deleteItemAsync, getItemAsync } from './storage';
 
 const DEFAULT_BACKEND_PORT = 3001;
 
@@ -39,12 +39,12 @@ const api = axios.create({
     timeout: 15000,
 });
 
-// Intercepteur de requête : lit le token dans SecureStore et l'ajoute au header Authorization.
+// Intercepteur de requête : lit le token via le wrapper storage et l'ajoute au header Authorization.
 // Pourquoi un intercepteur plutôt que le passer manuellement ?
 // → Centralise la logique auth en un seul endroit. Chaque appel api.get/post/...
 //   est automatiquement authentifié sans rien changer dans les écrans.
 api.interceptors.request.use(async (config) => {
-    const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    const token = await getItemAsync(ACCESS_TOKEN_KEY);
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     } else if (config.headers) {
@@ -57,7 +57,7 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         if (error?.response?.status === 401) {
-            await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+            await deleteItemAsync(ACCESS_TOKEN_KEY);
         }
 
         return Promise.reject(error);

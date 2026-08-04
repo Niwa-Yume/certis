@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { ActivityIndicator, Button, Text } from 'react-native-paper';
 import BrandLogo from '../components/BrandLogo';
 import { sharedStyles } from './shared.styles';
 import { palette, radius, spacing } from '../theme/tokens';
 import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import api from '../lib/api';
+import { deleteItemAsync, getItemAsync } from '../lib/storage';
 
 export default function IndexScreen() {
     const router = useRouter();
@@ -18,7 +18,7 @@ export default function IndexScreen() {
         let cancelled = false;
 
         const checkSession = async () => {
-            const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+            const token = await getItemAsync(ACCESS_TOKEN_KEY);
             if (!token) {
                 if (!cancelled) setChecking(false);
                 return;
@@ -29,7 +29,7 @@ export default function IndexScreen() {
                 if (!cancelled) router.replace('/dashboard');
             } catch (error) {
                 if (axios.isAxiosError(error) && error.response?.status === 401) {
-                    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+                    await deleteItemAsync(ACCESS_TOKEN_KEY);
                     if (!cancelled) setChecking(false);
                     return;
                 }
