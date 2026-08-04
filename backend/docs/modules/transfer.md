@@ -21,6 +21,7 @@ Dans `transfer(assetId, toOwnerId)`:
    - `toOwnerId = toOwnerId`
 3. Recalculer `integrityHash` avec le nouveau `ownerId`
 4. Mettre a jour l'asset (`ownerId`, `integrityHash`)
+5. Executer le flux dans une transaction Prisma atomique
 
 Ce flux preserve ce que vous avez valide:
 
@@ -54,5 +55,4 @@ Ce flux preserve ce que vous avez valide:
 ## Points d'attention
 
 - Le module n'impose pas encore de regles metier sur `toOwnerId` (format, non-vide, etc.).
-- Le transfert et la mise a jour asset ne sont pas encapsules dans une transaction Prisma explicite.
 

@@ -1,11 +1,14 @@
 # Certis - Travail de Bachelor
 
-Certis est une application mobile de certification horlogère.
+URL du repo github : https://github.com/Niwa-Yume/certis
+
+Certis est une application mobile de certification d'actif.
+
 Le projet permet de créer des actifs (montres), d'attester leur authenticité par signature cryptographique et de transférer la propriété entre utilisateurs via QR code temporaire.
 
 ## Objectif du travail
 
-- proposer un registre de propriété simple et vérifiable ;
+- proposer un registre de propriété simple ;
 - démontrer un flux de transfert sécurisé entre deux utilisateurs ;
 - utiliser une architecture moderne (mobile + API + base de données) ;
 - intégrer une preuve cryptographique (ECDSA) côté backend.
@@ -36,14 +39,13 @@ Le projet permet de créer des actifs (montres), d'attester leur authenticité p
 - Node.js LTS (20 recommandé) ;
 - npm ;
 - Docker Desktop ;
-- 2 téléphones avec Expo Go pour la démo de transfert.
+- 2 téléphones avec Expo Go pour la démo de transfert. (ils doivent être sur le même réseau wifi, 4g, etc...)
 
 ## Setup rapide
 
 ### 1) Cloner et installer
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis
 cd backend && npm install
 cd ../mobile && npm install
 ```
@@ -51,7 +53,6 @@ cd ../mobile && npm install
 ### 2) Démarrer PostgreSQL
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis
 docker compose up -d
 ```
 
@@ -70,21 +71,21 @@ ECDSA_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 Génération des clés ECDSA :
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
+cd backend
 npx ts-node scripts/generate-keys.ts
 ```
 
 ### 4) Initialiser la base
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
+cd backend
 npx prisma migrate deploy
 ```
 
 Optionnel (données de démonstration) :
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
+cd backend
 npx ts-node prisma/seed.ts
 ```
 
@@ -93,7 +94,7 @@ npx ts-node prisma/seed.ts
 ### Backend
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/backend
+cd backend
 npm run start:dev
 ```
 
@@ -108,7 +109,7 @@ EXPO_PUBLIC_API_URL=http://<IP_ORDINATEUR>:3001
 Puis lancer Expo :
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis/mobile
+cd mobile
 npm run start
 ```
 
@@ -130,6 +131,5 @@ npm run start
 ## Arrêt de l'environnement
 
 ```bash
-cd /Users/niwa/WebstormProjects/certis
 docker compose down
 ```

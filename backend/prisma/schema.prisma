@@ -26,7 +26,6 @@ model Asset {
 
   owner     User      @relation(fields: [ownerId], references: [id])
   nonces    AuthNonce[]
-  events    Event[]
   transfers Transfer[]
 }
 
@@ -46,16 +45,6 @@ model AuthNonce {
   used       Boolean   @default(false)
   usedAt     DateTime? //horodatage au moment où le nonce a été consommé permet de vérifier que le nonce n'est pas réutilisé après son expiration (en gros traçabilité !!!)
   createdAt  DateTime  @default(now())
-
-  assetId String
-  asset   Asset  @relation(fields: [assetId], references: [id])
-}
-
-model Event {
-  id          String   @id @default(uuid())
-  type        String
-  description String
-  createdAt   DateTime @default(now())
 
   assetId String
   asset   Asset  @relation(fields: [assetId], references: [id])
