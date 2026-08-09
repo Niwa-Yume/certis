@@ -1,8 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, Req, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { randomUUID } from 'crypto';
+import { Controller, Get, Post, Body, Param, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { AssetService } from './asset.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
@@ -12,29 +8,17 @@ type AuthenticatedRequest = Request & {
     user: { id: string; email: string };
 };
 
-const uploadStorage = diskStorage({
-    destination: join(process.cwd(), 'public', 'uploads'),
-    filename: (_req, file, cb) => {
-        cb(null, `${randomUUID()}${extname(file.originalname)}`);
-    },
-});
-
 @UseGuards(JwtAuthGuard)
 @Controller('assets')
 export class AssetController {
     constructor(private readonly assetService: AssetService) {}
 
     @Post()
-    @UseInterceptors(FileInterceptor('image', { storage: uploadStorage }))
     create(
         @Body() dto: CreateAssetDto,
         @Req() request: AuthenticatedRequest,
-        @UploadedFile() file?: Express.Multer.File,
     ) {
-        const imageUrl = file
-            ? `${request.protocol}://${request.get('host')}/public/uploads/${file.filename}`
-            : dto.imageUrl;
-        return this.assetService.create({ ...dto, imageUrl }, request.user.id);
+        return this.assetService.create(dto, request.user.id);
     }
 
     @Get()
