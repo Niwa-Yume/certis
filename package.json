@@ -1,0 +1,8 @@
+{
+  "name": "certis",
+  "private": true,
+  "scripts": {
+    "build:web": "cd mobile && npm install && npx expo export --platform web --output-dir ../dist"
+  }
+}
+
