@@ -28,6 +28,7 @@ export default function DashboardScreen() {
     const { refresh } = useLocalSearchParams<{ refresh?: string }>();
     const [assets, setAssets] = useState<Asset[]>([]);
     const [loading, setLoading] = useState(true);
+    const [failedRemoteImageKeys, setFailedRemoteImageKeys] = useState<Record<string, true>>({});
 
     const loadAssets = useCallback(() => {
         let cancelled = false;
@@ -111,22 +112,36 @@ export default function DashboardScreen() {
                     </View>
                 )}
                 renderItem={({ item }) => (
-                    <Card
-                        style={styles.card}
-                        onPress={() => router.push(`/watch/${item.id}`)}
-                    >
-                        {(item.imageUrl || watchImages[item.reference]) && (
-                            <Card.Cover
-                                source={item.imageUrl ? { uri: item.imageUrl } : watchImages[item.reference]}
-                                style={styles.watchImage}
-                            />
-                        )}
-                        <Card.Content>
-                            <Text variant="titleMedium">{item.brand} — {item.model}</Text>
-                            <Text variant="bodySmall">{item.reference}</Text>
-                            <Text variant="bodySmall" style={styles.status}>{item.status}</Text>
-                        </Card.Content>
-                    </Card>
+                    (() => {
+                        const normalizedImageUrl = item.imageUrl?.trim();
+                        const fallbackImage = watchImages[item.reference];
+                        const remoteImageKey = `${item.id}:${normalizedImageUrl ?? ''}`;
+                        const shouldUseRemoteImage = Boolean(normalizedImageUrl) && !failedRemoteImageKeys[remoteImageKey];
+                        const hasDisplayableImage = shouldUseRemoteImage || Boolean(fallbackImage);
+
+                        return (
+                            <Card
+                                style={styles.card}
+                                onPress={() => router.push(`/watch/${item.id}`)}
+                            >
+                                {hasDisplayableImage && (
+                                    <Card.Cover
+                                        source={shouldUseRemoteImage ? { uri: normalizedImageUrl } : fallbackImage}
+                                        style={styles.watchImage}
+                                        onError={() => {
+                                            if (!normalizedImageUrl) return;
+                                            setFailedRemoteImageKeys((prev) => ({ ...prev, [remoteImageKey]: true }));
+                                        }}
+                                    />
+                                )}
+                                <Card.Content>
+                                    <Text variant="titleMedium">{item.brand} — {item.model}</Text>
+                                    <Text variant="bodySmall">{item.reference}</Text>
+                                    <Text variant="bodySmall" style={styles.status}>{item.status}</Text>
+                                </Card.Content>
+                            </Card>
+                        );
+                    })()
                 )}
             />
         </View>

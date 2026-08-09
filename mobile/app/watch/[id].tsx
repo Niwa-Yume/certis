@@ -32,6 +32,7 @@ export default function WatchScreen() {
     const [transferExpiresAt, setTransferExpiresAt] = useState<Date | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [imageLoadFailed, setImageLoadFailed] = useState(false);
     const router = useRouter();
 
     const goBackToList = () => {
@@ -48,6 +49,11 @@ export default function WatchScreen() {
             .catch(console.error)
             .finally(() => setLoading(false));
     }, [id]);
+
+    useEffect(() => {
+        // Reset image fallback state when changing watch or image URL.
+        setImageLoadFailed(false);
+    }, [watch?.id, watch?.imageUrl, watch?.reference]);
 
     // Countdown nonce auth
     useEffect(() => {
@@ -134,6 +140,12 @@ export default function WatchScreen() {
             </View>
         );
     }
+
+    const normalizedImageUrl = watch.imageUrl?.trim();
+    const fallbackImage = watchImages[watch.reference];
+    const shouldUseRemoteImage = Boolean(normalizedImageUrl) && !imageLoadFailed;
+    const hasDisplayableImage = shouldUseRemoteImage || Boolean(fallbackImage);
+
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             <Button mode="text" icon="arrow-left" onPress={goBackToList} style={styles.backButton}>
@@ -149,13 +161,14 @@ export default function WatchScreen() {
             </Text>
 
             <Card style={styles.card}>
-                {(watch.imageUrl || watchImages[watch.reference]) && (
+                {hasDisplayableImage && (
                     <Card.Cover
-                        source={watch.imageUrl ? { uri: watch.imageUrl } : watchImages[watch.reference]}
+                        source={shouldUseRemoteImage ? { uri: normalizedImageUrl } : fallbackImage}
                         style={styles.watchImage}
+                        onError={() => setImageLoadFailed(true)}
                     />
                 )}
-                {!(watch.imageUrl || watchImages[watch.reference]) && (
+                {!hasDisplayableImage && (
                     <View style={styles.emptyImage}>
                         <Text style={styles.emptyImageText}>Aucune image disponible</Text>
                     </View>
