@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Certis</title>
+  <script>
+    // SPA fallback : stocke le chemin demandé et redirige vers la racine.
+    // Le script dans index.html (app/+html.tsx) restaure ensuite la navigation.
+    sessionStorage.setItem('spa_redirect', window.location.pathname + window.location.search + window.location.hash);
+    window.location.replace('/');
+  </script>
+</head>
+<body></body>
+</html>
+
