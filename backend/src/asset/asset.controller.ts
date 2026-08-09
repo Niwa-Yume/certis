@@ -33,7 +33,7 @@ export class AssetController {
     ) {
         const imageUrl = file
             ? `${request.protocol}://${request.get('host')}/public/uploads/${file.filename}`
-            : undefined;
+            : dto.imageUrl;
         return this.assetService.create({ ...dto, imageUrl }, request.user.id);
     }
 
