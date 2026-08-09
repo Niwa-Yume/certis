@@ -1,0 +1,31 @@
+services:
+  # ── Frontend Expo Web (SPA) ──────────────────────────────────────────────
+  - type: web
+    name: certis-web
+    runtime: static
+    buildCommand: cd mobile && npm install && npx expo export --platform web
+    staticPublishPath: mobile/dist
+    envVars:
+      - key: EXPO_PUBLIC_API_URL
+        sync: false   # à renseigner dans le dashboard Render : https://certis-api.onrender.com
+    routes:
+      # Redirige toutes les routes vers index.html (SPA routing)
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # ── Backend NestJS ───────────────────────────────────────────────────────
+  - type: web
+    name: certis-api
+    runtime: node
+    buildCommand: cd backend && npm install && npm run build && npx prisma generate
+    startCommand: cd backend && npm run start:prod
+    envVars:
+      - key: DATABASE_URL
+        sync: false   # à renseigner dans le dashboard Render
+      - key: JWT_SECRET
+        sync: false   # à renseigner dans le dashboard Render
+      - key: PORT
+        value: "3000"
+    healthCheckPath: /
+
