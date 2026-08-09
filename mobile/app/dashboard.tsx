@@ -57,7 +57,10 @@ export default function DashboardScreen() {
     }, [refresh, router]);
 
     useFocusEffect(
-        useCallback(() => loadAssets(), [loadAssets]),
+        useCallback(() => {
+            setFailedRemoteImageKeys({});
+            return loadAssets();
+        }, [loadAssets]),
     );
 
     const logout = async () => {
@@ -116,6 +119,7 @@ export default function DashboardScreen() {
                         const normalizedImageUrl = item.imageUrl?.trim();
                         const fallbackImage = watchImages[item.reference];
                         const remoteImageKey = `${item.id}:${normalizedImageUrl ?? ''}`;
+                        const remoteImageFailed = Boolean(normalizedImageUrl) && Boolean(failedRemoteImageKeys[remoteImageKey]);
                         const shouldUseRemoteImage = Boolean(normalizedImageUrl) && !failedRemoteImageKeys[remoteImageKey];
                         const hasDisplayableImage = shouldUseRemoteImage || Boolean(fallbackImage);
 
@@ -133,6 +137,11 @@ export default function DashboardScreen() {
                                             setFailedRemoteImageKeys((prev) => ({ ...prev, [remoteImageKey]: true }));
                                         }}
                                     />
+                                )}
+                                {remoteImageFailed && (
+                                    <Text variant="bodySmall" style={{ color: '#B00020', marginTop: 8 }}>
+                                        URL image invalide
+                                    </Text>
                                 )}
                                 <Card.Content>
                                     <Text variant="titleMedium">{item.brand} — {item.model}</Text>

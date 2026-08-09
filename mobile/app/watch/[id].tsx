@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Text, Card, Button, ActivityIndicator, Chip } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import QRCode from 'react-native-qrcode-svg';
 import api from '../../lib/api';
@@ -54,6 +55,12 @@ export default function WatchScreen() {
         // Reset image fallback state when changing watch or image URL.
         setImageLoadFailed(false);
     }, [watch?.id, watch?.imageUrl, watch?.reference]);
+
+    useFocusEffect(
+        useCallback(() => {
+            setImageLoadFailed(false);
+        }, []),
+    );
 
     // Countdown nonce auth
     useEffect(() => {
@@ -143,6 +150,7 @@ export default function WatchScreen() {
 
     const normalizedImageUrl = watch.imageUrl?.trim();
     const fallbackImage = watchImages[watch.reference];
+    const remoteImageFailed = Boolean(normalizedImageUrl) && imageLoadFailed;
     const shouldUseRemoteImage = Boolean(normalizedImageUrl) && !imageLoadFailed;
     const hasDisplayableImage = shouldUseRemoteImage || Boolean(fallbackImage);
 
@@ -172,6 +180,11 @@ export default function WatchScreen() {
                     <View style={styles.emptyImage}>
                         <Text style={styles.emptyImageText}>Aucune image disponible</Text>
                     </View>
+                )}
+                {remoteImageFailed && (
+                    <Text variant="bodySmall" style={{ color: '#B00020', marginTop: 8 }}>
+                        URL image invalide
+                    </Text>
                 )}
                 <Card.Content style={styles.detailsCardContent}>
                     <Text variant="titleMedium" style={styles.sectionTitle}>Fiche d'identite</Text>

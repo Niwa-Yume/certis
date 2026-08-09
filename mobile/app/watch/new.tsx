@@ -15,6 +15,10 @@ type FormState = {
 
 const initialForm: FormState = { name: '', brand: '', model: '', reference: '' };
 
+const normalizeImageUrl = (value: string) => value
+  .replace(/[\u200B-\u200D\u2060\uFEFF\u00A0]/g, '')
+  .trim();
+
 export default function NewWatchScreen() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initialForm);
@@ -41,6 +45,7 @@ export default function NewWatchScreen() {
 
   const handleCreateWatch = async () => {
     const { name, brand, model, reference } = form;
+    const normalizedImageUrl = normalizeImageUrl(imageUrl);
     if (!name.trim() || !brand.trim() || !model.trim() || !reference.trim()) {
       setError('Tous les champs texte sont obligatoires.');
       return;
@@ -55,7 +60,7 @@ export default function NewWatchScreen() {
         brand: brand.trim(),
         model: model.trim(),
         reference: reference.trim(),
-        ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
+        ...(normalizedImageUrl ? { imageUrl: normalizedImageUrl } : {}),
       });
       setSuccess(true);
       setForm(initialForm);
@@ -114,7 +119,7 @@ export default function NewWatchScreen() {
           <TextInput
             label="URL de l'image (optionnel)"
             value={imageUrl}
-            onChangeText={setImageUrl}
+            onChangeText={(v) => setImageUrl(normalizeImageUrl(v))}
             mode="outlined"
             style={styles.input}
             autoCapitalize="none"
