@@ -2,6 +2,14 @@
 
 Date : 2026-10-23 · Source : [`AUDIT.md`](AUDIT.md) · Suivi des critiques : [`JURY_FEEDBACK_MAP.md`](JURY_FEEDBACK_MAP.md)
 
+## Décisions du 2026-10-23 (après revue de la Phase 0)
+
+- **Objectif prioritaire** : une version de Certis **fonctionnelle**, testable en local, **déployée**, avec une UI/UX de haut niveau.
+- **Ordre d'exécution** : Phase 1 (le faire tourner et le rendre déployable) → Phase 2 (faille de transfert) → **Phase 4 (UI/UX)** → Phase 3 (domaine, limité à ce que l'UI montre) → Phase 5 → Phase 6.
+- **Pas d'échéance.** Les estimations servent d'ordre de grandeur, pas de planning.
+- `.env` : clés de dev uniquement. Aucune réécriture d'historique (P1-02 réduit à un remote `certis` et une note). Le boilerplate reste public.
+- Seed : 2 ou 3 montres de marques réelles. Licence : aucune.
+
 ## Conventions
 
 - **MoSCoW** :
@@ -44,7 +52,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | ID | Item | MoSCoW | Est. | Couvre | Critères d'acceptation |
 |---|---|---|---|---|---|
 | P1-01 | Sortir `backend/.env` du suivi, créer `backend/.env.example`, régénérer la clé ECDSA et le `JWT_SECRET`, re-signer le seed, restaurer `.gitignore` | Must | 2 h | S1, N9 | `git ls-files \| grep '\.env$'` est vide. Une signature produite avec l'ancienne clé publique est rejetée (test). Scan gitleaks propre sur `HEAD`. Mot de passe de seed fort, généré, absent du dépôt. |
-| P1-02 | Présenter les options pour l'historique (rotation seule ou `git filter-repo`, sur les 2 dépôts publics), puis appliquer **ta** décision. Ajouter le remote `certis`. | Must | 1 h (+2 h si réécriture) | S1, N0 | ADR-0001 écrite **avant** toute action. Aucune réécriture sans ton accord écrit. Push protection GitHub activée (c'est toi qui le fais : réglage de sécurité). |
+| P1-02 | Ajouter le remote `certis` à ce checkout. Historique : décision du 2026-10-23, aucune réécriture (clés de dev uniquement). | Must | 0,25 h | N0 | `git remote -v` liste `Niwa-Yume/certis`. |
 | P1-03 | Validation de la config au démarrage (fail-fast), suppression de tous les fallbacks de secrets | Must | 2 h | S1 | Démarrer sans `JWT_SECRET`, avec un secret de moins de 32 octets, ou avec une clé ECDSA illisible ou non P-256, fait échouer le process avec un message explicite (test). `grep -rn "?? '" backend/src` ne trouve aucun secret. Pas de nouvelle dépendance : `node:crypto` suffit. |
 | P1-04 | Corriger `render.yaml` : variables ECDSA, `prisma migrate deploy`, ordre du build, version de Node | Must | 1,5 h | S1, N10 | Chaque variable exigée par P1-03 est déclarée. Les migrations s'appliquent au déploiement. ADR-0008 (hébergement) tranche la question de la base gratuite qui expire à 30 jours. |
 | P1-05 | Rebrand neutre « Certis » : retirer nom et logo AP, ajouter une mention de non-affiliation | Must | 2 h | N1, jury « confusion » | `grep -rniE "audemars|logo AP|collection privée AP" mobile` est vide. `app.json` s'appelle `Certis` et utilise `logo-certis.png`. L'image `logo AP.jpeg` est supprimée. |
@@ -52,9 +60,12 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | P1-07 | CI GitHub Actions : lint, typecheck (backend et mobile), tests unitaires, e2e avec un service Postgres | Must | 3 h | N6, jury « méthode » | La CI est verte sur la PR de phase. Un commit volontairement cassé la fait passer au rouge (capture). |
 | P1-08 | Node 24 LTS : `.nvmrc` + `engines` | Should | 0,5 h | N12 | La CI utilise `.nvmrc`. |
 | P1-09 | Nettoyage : `public/uploads`, `@types/multer`, `expo-image-picker`, double `NonceModule`, README corrigé (« avec photo ») | Should | 1 h | N13 | Build et tests verts, README conforme au code. |
-| P1-10 | Fichier `LICENSE` selon ta réponse | Must | 0,25 h | open science | `LICENSE` à la racine, `license` renseigné dans les `package.json` (aujourd'hui `UNLICENSED`, `backend/package.json:7`). |
+| P1-11 | Corriger la sortie du build (`include: ["src"]`) pour que `start:prod` démarre | Must | 0,25 h | N16 | `npm run build && npm run start:prod` répond sur `/` (vérifié en CI). |
+| P1-12 | Aligner les dépendances Expo sur le SDK 54 (`npx expo install --fix`) | Must | 0,5 h | N17 | `expo start` n'affiche plus d'avertissement de version. Login vérifié sur Expo Go. |
+| P1-13 | Lancement local en une commande (base, API, web) et seed utilisable : 2 ou 3 montres avec image sur un compte qui fonctionne | Must | 1,5 h | N9, DoD | Sur un clone neuf, `docker compose up -d` puis une commande, et on se connecte pour voir des montres avec image. |
+| P1-10 | ~~Fichier `LICENSE`~~ : décision du 2026-10-23, pas de licence pour l'instant | Won't | 0 h | open science | `LICENSE` à la racine, `license` renseigné dans les `package.json` (aujourd'hui `UNLICENSED`, `backend/package.json:7`). |
 
-**Total Phase 1 : environ 15 h.**
+**Total Phase 1 : environ 16 h.**
 
 ## Phase 2 — Sécurité du transfert · branche `phase-2/transfer-security`
 
@@ -85,7 +96,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | P3-07 | Vérification publique sans compte : passeport, statut et provenance pseudonymisée (aucun id ni email de propriétaire), avec rate limit | Must | 2 h | N2, S8 | Accessible sans token. Aucune donnée personnelle dans la réponse (test). |
 | P3-08 | Vérificateur indépendant `tools/verify` : sans Nest ni Prisma, prend un export JSON et la JWKS, signale le premier maillon cassé | Must | 4 h | S9, N4 | Modifier une ligne en base fait signaler l'altération par le vérificateur (test). README d'utilisation en 3 commandes. |
 | P3-09 | Ancrage : checkpoint (ou racine Merkle), RFC 3161 **ou** OTS, workflow GitHub Actions planifié qui versionne les reçus | Should | 5 h | réponse à « l'admin peut tout recalculer » | Un reçu vérifiable par `openssl ts -verify` (si RFC 3161). ADR-0007. |
-| P3-10 | Migrations propres (ajouts uniquement, aucune réécriture de migration déjà appliquée) et seed réaliste : émetteurs, séries, calibres, garde d'environnement | Must | 3 h | N9, S10 | Le seed refuse de tourner si `NODE_ENV=production`. Émetteurs conformes à ta décision (question 3 de l'audit). |
+| P3-10 | Migrations propres (ajouts uniquement, aucune réécriture de migration déjà appliquée) et seed réaliste : émetteurs, séries, calibres, garde d'environnement | Must | 3 h | N9, S10 | Le seed refuse de tourner si `NODE_ENV=production`. 2 ou 3 montres de marques réelles (décision du 2026-10-23). |
 | P3-11 | Catalogue de références avec images servi par le backend, suppression de `mobile/lib/watchImages.ts` | Should | 2 h | S10 | Plus aucun mapping d'image dans le front. |
 
 **Total Phase 3 : environ 37 h.**
@@ -143,13 +154,13 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 
 | Phase | Estimation | Avec marge de 30 % |
 |---|---|---|
-| 1 — Hygiène | 15 h | 20 h |
+| 1 — Hygiène | 16 h | 21 h |
 | 2 — Sécurité du transfert | 29 h | 38 h |
 | 3 — Domaine et registre | 37 h | 48 h |
 | 4 — Desktop et luxe | 26 h | 34 h |
 | 5 — Démo et récit | 16 h | 21 h |
 | 6 — Marché | 14 h | 18 h |
-| **Total** | **137 h** | **≈ 180 h**, soit environ 4,5 semaines à temps plein |
+| **Total** | **138 h** | **≈ 180 h**, soit environ 4,5 semaines à temps plein |
 
 Les *Should* représentent environ 14 h. Ce sont les premiers à sauter si l'échéance l'impose.
 

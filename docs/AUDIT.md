@@ -18,7 +18,7 @@
 | ID | Constat | Verdict | Gravité | Backlog |
 |---|---|---|---|---|
 | N0 | Le checkout local pointe vers le dépôt boilerplate, qui contient lui aussi la clé fuitée | Nouveau | Haute | P1-02 |
-| S1 | Secrets publics, fallback JWT, `render.yaml` incomplet | Confirmé, nuancé | Critique | P1-01, P1-03, P1-04 |
+| S1 | Secrets publics, fallback JWT, `render.yaml` incomplet | Confirmé, nuancé | Moyenne (clés de dev uniquement) | P1-01, P1-03, P1-04 |
 | S2 | Pas de contrôle de propriété sur la génération de nonce | Confirmé | Critique | P2-02 |
 | S3 | Nonce non lié à l'actif (`claim` et `authenticate`) | Confirmé | Critique | P2-02 |
 | S4 | Pas de finalité du nonce (QR vérif = QR transfert) | Confirmé | Critique | P2-02, P2-04 |
@@ -44,6 +44,8 @@
 | N13 | Fonctionnalités promises mais retirées, code mort | Nouveau | Basse | P1-09 |
 | N14 | JWT en `localStorage` sur le web, pas de révocation | Nouveau | Basse (résiduel assumé) | THREAT_MODEL |
 | N15 | Historique git peu lisible pour un recruteur | Nouveau | Basse | — (pas de réécriture) |
+| N16 | `npm run start:prod` (commande de démarrage Render) plante : `dist/main.js` n'existe pas | Nouveau (exécuté) | **Haute (bloque le déploiement)** | P1-11 |
+| N17 | `expo-secure-store@^56` sur un projet en SDK 54 (attendu : `~15.0.8`) | Nouveau (exécuté) | Haute (natif) | P1-12 |
 
 ---
 
@@ -59,7 +61,7 @@
 
 ## Sécurité
 
-### S1 — Secrets publics · Confirmé, nuancé · Critique
+### S1 — Secrets publics · Confirmé, nuancé · Moyenne (Critique au départ, réévalué le 2026-10-23 : clés de dev uniquement)
 
 **Preuves**
 - `backend/.env:1-8` est versionné depuis `9de1082` (2026-08-10, « ajout des .env pour mon travail de bachelors »). Le même commit retire `.env`, `.env.*` et `.env.example` du `.gitignore` racine (`.gitignore:68-70`, lignes désormais vides). `backend/.gitignore:3` ignore encore `.env` : le fichier a donc été ajouté de force.
@@ -314,9 +316,35 @@ Cela explique probablement l'abandon de l'upload d'images (`7b5a5b1`, puis `0158
 
 ---
 
-## Questions ouvertes (à trancher par toi)
+## Exécution locale de `main` (2026-10-23)
 
-1. **La clé ECDSA de production est-elle celle de `backend/.env` ?** `JWT_SECRET` est-il bien renseigné sur Render ? Le déploiement Render est-il encore en ligne ? Et la base de prod a-t-elle été seedée (compte `certis@pro.com` / `1234567`) ?
-2. **Dépôt boilerplate** : il contient l'historique de Certis, clé comprise. Doit-il rester public ?
-3. **Émetteurs du seed** : maisons réelles (Rolex, Patek…) ou maisons fictives ? Je recommande des maisons fictives, parce qu'un passeport « signé Rolex » avec une clé détenue par Certis est une usurpation, même en démo.
-4. **Licence** : voir la question dans `BACKLOG.md`.
+Base Docker, `npm ci`, `prisma migrate deploy`, `prisma db seed`, `npm run build`, API sur le port 3001, Expo web. Aucun code modifié.
+
+- **Fonctionne** : login `certis@pro.com`, dashboard (4 montres, **aucune image** : le mapping de `watchImages.ts` ne couvre que les montres du compte `julien.castro`), fiche de la montre, QR d'authentification avec compte à rebours, claim légitime (HTTP 201).
+- **N9 confirmé** : `julien.castro@certis.local` ne peut pas se connecter (401). Le hash du seed est bien factice, donc les 5 montres qui ont une image sont inaccessibles.
+- **Chaîne d'attaque B confirmée en direct** (curl) :
+  1. l'attaquant s'inscrit, crée sa propre montre et génère un nonce dessus ;
+  2. `POST /assets/<Daytona>/claim` avec ce nonce renvoie **201** ;
+  3. la Daytona appartient désormais à l'attaquant, et `GET /assets/<Daytona>/verify` renvoie quand même `{"valid":true}`.
+  
+  La base a été re-seedée ensuite. Le test e2e rouge de P2-01 reproduira exactement cette séquence.
+
+### N16 — Le démarrage de production plante · Haute
+
+- `backend/tsconfig.json` n'a pas de champ `include`, et `backend/tsconfig.build.json:3` n'exclut que `test`. `tsc` compile donc aussi `prisma.config.ts`, `prisma/seed.ts` et `scripts/`, et la racine de sortie remonte d'un niveau : le build produit `dist/src/main.js`.
+- `start:prod` (`backend/package.json:14`, `node dist/main`) et donc `render.yaml:22` échouent avec `Cannot find module`. Vérifié en exécutant `node dist/main`.
+- Correction d'une ligne : `"include": ["src"]` dans `tsconfig.build.json`.
+
+### N17 — Version d'`expo-secure-store` incohérente · Haute (natif)
+
+- `mobile/package.json:19` déclare `"expo-secure-store": "^56.0.4"`, alors qu'Expo SDK 54 attend `~15.0.8` (avertissement d'`expo start`).
+- Sur iOS et Android (Expo Go SDK 54), le module natif ne correspond pas : la lecture et l'écriture du token risquent d'échouer. Le web n'est pas concerné, car il passe par `localStorage`.
+- `expo`, `expo-constants` et `expo-router` sont aussi légèrement en retard sur les patchs attendus.
+- Correction : `npx expo install --fix`.
+
+## Réponses aux questions ouvertes (2026-10-23)
+
+1. **Clés et secrets** : `backend/.env` ne contient que des valeurs de **dev**, aucune n'est utilisée en production. Conséquence : S1 passe de *Critique* à *Moyenne*. Il n'y a pas de clé de prod à faire tourner et pas de réécriture d'historique à envisager. Il reste un vrai risque : le fallback `JWT_SECRET`, plus l'absence de déclaration des clés dans `render.yaml`, au moment de redéployer. P1-03 et P1-04 le couvrent.
+2. **Dépôt boilerplate** : il reste public. Rien à faire, puisque la clé exposée est une clé de dev.
+3. **Seed** : 2 ou 3 montres de marques réelles suffisent pour montrer que le service fonctionne. Les émetteurs fictifs ne sont pas retenus.
+4. **Licence** : aucune pour l'instant (P1-10 passe en *Won't*).
