@@ -17,7 +17,8 @@ describe('Security critical flows (e2e)', () => {
   beforeAll(async () => {
     // Ensure crypto keys exist for signatures during tests.
     ensureCryptoEnv();
-    process.env.DATABASE_URL ??= 'postgresql://certis:certis_password@localhost:5432/certis_db';
+    process.env.DATABASE_URL ??=
+      'postgresql://certis:certis_password@localhost:5432/certis_db';
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -212,6 +213,3 @@ async function cleanDatabase(prisma: PrismaService) {
   await prisma.asset.deleteMany();
   await prisma.user.deleteMany();
 }
-
-
-

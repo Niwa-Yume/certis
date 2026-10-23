@@ -10,7 +10,8 @@ describe('AppController (e2e)', () => {
 
   beforeEach(async () => {
     ensureCryptoEnv();
-    process.env.DATABASE_URL ??= 'postgresql://certis:certis_password@localhost:5432/certis_db';
+    process.env.DATABASE_URL ??=
+      'postgresql://certis:certis_password@localhost:5432/certis_db';
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -48,4 +49,3 @@ function ensureCryptoEnv() {
   process.env.ECDSA_PRIVATE_KEY = privateKey;
   process.env.ECDSA_PUBLIC_KEY = publicKey;
 }
-

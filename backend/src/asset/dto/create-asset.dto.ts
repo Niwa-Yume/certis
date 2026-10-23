@@ -1,7 +1,7 @@
 export class CreateAssetDto {
-    name: string;
-    brand: string;
-    model: string;
-    reference: string;
-    imageUrl?: string;
+  name: string;
+  brand: string;
+  model: string;
+  reference: string;
+  imageUrl?: string;
 }
