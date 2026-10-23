@@ -35,9 +35,10 @@ Etat metier confirme:
 - PostgreSQL (local ou via Docker)
 - Variables d'environnement:
   - `DATABASE_URL`
-  - `ECDSA_PRIVATE_KEY`
-  - `ECDSA_PUBLIC_KEY`
+  - `JWT_SECRET` (32 caracteres minimum)
+  - `ECDSA_PRIVATE_KEY` (P-256 ; la cle publique en est derivee)
   - `PORT` (optionnel, defaut 3000)
+- L'API refuse de demarrer si l'une d'elles manque ou est invalide (`src/config/env.ts`).
 
 ## Lancer le projet
 
@@ -52,9 +53,9 @@ npm run start:dev
 
 ## Script utile
 
-Generation de paires de cles ECDSA (format pret pour `.env`):
+Generation des secrets (format pret pour `.env` ou Render) :
 
 ```bash
-npx ts-node scripts/generate-keys.ts
+node scripts/generate-secrets.mjs
 ```
 

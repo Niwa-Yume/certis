@@ -11,7 +11,7 @@ Fichiers principaux:
 
 `CryptoService`:
 
-- lit `ECDSA_PRIVATE_KEY` et `ECDSA_PUBLIC_KEY` depuis l'environnement
+- lit `ECDSA_PRIVATE_KEY` via `readEnv()` et en derive la cle publique
 - signe les payloads en `SHA256` + ECDSA (format Base64)
 - verifie les signatures avec la cle publique
 

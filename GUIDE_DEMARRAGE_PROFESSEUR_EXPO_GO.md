@@ -45,21 +45,12 @@ cd backend
 npm install
 ```
 
-Creer `backend/.env` (important : pas `backend/env`) :
-
-```env
-DATABASE_URL="postgresql://certis:certis_password@localhost:5432/certis_db"
-PORT=3001
-JWT_SECRET="dev-jwt-secret-change-me"
-ECDSA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
-ECDSA_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
-```
-
-Generer une paire de cles ECDSA :
+Creer `backend/.env` avec des secrets neufs (ou simplement lancer `npm run dev` a la racine, qui fait tout) :
 
 ```bash
 cd backend
-npx ts-node scripts/generate-keys.ts
+cp .env.example .env
+node scripts/generate-secrets.mjs >> .env
 ```
 
 Initialiser la base :

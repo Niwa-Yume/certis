@@ -16,7 +16,7 @@ Le projet permet de créer des actifs (montres), d'attester leur authenticité p
 ## Fonctionnalités principales
 
 - inscription / connexion utilisateur ;
-- création d'une montre avec photo ;
+- création d'une montre (photo par URL) ;
 - génération d'un QR d'authentification ;
 - génération d'un QR de transfert temporaire (nonce expirant) ;
 - consultation des actifs et des détails ;
@@ -36,82 +36,39 @@ Le projet permet de créer des actifs (montres), d'attester leur authenticité p
 
 ## Prérequis
 
-- Node.js LTS (20 recommandé) ;
-- npm ;
+- Node.js 24 LTS (`.nvmrc`) ; Node 22 fonctionne aussi ;
 - Docker Desktop ;
-- 2 téléphones avec Expo Go pour la démo de transfert. (ils doivent être sur le même réseau wifi, 4g, etc...)
+- pour la démo de transfert sur téléphone : Expo Go (SDK 54), sur le même réseau que l'ordinateur.
 
-## Setup rapide
-
-### 1) Cloner et installer
+## Lancement en local (une commande)
 
 ```bash
-cd backend && npm install
-cd ../mobile && npm install
+npm run dev
 ```
 
-### 2) Démarrer PostgreSQL
+Cette commande démarre PostgreSQL (Docker), installe les dépendances manquantes, crée `backend/.env` avec des secrets neufs s'il n'existe pas, applique les migrations, seede la base si elle est vide, puis lance l'API (http://localhost:3001) et le web (http://localhost:8090). `Ctrl+C` arrête tout.
 
-```bash
-docker compose up -d
-```
+Comptes de démo (dev uniquement) : voir `backend/prisma/seed.ts`.
 
-### 3) Configurer les variables backend
+| Commande | Effet |
+|---|---|
+| `npm --prefix backend run db:reset` | Repartir d'une base de démo propre |
+| `npm --prefix backend test` | Tests unitaires |
+| `npm --prefix backend run test:e2e` | Tests e2e, sur la base isolée `certis_test` |
+| `npm --prefix backend run lint` | Lint (sans correction automatique) |
 
-Créer `backend/.env` (et non `backend/env`) :
+Sur téléphone, l'app cherche l'API sur l'IP de l'ordinateur, port 3001 (`mobile/lib/api.ts`). Sinon, définir `EXPO_PUBLIC_API_URL` dans `mobile/.env`.
 
-```env
-DATABASE_URL="postgresql://certis:certis_password@localhost:5432/certis_db"
-PORT=3001
-JWT_SECRET="dev-jwt-secret-change-me"
-ECDSA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
-ECDSA_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
-```
+## Déploiement (Render + Neon)
 
-Génération des clés ECDSA :
+Le choix est expliqué dans [`docs/adr/0008-hebergement-render-neon.md`](docs/adr/0008-hebergement-render-neon.md).
 
-```bash
-cd backend
-npx ts-node scripts/generate-keys.ts
-```
+1. Créer une base sur Neon (offre gratuite) et copier sa chaîne de connexion **directe**.
+2. Générer la clé de signature de production : `node backend/scripts/generate-secrets.mjs`. Ne copier que la ligne `ECDSA_PRIVATE_KEY`, car `JWT_SECRET` est généré par Render.
+3. Sur Render : *New → Blueprint*, sur ce dépôt. Renseigner `DATABASE_URL` et `ECDSA_PRIVATE_KEY` pour `certis-api`.
+4. Une fois `certis-api` en ligne, renseigner `EXPO_PUBLIC_API_URL` (son URL publique) pour `certis-web`, puis relancer le déploiement du site.
 
-### 4) Initialiser la base
-
-```bash
-cd backend
-npx prisma migrate deploy
-```
-
-Optionnel (données de démonstration) :
-
-```bash
-cd backend
-npx ts-node prisma/seed.ts
-```
-
-## Lancement
-
-### Backend
-
-```bash
-cd backend
-npm run start:dev
-```
-
-### Mobile
-
-Configurer `mobile/.env` :
-
-```env
-EXPO_PUBLIC_API_URL=http://<IP_ORDINATEUR>:3001
-```
-
-Puis lancer Expo :
-
-```bash
-cd mobile
-npm run start
-```
+L'API refuse de démarrer si une variable manque ou est trop faible : le message liste chaque problème.
 
 ## Démonstration recommandée (bachelor)
 

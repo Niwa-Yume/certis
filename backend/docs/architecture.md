@@ -47,8 +47,9 @@
 
 - `DATABASE_URL`: connexion PostgreSQL
 - `PORT` (optionnel): port HTTP (defaut 3000)
-- `ECDSA_PRIVATE_KEY`: cle privee PEM (avec `\\n` echappes)
-- `ECDSA_PUBLIC_KEY`: cle publique PEM (avec `\\n` echappes)
+- `JWT_SECRET`: secret HS256, 32 caracteres minimum
+- `ECDSA_PRIVATE_KEY`: cle privee PEM P-256 (avec `\\n` echappes acceptes) ; la cle publique en est derivee
+- Validation au demarrage : `src/config/env.ts` (aucune valeur par defaut pour les secrets)
 
 ## Demarrage rapide
 
@@ -64,9 +65,9 @@ npm run start:dev
 
 ## Generation des cles ECDSA
 
-Le script `scripts/generate-keys.ts` genere des valeurs pretes a coller dans un `.env`.
+Le script `scripts/generate-secrets.mjs` genere `JWT_SECRET` et `ECDSA_PRIVATE_KEY`, prets a coller dans un `.env`.
 
 ```bash
-npx ts-node scripts/generate-keys.ts
+node scripts/generate-secrets.mjs
 ```
 
