@@ -67,6 +67,30 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 
 **Total Phase 1 : environ 16 h.**
 
+### Bilan Phase 1 (2026-10-23, branche `phase-1/hygiene`)
+
+| ID | Statut | Preuve | Écart par rapport aux critères |
+|---|---|---|---|
+| P1-01 | Fait | `22412d8`, `6867382`. Aucun `.env` ni clé privée dans `HEAD` (`git grep "BEGIN PRIVATE KEY" HEAD` est vide). | Pas de scan gitleaks (outil non installé), remplacé par le `git grep`. Les mots de passe du seed restent ceux de démo, conformément à ta décision du jour. |
+| P1-02 | Fait | Remote `certis` ajouté. ADR-0001. | Push protection GitHub : à activer par toi. |
+| P1-03 | Fait | `6867382`, `src/config/env.spec.ts` (6 tests). Démarrage sans config : message explicite et code de sortie 1. | — |
+| P1-04 | Fait | `a98ec9b`, ADR-0008. Démarrage Render simulé en local (variables seules, sans `.env`). | Pas encore déployé : il faut ton compte Render et ton compte Neon (voir README, Déploiement). |
+| P1-05 | Fait (identité provisoire) | `4dbfb22`. Le `grep` sur « Audemars » ne renvoie plus que les données de montres. Mention de non-affiliation dans le README. | Icônes : placeholders Expo en attendant l'identité visuelle de la Phase 4. |
+| P1-06 | Fait | `38e4c63`. Le garde-fou refuse `certis_db`. | — |
+| P1-07 | Fait localement | `367eb9a`. Toutes les étapes passent en local. | Pas encore exécutée sur GitHub : la branche n'est pas poussée. |
+| P1-08 | Fait | `.nvmrc` = 24 (lu par Render et par la CI). | Pas d'`engines` : Node 22 en local reste accepté. |
+| P1-09 | Partiel | README « photo par URL », `dotenv` déclaré. | `public/uploads`, `@types/multer`, `expo-image-picker` et le double `NonceModule` sont reportés (*Should*). |
+| P1-11 | Fait | `00f77a8`. Le build produit `dist/main.js`, et `start:prod` démarre. | — |
+| P1-12 | Fait | `ded7e33`. `expo-doctor` 18/18. | Login sur Expo Go non vérifié (pas de téléphone ici). |
+| P1-13 | Fait | `b30c074`, `6cf142a`. `npm run dev` testé aussi en partant d'un `.env` absent. Les deux comptes se connectent et voient leurs montres avec image. Transfert pro → julien : 201, signature valide. | Test sur un clone neuf non fait, à cause du conflit avec le conteneur `certis_db` existant. |
+
+**Estimé / réel** : environ 16 h estimées pour un développeur, environ 30 min de temps agent d'après l'horodatage des commits. Les deux ne sont pas comparables. L'estimation humaine reste la référence de planning.
+
+**Imprévus rencontrés**
+- Le harnais d'aperçu exportait `PORT`, ce qui détournait l'API vers le port du web : `PORT` est désormais forcé à 3001 dans `dev.mjs`.
+- Le premier lancement des e2e, avant leur isolation, a vidé la base de dev : c'est exactement le constat N5 que P1-06 corrige.
+- Un commit embarquait par erreur des suppressions déjà indexées : il a été défait localement (non poussé) et refait.
+
 ## Phase 2 — Sécurité du transfert · branche `phase-2/transfer-security`
 
 | ID | Item | MoSCoW | Est. | Couvre | Critères d'acceptation |

@@ -6,6 +6,8 @@ Certis est une application mobile de certification d'actif.
 
 Le projet permet de créer des actifs (montres), d'attester leur authenticité par signature cryptographique et de transférer la propriété entre utilisateurs via QR code temporaire.
 
+> Projet personnel, sans affiliation avec aucune maison horlogère. Les marques et références citées dans les données de démonstration appartiennent à leurs propriétaires respectifs.
+
 ## Objectif du travail
 
 - proposer un registre de propriété simple ;
