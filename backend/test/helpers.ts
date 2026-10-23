@@ -127,10 +127,10 @@ export async function swapSignatures(
   ]);
   await prisma.asset.update({
     where: { id: a },
-    data: { integrityHash: assetB.integrityHash },
+    data: { signature: assetB.signature },
   });
   await prisma.asset.update({
     where: { id: b },
-    data: { integrityHash: assetA.integrityHash },
+    data: { signature: assetA.signature },
   });
 }

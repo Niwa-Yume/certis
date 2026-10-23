@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { AssetStatus } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CryptoService } from '../crypto/crypto.service';
 import { NonceService } from '../nonce/nonce.service';
@@ -13,19 +15,20 @@ export class AssetService {
   ) {}
 
   async create(dto: CreateAssetDto, ownerId: string) {
-    const integrityHash = this.crypto.sign({
+    // Champs listés un à un : le client ne fixe ni l'id, ni le statut, ni le propriétaire (AUDIT N8).
+    // L'id est connu avant l'insertion car il fait partie du payload signé.
+    const asset = {
+      id: randomUUID(),
+      name: dto.name,
       brand: dto.brand,
       model: dto.model,
       reference: dto.reference,
+      status: AssetStatus.ACTIVE,
+      imageUrl: dto.imageUrl ?? null,
       ownerId,
-    });
-
+    };
     return this.prisma.asset.create({
-      data: {
-        ...dto,
-        ownerId,
-        integrityHash,
-      },
+      data: { ...asset, signature: this.crypto.signAsset(asset) },
     });
   }
 
@@ -41,19 +44,9 @@ export class AssetService {
 
   async verify(id: string): Promise<{ valid: boolean }> {
     const asset = await this.findOne(id);
-
-    const valid = this.crypto.verify(
-      {
-        brand: asset.brand,
-        model: asset.model,
-        reference: asset.reference,
-        ownerId: asset.ownerId,
-      },
-      asset.integrityHash,
-    );
-
-    return { valid };
+    return { valid: this.crypto.verifyAsset(asset, asset.signature) };
   }
+
   issueVerification(id: string, ownerId: string) {
     return this.nonce.issue(id, ownerId, 'VERIFY');
   }

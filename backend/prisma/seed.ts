@@ -1,7 +1,8 @@
 import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
+import { AssetStatus, PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 import { readEnv } from '../src/config/env';
 import { CryptoService } from '../src/crypto/crypto.service';
 
@@ -84,14 +85,15 @@ async function main() {
       data: { ...user, passwordHash: await bcrypt.hash(password, 10) },
     });
     for (const watch of watches) {
-      const integrityHash = crypto.sign({
-        brand: watch.brand,
-        model: watch.model,
-        reference: watch.reference,
+      const asset = {
+        ...watch,
+        id: randomUUID(),
+        status: AssetStatus.ACTIVE,
+        imageUrl: null,
         ownerId: user.id,
-      });
+      };
       await prisma.asset.create({
-        data: { ...watch, ownerId: user.id, integrityHash },
+        data: { ...asset, signature: crypto.signAsset(asset) },
       });
     }
     console.log(`${user.email} : ${watches.length} montres`);

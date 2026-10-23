@@ -54,16 +54,14 @@ export class TransferService {
         tx,
       );
 
-      const integrityHash = this.crypto.sign({
-        brand: asset.brand,
-        model: asset.model,
-        reference: asset.reference,
+      const signature = this.crypto.signAsset({
+        ...asset,
         ownerId: newOwnerId,
       });
       // Garde optimiste : la montre appartient toujours à celui qui a émis l'offre.
       const moved = await tx.asset.updateMany({
         where: { id: assetId, ownerId: offer.issuedById },
-        data: { ownerId: newOwnerId, integrityHash },
+        data: { ownerId: newOwnerId, signature },
       });
       if (moved.count !== 1) {
         throw new ConflictException(

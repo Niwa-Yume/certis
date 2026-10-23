@@ -18,7 +18,7 @@ type Watch = {
     reference: string;
     status: string;
     ownerId: string;
-    integrityHash: string;
+    signature: string;
     imageUrl?: string;
 };
 
@@ -210,7 +210,7 @@ export default function WatchScreen() {
                     </View>
                     <View style={styles.row}>
                         <Text variant="bodyMedium" style={styles.rowLabel}>Empreinte</Text>
-                        <Text variant="bodyMedium" style={styles.rowValue}>{formatHash(watch.integrityHash)}</Text>
+                        <Text variant="bodyMedium" style={styles.rowValue}>{formatHash(watch.signature)}</Text>
                     </View>
                     <Chip style={styles.chip} textStyle={styles.chipText}>{watch.status}</Chip>
                 </Card.Content>

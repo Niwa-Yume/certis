@@ -18,7 +18,7 @@ model Asset {
   model         String
   reference     String
   status        AssetStatus @default(ACTIVE)
-  integrityHash String
+  signature     String // ECDSA P-256 sur le payload JCS v1 (src/crypto/crypto.service.ts)
   ownerId       String
   imageUrl      String?
   createdAt     DateTime    @default(now())

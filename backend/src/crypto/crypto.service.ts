@@ -1,6 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
+import type { Asset } from '@prisma/client';
 import { readEnv } from '../config/env';
+import { canonicalJson } from './canonical-json';
+
+export type SignedAssetFields = Pick<
+  Asset,
+  | 'id'
+  | 'name'
+  | 'brand'
+  | 'model'
+  | 'reference'
+  | 'status'
+  | 'imageUrl'
+  | 'ownerId'
+>;
+
+/**
+ * Payload signé, version 1 (AUDIT S6) : l'identifiant de l'actif (pas de transplantation
+ * entre montres identiques), tout ce qui est affiché, et une version pour faire évoluer le format.
+ */
+export function assetPayload(asset: SignedAssetFields) {
+  return {
+    v: 1,
+    assetId: asset.id,
+    name: asset.name,
+    brand: asset.brand,
+    model: asset.model,
+    reference: asset.reference,
+    status: asset.status,
+    imageUrl: asset.imageUrl ?? null,
+    ownerId: asset.ownerId,
+  };
+}
 
 @Injectable()
 export class CryptoService {
@@ -13,19 +45,22 @@ export class CryptoService {
     this.publicKey = crypto.createPublicKey(this.privateKey);
   }
 
-  sign(data: object): string {
-    const payload = JSON.stringify(data);
-    const sign = crypto.createSign('SHA256');
-    sign.update(payload);
-    sign.end();
-    return sign.sign(this.privateKey, 'base64');
+  signAsset(asset: SignedAssetFields): string {
+    return crypto
+      .sign('sha256', this.bytes(asset), this.privateKey)
+      .toString('base64');
   }
 
-  verify(data: object, signature: string): boolean {
-    const payload = JSON.stringify(data);
-    const verify = crypto.createVerify('SHA256');
-    verify.update(payload);
-    verify.end();
-    return verify.verify(this.publicKey, signature, 'base64');
+  verifyAsset(asset: SignedAssetFields, signature: string): boolean {
+    return crypto.verify(
+      'sha256',
+      this.bytes(asset),
+      this.publicKey,
+      Buffer.from(signature, 'base64'),
+    );
+  }
+
+  private bytes(asset: SignedAssetFields) {
+    return Buffer.from(canonicalJson(assetPayload(asset)), 'utf8');
   }
 }
