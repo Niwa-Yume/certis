@@ -42,9 +42,13 @@ export class AssetController {
     return this.assetService.verify(id);
   }
 
-  @Get(':id/nonce')
-  generateNonce(@Param('id') id: string) {
-    return this.assetService.generateNonce(id);
+  // Le propriétaire génère le QR de vérification à montrer à un acheteur.
+  @Post(':id/verifications')
+  issueVerification(
+    @Param('id') id: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.assetService.issueVerification(id, request.user.id);
   }
 
   @Get(':id/authenticate')

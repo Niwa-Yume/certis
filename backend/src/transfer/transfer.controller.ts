@@ -10,6 +10,7 @@ import {
 import type { Request } from 'express';
 import { TransferService } from './transfer.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TransferOfferDto } from './dto/transfer-offer.dto';
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -23,13 +24,18 @@ type AuthenticatedRequest = Request & {
 export class TransferController {
   constructor(private readonly transferService: TransferService) {}
 
-  @Post(':id/transfer')
-  transfer(
+  // Le propriétaire génère le QR de transfert. Il n'existe plus de transfert sans accord du destinataire.
+  @Post(':id/transfer-offers')
+  createOffer(
     @Param('id') id: string,
-    @Body('toOwnerId') toOwnerId: string,
+    @Body() dto: TransferOfferDto,
     @Req() request: AuthenticatedRequest,
   ) {
-    return this.transferService.transfer(id, toOwnerId, request.user.id);
+    return this.transferService.createOffer(
+      id,
+      request.user.id,
+      dto.recipientEmail,
+    );
   }
 
   @Get(':id/history')

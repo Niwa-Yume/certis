@@ -54,15 +54,13 @@ export class AssetService {
 
     return { valid };
   }
-  //Vérifie si l'asset existe et si le hash est valide, puis génère un nonce pour l'authentification
-
-  async generateNonce(id: string) {
-    await this.findOne(id);
-    return this.nonce.generate(id);
+  issueVerification(id: string, ownerId: string) {
+    return this.nonce.issue(id, ownerId, 'VERIFY');
   }
-  // Consomme le nonce puis verifie la signature
+
+  // Consomme un nonce de vérification lié à cette montre, puis vérifie la signature.
   async authenticate(id: string, nonceValue: string) {
-    await this.nonce.consume(nonceValue);
+    await this.nonce.consume(nonceValue, id, 'VERIFY');
     return this.verify(id);
   }
 }

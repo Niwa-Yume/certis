@@ -72,15 +72,18 @@ export const issueVerifyNonce = (
   app: INestApplication,
   user: User,
   assetId: string,
-) => http(app).get(`/assets/${assetId}/nonce`).set(auth(user));
+) => http(app).post(`/assets/${assetId}/verifications`).set(auth(user));
 
 export const issueTransferNonce = (
   app: INestApplication,
   user: User,
   assetId: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   body: { recipientEmail?: string } = {},
-) => http(app).get(`/assets/${assetId}/nonce`).set(auth(user));
+) =>
+  http(app)
+    .post(`/assets/${assetId}/transfer-offers`)
+    .set(auth(user))
+    .send(body);
 
 export const authenticate = (
   app: INestApplication,

@@ -1,52 +1,31 @@
 import {
-  ForbiddenException,
-  GoneException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CryptoService } from '../crypto/crypto.service';
+import { NonceService } from '../nonce/nonce.service';
 
 @Injectable()
 export class TransferService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly crypto: CryptoService,
+    private readonly nonce: NonceService,
   ) {}
 
-  async transfer(assetId: string, toOwnerId: string, currentUserId: string) {
-    return this.prisma.$transaction(async (tx) => {
-      const asset = await tx.asset.findUnique({ where: { id: assetId } });
-      if (!asset) throw new NotFoundException(`Asset ${assetId} introuvable`);
-      if (asset.ownerId !== currentUserId) {
-        throw new ForbiddenException(
-          'Seul le proprietaire actuel peut transferer cet asset',
-        );
-      }
-
-      await tx.transfer.create({
-        data: {
-          assetId,
-          fromOwnerId: currentUserId,
-          toOwnerId,
-        },
+  /** Étape 1 : le propriétaire émet une offre (QR), éventuellement réservée à un destinataire. */
+  async createOffer(assetId: string, ownerId: string, recipientEmail?: string) {
+    let recipientId: string | undefined;
+    if (recipientEmail) {
+      const recipient = await this.prisma.user.findUnique({
+        where: { email: recipientEmail },
       });
-
-      const integrityHash = this.crypto.sign({
-        brand: asset.brand,
-        model: asset.model,
-        reference: asset.reference,
-        ownerId: toOwnerId,
-      });
-
-      return tx.asset.update({
-        where: { id: assetId },
-        data: {
-          ownerId: toOwnerId,
-          integrityHash,
-        },
-      });
-    });
+      if (!recipient) throw new NotFoundException('Destinataire introuvable');
+      recipientId = recipient.id;
+    }
+    return this.nonce.issue(assetId, ownerId, 'TRANSFER', recipientId);
   }
 
   async getHistory(assetId: string) {
@@ -56,36 +35,24 @@ export class TransferService {
     });
   }
 
-  // Le receveur scanne le QR et claim l'asset grâce au nonce généré par le propriétaire.
+  /** Étape 2 : le destinataire scanne le QR et accepte. Tout ou rien, une seule fois. */
   async claim(assetId: string, nonceValue: string, newOwnerId: string) {
     return this.prisma.$transaction(async (tx) => {
       const asset = await tx.asset.findUnique({ where: { id: assetId } });
       if (!asset) throw new NotFoundException(`Asset ${assetId} introuvable`);
-
-      // Consomme le nonce dans la meme transaction que le transfert.
-      const nonce = await tx.authNonce.findUnique({ where: { nonceValue } });
-      if (!nonce) {
-        throw new NotFoundException('Nonce introuvable');
-      }
-      if (nonce.used) {
-        throw new GoneException('Nonce déjà utilisé');
-      }
-      if (new Date() > nonce.expiresAt) {
-        throw new GoneException('Nonce expiré');
+      if (asset.ownerId === newOwnerId) {
+        throw new ConflictException(
+          'Vous êtes déjà propriétaire de cette montre',
+        );
       }
 
-      await tx.authNonce.update({
-        where: { nonceValue },
-        data: { used: true, usedAt: new Date() },
-      });
-
-      await tx.transfer.create({
-        data: {
-          assetId,
-          fromOwnerId: asset.ownerId,
-          toOwnerId: newOwnerId,
-        },
-      });
+      const offer = await this.nonce.consume(
+        nonceValue,
+        assetId,
+        'TRANSFER',
+        newOwnerId,
+        tx,
+      );
 
       const integrityHash = this.crypto.sign({
         brand: asset.brand,
@@ -93,11 +60,21 @@ export class TransferService {
         reference: asset.reference,
         ownerId: newOwnerId,
       });
-
-      return tx.asset.update({
-        where: { id: assetId },
+      // Garde optimiste : la montre appartient toujours à celui qui a émis l'offre.
+      const moved = await tx.asset.updateMany({
+        where: { id: assetId, ownerId: offer.issuedById },
         data: { ownerId: newOwnerId, integrityHash },
       });
+      if (moved.count !== 1) {
+        throw new ConflictException(
+          "La montre a changé de propriétaire depuis l'émission du QR",
+        );
+      }
+
+      await tx.transfer.create({
+        data: { assetId, fromOwnerId: offer.issuedById, toOwnerId: newOwnerId },
+      });
+      return tx.asset.findUniqueOrThrow({ where: { id: assetId } });
     });
   }
 }

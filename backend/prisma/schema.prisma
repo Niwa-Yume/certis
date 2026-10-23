@@ -35,19 +35,33 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  assets Asset[]
+  assets         Asset[]
+  issuedNonces   AuthNonce[] @relation("NonceIssuer")
+  reservedNonces AuthNonce[] @relation("NonceRecipient")
 }
 
+// Un nonce est lié à un actif, à une finalité et au propriétaire qui l'a émis.
 model AuthNonce {
-  id         String    @id @default(uuid())
-  nonceValue String    @unique
+  id         String       @id @default(uuid())
+  nonceValue String       @unique
+  purpose    NoncePurpose
   expiresAt  DateTime
-  used       Boolean   @default(false)
+  used       Boolean      @default(false)
   usedAt     DateTime? //horodatage au moment où le nonce a été consommé permet de vérifier que le nonce n'est pas réutilisé après son expiration (en gros traçabilité !!!)
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime     @default(now())
 
-  assetId String
-  asset   Asset  @relation(fields: [assetId], references: [id])
+  assetId     String
+  asset       Asset   @relation(fields: [assetId], references: [id])
+  issuedById  String
+  issuedBy    User    @relation("NonceIssuer", fields: [issuedById], references: [id])
+  // Offre de transfert réservée à un destinataire (optionnel).
+  recipientId String?
+  recipient   User?   @relation("NonceRecipient", fields: [recipientId], references: [id])
+}
+
+enum NoncePurpose {
+  VERIFY
+  TRANSFER
 }
 
 model Transfer {
