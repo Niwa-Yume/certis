@@ -1,195 +1,105 @@
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { randomUUID } from 'crypto';
-import request from 'supertest';
-import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import {
+  User,
+  auth,
+  authenticate,
+  claim,
+  createApp,
+  createAsset,
+  http,
+  issueTransferNonce,
+  issueVerifyNonce,
+  nonceValue,
+  ownerOf,
+  registerUser,
+  resetDatabase,
+} from './helpers';
 
-type RegisteredUser = {
-  id: string;
-  accessToken: string;
-};
-
-describe('Security critical flows (e2e)', () => {
+describe('Verification and transfer flows (e2e)', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
+  let owner: User;
+  let recipient: User;
+  let watch: { id: string };
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-    prisma = app.get(PrismaService);
+    app = await createApp();
   });
 
   beforeEach(async () => {
-    await cleanDatabase(prisma);
+    await resetDatabase(app);
+    owner = await registerUser(app);
+    recipient = await registerUser(app);
+    watch = await createAsset(app, owner);
   });
 
   afterAll(async () => {
-    await cleanDatabase(prisma);
+    await resetDatabase(app);
     await app.close();
   });
 
-  it('rejects a nonce that is already used', async () => {
-    const owner = await registerUser(app);
-    const asset = await createAsset(app, owner.accessToken);
+  it('rejects a verification nonce that is already used', async () => {
+    const nonce = await nonceValue(issueVerifyNonce(app, owner, watch.id));
 
-    const nonceRes = await request(app.getHttpServer())
-      .get(`/assets/${asset.id}/nonce`)
-      .set('Authorization', `Bearer ${owner.accessToken}`)
-      .expect(200);
-
-    const nonceValue = nonceRes.body.nonce as string;
-
-    await request(app.getHttpServer())
-      .get(`/assets/${asset.id}/authenticate`)
-      .query({ nonce: nonceValue })
-      .set('Authorization', `Bearer ${owner.accessToken}`)
+    await authenticate(app, watch.id, nonce, owner)
       .expect(200)
-      .expect(({ body }) => {
-        expect(body).toEqual({ valid: true });
-      });
-
-    await request(app.getHttpServer())
-      .get(`/assets/${asset.id}/authenticate`)
-      .query({ nonce: nonceValue })
-      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(({ body }) => expect(body).toEqual({ valid: true }));
+    await authenticate(app, watch.id, nonce, owner)
       .expect(410)
-      .expect(({ body }) => {
-        expect(body.message).toBe('Nonce déjà utilisé');
-      });
+      .expect(({ body }) => expect(body.message).toBe('Nonce déjà utilisé'));
   });
 
   it('rejects an expired nonce', async () => {
-    const owner = await registerUser(app);
-    const asset = await createAsset(app, owner.accessToken);
-
-    const nonceRes = await request(app.getHttpServer())
-      .get(`/assets/${asset.id}/nonce`)
-      .set('Authorization', `Bearer ${owner.accessToken}`)
-      .expect(200);
-
-    const nonceValue = nonceRes.body.nonce as string;
-
-    await prisma.authNonce.update({
-      where: { nonceValue },
-      data: {
-        expiresAt: new Date(Date.now() - 1000),
-      },
+    const nonce = await nonceValue(issueVerifyNonce(app, owner, watch.id));
+    await app.get(PrismaService).authNonce.update({
+      where: { nonceValue: nonce },
+      data: { expiresAt: new Date(Date.now() - 1000) },
     });
 
-    await request(app.getHttpServer())
-      .get(`/assets/${asset.id}/authenticate`)
-      .query({ nonce: nonceValue })
-      .set('Authorization', `Bearer ${owner.accessToken}`)
+    await authenticate(app, watch.id, nonce, owner)
       .expect(410)
-      .expect(({ body }) => {
-        expect(body.message).toBe('Nonce expiré');
-      });
+      .expect(({ body }) => expect(body.message).toBe('Nonce expiré'));
   });
 
-  it('rolls back transfer history when owner update fails', async () => {
-    const owner = await registerUser(app);
-    const asset = await createAsset(app, owner.accessToken);
-    const unknownOwnerId = randomUUID();
+  it('transfers a watch when the recipient claims the offer', async () => {
+    const nonce = await nonceValue(issueTransferNonce(app, owner, watch.id));
 
-    await request(app.getHttpServer())
-      .post(`/assets/${asset.id}/transfer`)
-      .set('Authorization', `Bearer ${owner.accessToken}`)
-      .send({ toOwnerId: unknownOwnerId })
-      .expect(500);
+    await claim(app, recipient, watch.id, nonce).expect(201);
 
-    await request(app.getHttpServer())
-      .get(`/assets/${asset.id}/history`)
-      .set('Authorization', `Bearer ${owner.accessToken}`)
+    expect(await ownerOf(app, watch.id)).toBe(recipient.id);
+    await http(app)
+      .get(`/assets/${watch.id}/verify`)
+      .set(auth(recipient))
       .expect(200)
-      .expect(({ body }) => {
-        expect(body).toHaveLength(0);
-      });
-
-    await request(app.getHttpServer())
-      .get(`/assets/${asset.id}`)
-      .set('Authorization', `Bearer ${owner.accessToken}`)
-      .expect(200)
-      .expect(({ body }) => {
-        expect(body.ownerId).toBe(owner.id);
-      });
-  });
-
-  it('transfers an asset with valid signature and audit history', async () => {
-    const owner = await registerUser(app);
-    const recipient = await registerUser(app);
-    const asset = await createAsset(app, owner.accessToken);
-
-    await request(app.getHttpServer())
-      .post(`/assets/${asset.id}/transfer`)
-      .set('Authorization', `Bearer ${owner.accessToken}`)
-      .send({ toOwnerId: recipient.id })
-      .expect(201);
-
-    await request(app.getHttpServer())
-      .get(`/assets/${asset.id}`)
-      .set('Authorization', `Bearer ${owner.accessToken}`)
-      .expect(200)
-      .expect(({ body }) => {
-        expect(body.ownerId).toBe(recipient.id);
-      });
-
-    await request(app.getHttpServer())
-      .get(`/assets/${asset.id}/verify`)
-      .set('Authorization', `Bearer ${owner.accessToken}`)
-      .expect(200)
-      .expect(({ body }) => {
-        expect(body).toEqual({ valid: true });
-      });
-
-    await request(app.getHttpServer())
-      .get(`/assets/${asset.id}/history`)
-      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(({ body }) => expect(body).toEqual({ valid: true }));
+    await http(app)
+      .get(`/assets/${watch.id}/history`)
+      .set(auth(recipient))
       .expect(200)
       .expect(({ body }) => {
         expect(body).toHaveLength(1);
-        expect(body[0].fromOwnerId).toBe(owner.id);
-        expect(body[0].toOwnerId).toBe(recipient.id);
+        expect(body[0]).toMatchObject({
+          fromOwnerId: owner.id,
+          toOwnerId: recipient.id,
+        });
       });
   });
+
+  it('reserves an offer to its designated recipient', async () => {
+    const other = await registerUser(app);
+    const nonce = await nonceValue(
+      issueTransferNonce(app, owner, watch.id, {
+        recipientEmail: recipient.email,
+      }),
+    );
+
+    await claim(app, other, watch.id, nonce).expect(403);
+    await claim(app, recipient, watch.id, nonce).expect(201);
+  });
+
+  it('refuses an offer to an unknown recipient', async () => {
+    await issueTransferNonce(app, owner, watch.id, {
+      recipientEmail: 'nobody@certis.test',
+    }).expect(404);
+  });
 });
-
-async function registerUser(app: INestApplication): Promise<RegisteredUser> {
-  const email = `user.${randomUUID()}@certis.test`;
-
-  const registerRes = await request(app.getHttpServer())
-    .post('/auth/register')
-    .send({ email, password: 'Password123!' })
-    .expect(201);
-
-  return {
-    id: registerRes.body.user.id,
-    accessToken: registerRes.body.accessToken,
-  };
-}
-
-async function createAsset(app: INestApplication, accessToken: string) {
-  const assetRes = await request(app.getHttpServer())
-    .post('/assets')
-    .set('Authorization', `Bearer ${accessToken}`)
-    .send({
-      name: 'Montre test',
-      brand: 'Brand',
-      model: 'Model',
-      reference: `REF-${randomUUID()}`,
-    })
-    .expect(201);
-
-  return assetRes.body as { id: string };
-}
-
-async function cleanDatabase(prisma: PrismaService) {
-  await prisma.transfer.deleteMany();
-  await prisma.authNonce.deleteMany();
-  await prisma.asset.deleteMany();
-  await prisma.user.deleteMany();
-}
