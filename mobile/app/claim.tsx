@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { ActivityIndicator, Button, Text } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import axios from 'axios';
 import api from '../lib/api';
 import BrandLogo from '../components/BrandLogo';
 import { sharedStyles } from './shared.styles';
@@ -20,8 +21,14 @@ export default function ClaimScreen() {
         try {
             await api.post(`/assets/${id}/claim`, { nonce });
             setClaimed(true);
-        } catch {
-            setError('Transfert impossible. Le QR est peut-être expiré ou déjà utilisé.');
+        } catch (e) {
+            // Le serveur dit pourquoi (offre réservée, déjà propriétaire, QR expiré…) : on l'affiche.
+            const message = axios.isAxiosError(e) ? e.response?.data?.message : undefined;
+            if (axios.isAxiosError(e) && e.response?.status === 401) {
+                setError('Connectez-vous pour recevoir cette montre, puis rescannez le QR.');
+            } else {
+                setError(typeof message === 'string' ? message : 'Transfert impossible pour le moment.');
+            }
         } finally {
             setLoading(false);
         }

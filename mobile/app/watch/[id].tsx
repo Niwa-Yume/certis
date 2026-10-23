@@ -87,7 +87,7 @@ export default function WatchScreen() {
     const generateNonce = async () => {
         setRefreshing(true);
         try {
-            const res = await api.get(`/assets/${id}/nonce`);
+            const res = await api.post(`/assets/${id}/verifications`);
             setNonce(res.data.nonce);
             setExpiresAt(new Date(res.data.expiresAt));
         } catch (e) {
@@ -105,7 +105,7 @@ export default function WatchScreen() {
 
     const generateTransferNonce = async () => {
         try {
-            const res = await api.get(`/assets/${id}/nonce`);
+            const res = await api.post(`/assets/${id}/transfer-offers`, {});
             setTransferNonce(res.data.nonce);
             setTransferExpiresAt(new Date(res.data.expiresAt));
         } catch (e) {
