@@ -1,5 +1,5 @@
 services:
-  # ── Frontend Expo Web (SPA) ──────────────────────────────────────────────
+  # ── Frontend Expo Web (SPA statique) ─────────────────────────────────────
   - type: web
     name: certis-web
     runtime: static
@@ -7,25 +7,27 @@ services:
     staticPublishPath: dist
     envVars:
       - key: EXPO_PUBLIC_API_URL
-        sync: false   # à renseigner dans le dashboard Render : https://certis-api.onrender.com
+        sync: false # URL publique de certis-api (ex. https://certis-api.onrender.com), lue au build
     routes:
-      # Redirige toutes les routes vers index.html (SPA routing)
+      # Render ne réécrit que les chemins sans fichier : /_expo/... reste servi tel quel.
       - type: rewrite
         source: /*
         destination: /index.html
 
-  # ── Backend NestJS ───────────────────────────────────────────────────────
+  # ── API NestJS ───────────────────────────────────────────────────────────
+  # Node : version lue dans .nvmrc. PORT : fourni par Render.
   - type: web
     name: certis-api
     runtime: node
-    buildCommand: cd backend && npm install && npm run build && npx prisma generate
-    startCommand: cd backend && npm run start:prod
+    plan: free
+    buildCommand: cd backend && npm ci && npx prisma generate && npm run build
+    # Pas de preDeployCommand sur l'offre gratuite : migrations au démarrage (idempotentes).
+    startCommand: cd backend && npx prisma migrate deploy && npm run start:prod
+    healthCheckPath: /
     envVars:
       - key: DATABASE_URL
-        sync: false   # à renseigner dans le dashboard Render
+        sync: false # chaîne de connexion Postgres (Neon, voir docs/adr/0008)
       - key: JWT_SECRET
-        sync: false   # à renseigner dans le dashboard Render
-      - key: PORT
-        value: "3000"
-    healthCheckPath: /
-
+        generateValue: true # 256 bits aléatoires générés par Render
+      - key: ECDSA_PRIVATE_KEY
+        sync: false # sortie de `node backend/scripts/generate-secrets.mjs`
