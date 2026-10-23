@@ -161,7 +161,7 @@ export default function WatchScreen() {
             </Button>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                 <BrandLogo size={36} />
-                <Text variant="titleMedium" style={{ fontWeight: '700' }}>Audemars Piguet</Text>
+                <Text variant="titleMedium" style={{ fontWeight: '700' }}>Certis</Text>
             </View>
             <Text variant="headlineMedium" style={styles.title}>{watch.name}</Text>
             <Text variant="bodyMedium" style={styles.subtitle}>

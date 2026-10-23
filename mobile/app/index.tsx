@@ -59,7 +59,7 @@ export default function IndexScreen() {
                 <View style={styles.logoWrap}>
                     <BrandLogo size={84} />
                 </View>
-                <Text variant="headlineMedium" style={styles.brandName}>Audemars Piguet</Text>
+                <Text variant="headlineMedium" style={styles.brandName}>Certis</Text>
                 <Text variant="titleMedium" style={styles.title}>
                     Registre d'authenticité horlogère
                 </Text>

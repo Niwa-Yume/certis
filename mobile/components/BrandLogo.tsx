@@ -1,7 +1,8 @@
 import { Image, StyleSheet, View } from 'react-native';
 import { palette } from '../theme/tokens';
 
-const apLogo = require('../assets/logo AP.jpeg');
+// Logo provisoire : l'identité visuelle définitive est choisie en Phase 4.
+const certisLogo = require('../assets/logo-certis.png');
 
 type BrandLogoProps = {
   size?: number;
@@ -12,7 +13,7 @@ export default function BrandLogo({ size = 56 }: BrandLogoProps) {
 
   return (
     <View style={[styles.container, { width: size, height: size, borderRadius }] }>
-      <Image source={apLogo} style={{ width: size, height: size, borderRadius }} resizeMode="cover" />
+      <Image source={certisLogo} style={{ width: size, height: size, borderRadius }} resizeMode="contain" />
     </View>
   );
 }

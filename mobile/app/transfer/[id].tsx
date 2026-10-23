@@ -70,7 +70,7 @@ export default function TransferScreen() {
         <View style={styles.container}>
             <View style={styles.brandHeader}>
                 <BrandLogo size={40} />
-                <Text variant="titleLarge" style={styles.brandTitle}>Audemars Piguet</Text>
+                <Text variant="titleLarge" style={styles.brandTitle}>Certis</Text>
             </View>
             <Button mode="text" icon="arrow-left" onPress={goBack} style={styles.backButton}>
                 Retour

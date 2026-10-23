@@ -80,14 +80,14 @@ export default function DashboardScreen() {
         <View style={styles.container}>
             <View style={styles.headerRow}>
                 <BrandLogo size={44} />
-                <Text variant="headlineMedium" style={styles.title}>Audemars Piguet</Text>
+                <Text variant="headlineMedium" style={styles.title}>Certis</Text>
                 <Button mode="text" onPress={logout} style={{ marginLeft: 'auto' }}>
                     Déconnexion
                 </Button>
             </View>
 
             <View style={styles.hero}>
-                <Text variant="labelLarge" style={styles.collectionTag}>Collection privée AP</Text>
+                <Text variant="labelLarge" style={styles.collectionTag}>Collection privée</Text>
                 <Text variant="titleLarge">{assets.length} pièce{assets.length > 1 ? 's' : ''} certifiée{assets.length > 1 ? 's' : ''}</Text>
                 <Text variant="bodyMedium" style={{ color: palette.neutralText, marginTop: 6 }}>
                     Chaque actif est signé cryptographiquement et vérifiable en quelques secondes.
