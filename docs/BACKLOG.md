@@ -107,6 +107,31 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 
 **Total Phase 2 : environ 29 h.**
 
+### Bilan Phase 2 (2026-10-23, branche `phase-2/transfer-security`)
+
+**Rouge, puis vert.**
+- `9fd0503` : 18 tests sur 22 en échec, chacun parce que l'attaque réussit. Le relevé est dans le message de commit ; par exemple, 10 claims concurrents réussissent avec le même nonce.
+- Après les correctifs : **22 tests sur 22**. Le test D (concurrence) est passé 15 fois sur 15.
+
+| ID | Statut | Preuve | Écart par rapport aux critères |
+|---|---|---|---|
+| P2-01 | Fait | `9fd0503` (rouge) | Le relevé rouge est dans le message de commit plutôt qu'en capture CI, puisque la branche n'est pas poussée. |
+| P2-02 | Fait | `90b0b35`. Tests A, B, C au vert. | — |
+| P2-03 | Fait | `90b0b35`, ADR-0002. Test D : 15/15. | Répété 15 fois au lieu de 20. |
+| P2-04 | Fait | `90b0b35`, `d337821`. Tests G, H et offres ciblées. | Pas de champ « destinataire » dans l'UI (l'API le gère) : prévu en Phase 4. |
+| P2-05 | Fait | `4199566`. Test K. | Le nonce reste dans l'URL du front (QR) : résiduel n° 6. |
+| P2-06 | Fait | `7fca3b2`. Test E, `canonical-json.spec.ts`. | Canonicalisation maison (environ 15 lignes) plutôt que le paquet `canonicalize`, et testée sur les exemples du RFC. |
+| P2-07 | Fait | `5e18f80`. Tests F, I, J, L, N. CORS et helmet vérifiés en direct. | Pas de filtre d'erreurs Prisma (la validation ferme les 500 connus). `TRUST_PROXY_HOPS=1` est une hypothèse. |
+| P2-08 | Fait | `d337821`. Trois états vérifiés dans Expo web. | Les autres emojis (claim, ajout) restent pour la Phase 4. |
+| P2-09 | Fait | `docs/security/THREAT_MODEL.md` | — |
+
+**Ajouté en cours de route** (non prévu au backlog) : la vérification est **publique**, sans compte (test M). C'était la cause principale du faux « non authentique » de l'écran de vérification (N2).
+
+**Imprévus rencontrés**
+- supertest refermait le serveur éphémère entre deux requêtes : l'app de test écoute désormais sur un port fixe.
+- Prisma 7 ne régénère plus le client après `migrate dev`, et `nest --watch` garde les types en cache : après un changement de schéma, il faut relancer `npm run dev`.
+- Prettier remplace les échappements `\uXXXX` par les caractères eux-mêmes : les tests Unicode construisent leurs chaînes à partir des unités UTF-16.
+
 ## Phase 3 — Domaine et registre · branche `phase-3/domain-registry`
 
 | ID | Item | MoSCoW | Est. | Couvre | Critères d'acceptation |
