@@ -2,7 +2,7 @@
   "name": "certis",
   "private": true,
   "scripts": {
-    "build:web": "cd mobile && npm install && npx expo export --platform web --output-dir ../dist"
+    "dev": "node scripts/dev.mjs",
+    "build:web": "cd mobile && npm ci && npx expo export --platform web --output-dir ../dist"
   }
 }
-
