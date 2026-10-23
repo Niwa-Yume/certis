@@ -1,4 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
+import { APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -11,16 +13,30 @@ import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
+    // Plafond par IP pour toute l'API ; les routes sensibles ont leur propre limite (@Throttle).
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     PrismaModule,
     UserModule,
     AuthModule,
     CryptoModule,
     AssetModule,
     NonceModule,
-    NonceModule,
     TransferModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // Déclarés ici plutôt que dans main.ts : les tests e2e les exécutent aussi.
+    {
+      provide: APP_PIPE,
+      // whitelist + forbidNonWhitelisted : un champ inconnu est refusé (AUDIT N8).
+      useValue: new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

@@ -67,7 +67,7 @@ Le choix est expliqué dans [`docs/adr/0008-hebergement-render-neon.md`](docs/ad
 
 1. Créer une base sur Neon (offre gratuite) et copier sa chaîne de connexion **directe**.
 2. Générer la clé de signature de production : `node backend/scripts/generate-secrets.mjs`. Ne copier que la ligne `ECDSA_PRIVATE_KEY`, car `JWT_SECRET` est généré par Render.
-3. Sur Render : *New → Blueprint*, sur ce dépôt. Renseigner `DATABASE_URL` et `ECDSA_PRIVATE_KEY` pour `certis-api`.
+3. Sur Render : *New → Blueprint*, sur ce dépôt. Renseigner `DATABASE_URL`, `ECDSA_PRIVATE_KEY` et `CORS_ORIGINS` (l'URL de `certis-web`) pour `certis-api`. `TRUST_PROXY_HOPS` vaut 1 par hypothèse : à vérifier au premier déploiement (`docs/security/THREAT_MODEL.md`).
 4. Une fois `certis-api` en ligne, renseigner `EXPO_PUBLIC_API_URL` (son URL publique) pour `certis-web`, puis relancer le déploiement du site.
 
 L'API refuse de démarrer si une variable manque ou est trop faible : le message liste chaque problème.

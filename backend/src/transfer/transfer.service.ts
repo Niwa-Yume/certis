@@ -28,7 +28,12 @@ export class TransferService {
     return this.nonce.issue(assetId, ownerId, 'TRANSFER', recipientId);
   }
 
-  async getHistory(assetId: string) {
+  /** Réservé au propriétaire actuel : la liste contient les ids des anciens propriétaires (AUDIT S8). */
+  async getHistory(assetId: string, ownerId: string) {
+    const owned = await this.prisma.asset.count({
+      where: { id: assetId, ownerId },
+    });
+    if (!owned) throw new NotFoundException(`Asset ${assetId} introuvable`);
     return this.prisma.transfer.findMany({
       where: { assetId },
       orderBy: { createdAt: 'asc' },

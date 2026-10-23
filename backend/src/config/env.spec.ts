@@ -41,7 +41,23 @@ describe('readEnv', () => {
       { DATABASE_URL: 'mysql://x' },
       /DATABASE_URL/,
     ],
+    ['negative TRUST_PROXY_HOPS', { TRUST_PROXY_HOPS: '-1' }, /TRUST_PROXY/],
   ])('rejects %s', (_label, override, message) => {
     expect(() => readEnv({ ...valid, ...override })).toThrow(message);
+  });
+
+  it('defaults to closed network settings: local origins only, no trusted proxy', () => {
+    const env = readEnv(valid);
+    expect(env.corsOrigins).toEqual([
+      'http://localhost:8090',
+      'http://localhost:8081',
+    ]);
+    expect(env.trustProxyHops).toBe(0);
+    expect(
+      readEnv({
+        ...valid,
+        CORS_ORIGINS: 'https://a.example, https://b.example',
+      }).corsOrigins,
+    ).toEqual(['https://a.example', 'https://b.example']);
   });
 });

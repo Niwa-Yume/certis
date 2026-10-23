@@ -31,3 +31,9 @@ services:
         generateValue: true # 256 bits aléatoires générés par Render
       - key: ECDSA_PRIVATE_KEY
         sync: false # sortie de `node backend/scripts/generate-secrets.mjs`
+      - key: CORS_ORIGINS
+        sync: false # URL publique de certis-web (ex. https://certis-web.onrender.com)
+      # Hypothèse à vérifier au premier déploiement : Render ne documente pas le nombre de
+      # proxies. Trop bas, le rate limit devient global ; trop haut, l'IP est usurpable.
+      - key: TRUST_PROXY_HOPS
+        value: "1"

@@ -7,6 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { AssetService } from './asset.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
@@ -32,16 +33,17 @@ export class AssetController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.assetService.findOne(id);
+  findOne(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    return this.assetService.findOne(id, request.user.id);
   }
 
   @Get(':id/verify')
-  verify(@Param('id') id: string) {
-    return this.assetService.verify(id);
+  verify(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    return this.assetService.verify(id, request.user.id);
   }
 
   // Le propriétaire génère le QR de vérification à montrer à un acheteur.
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post(':id/verifications')
   issueVerification(
     @Param('id') id: string,

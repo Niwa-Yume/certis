@@ -36,14 +36,18 @@ export class AssetService {
     return this.prisma.asset.findMany({ where: { ownerId } });
   }
 
-  async findOne(id: string) {
-    const asset = await this.prisma.asset.findUnique({ where: { id } });
+  /**
+   * Avec ownerId : lecture réservée au propriétaire, 404 sinon pour ne pas confirmer
+   * l'existence d'une montre d'autrui (AUDIT S8). Sans : usage interne (vérification par nonce).
+   */
+  async findOne(id: string, ownerId?: string) {
+    const asset = await this.prisma.asset.findFirst({ where: { id, ownerId } });
     if (!asset) throw new NotFoundException(`Asset ${id} introuvable`);
     return asset;
   }
 
-  async verify(id: string): Promise<{ valid: boolean }> {
-    const asset = await this.findOne(id);
+  async verify(id: string, ownerId?: string): Promise<{ valid: boolean }> {
+    const asset = await this.findOne(id, ownerId);
     return { valid: this.crypto.verifyAsset(asset, asset.signature) };
   }
 
