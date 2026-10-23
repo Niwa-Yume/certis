@@ -91,7 +91,7 @@ export const authenticate = (
   nonce: string,
   user?: User,
 ) => {
-  const req = http(app).get(`/assets/${assetId}/authenticate`).query({ nonce });
+  const req = http(app).post(`/assets/${assetId}/authenticate`).send({ nonce });
   return user ? req.set(auth(user)) : req;
 };
 

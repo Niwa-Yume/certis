@@ -4,7 +4,6 @@ import {
   Post,
   Body,
   Param,
-  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -49,10 +48,5 @@ export class AssetController {
     @Req() request: AuthenticatedRequest,
   ) {
     return this.assetService.issueVerification(id, request.user.id);
-  }
-
-  @Get(':id/authenticate')
-  authenticate(@Param('id') id: string, @Query('nonce') nonce: string) {
-    return this.assetService.authenticate(id, nonce);
   }
 }
