@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { generateKeyPairSync, randomUUID } from 'crypto';
+import { randomUUID } from 'crypto';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -15,11 +15,6 @@ describe('Security critical flows (e2e)', () => {
   let prisma: PrismaService;
 
   beforeAll(async () => {
-    // Ensure crypto keys exist for signatures during tests.
-    ensureCryptoEnv();
-    process.env.DATABASE_URL ??=
-      'postgresql://certis:certis_password@localhost:5432/certis_db';
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -162,21 +157,6 @@ describe('Security critical flows (e2e)', () => {
       });
   });
 });
-
-function ensureCryptoEnv() {
-  if (process.env.ECDSA_PRIVATE_KEY && process.env.ECDSA_PUBLIC_KEY) {
-    return;
-  }
-
-  const { privateKey, publicKey } = generateKeyPairSync('ec', {
-    namedCurve: 'P-256',
-    publicKeyEncoding: { type: 'spki', format: 'pem' },
-    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-  });
-
-  process.env.ECDSA_PRIVATE_KEY = privateKey;
-  process.env.ECDSA_PUBLIC_KEY = publicKey;
-}
 
 async function registerUser(app: INestApplication): Promise<RegisteredUser> {
   const email = `user.${randomUUID()}@certis.test`;

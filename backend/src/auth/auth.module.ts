@@ -4,13 +4,17 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
+import { readEnv } from '../config/env';
 
 @Module({
   imports: [
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET ?? 'dev-jwt-secret-change-me',
-      signOptions: { expiresIn: '1h', algorithm: 'HS256' },
+    // registerAsync : le secret est lu à l'initialisation de l'app, pas à l'import du module.
+    JwtModule.registerAsync({
+      useFactory: () => ({
+        secret: readEnv().jwtSecret,
+        signOptions: { expiresIn: '1h', algorithm: 'HS256' },
+      }),
     }),
   ],
   controllers: [AuthController],

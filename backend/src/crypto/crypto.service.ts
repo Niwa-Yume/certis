@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
+import { readEnv } from '../config/env';
 
 @Injectable()
 export class CryptoService {
-  private readonly privateKey: string;
-  private readonly publicKey: string;
+  private readonly privateKey: crypto.KeyObject;
+  // Dérivée de la clé privée : une seule variable d'environnement, aucune paire incohérente possible.
+  private readonly publicKey: crypto.KeyObject;
 
   constructor() {
-    this.privateKey = process.env.ECDSA_PRIVATE_KEY!.replace(/\\n/g, '\n');
-    this.publicKey = process.env.ECDSA_PUBLIC_KEY!.replace(/\\n/g, '\n');
+    this.privateKey = readEnv().signingKey;
+    this.publicKey = crypto.createPublicKey(this.privateKey);
   }
 
   sign(data: object): string {
