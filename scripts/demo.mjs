@@ -61,7 +61,9 @@ const cache = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf8')) : {};
 async function account(email, password = PASSWORD) {
   const key = `${API} ${email}`;
   const cached = cache[key];
-  if (cached && JSON.parse(Buffer.from(cached.split('.')[1], 'base64url')).exp * 1000 > Date.now() + 60_000) {
+  // Un jeton gardé peut avoir été invalidé (base remise à zéro, autre secret) : on le teste.
+  const fresh = cached && JSON.parse(Buffer.from(cached.split('.')[1], 'base64url')).exp * 1000 > Date.now() + 60_000;
+  if (fresh && (await call('GET', '/auth/me', { token: cached })).status === 200) {
     return { email, token: cached };
   }
   let res = await call('POST', '/auth/login', { body: { email, password } });
