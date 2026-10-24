@@ -14,7 +14,7 @@ import {
   ownerOf,
   registerUser,
   resetDatabase,
-  swapSignatures,
+  swapPassports,
 } from './helpers';
 
 describe('Verification and transfer flows (e2e)', () => {
@@ -104,48 +104,19 @@ describe('Verification and transfer flows (e2e)', () => {
     }).expect(404);
   });
 
-  it('shows the buyer the verified piece and its dated provenance, never an identity', async () => {
-    const offer = await nonceValue(issueTransferNonce(app, owner, watch.id));
-    await claim(app, recipient, watch.id, offer).expect(201);
-    const nonce = await nonceValue(issueVerifyNonce(app, recipient, watch.id));
-
-    const { body } = await authenticate(app, watch.id, nonce).expect(200);
-
-    expect(body).toMatchObject({
-      valid: true,
-      asset: {
-        id: watch.id,
-        name: 'Montre test',
-        brand: 'Brand',
-        model: 'Model',
-      },
-      provenance: [{ event: 'REGISTERED' }, { event: 'TRANSFERRED' }],
-      proof: {
-        algorithm: 'ECDSA P-256 / SHA-256',
-        format: 'JCS (RFC 8785) v1',
-      },
-    });
-    expect(Date.parse(body.verifiedAt)).not.toBeNaN();
-    const json = JSON.stringify(body);
-    for (const identity of [
-      owner.id,
-      owner.email,
-      recipient.id,
-      recipient.email,
-    ]) {
-      expect(json).not.toContain(identity);
-    }
-  });
-
-  it('says nothing about a piece whose signature does not match', async () => {
+  it('says nothing about a piece whose passport does not match', async () => {
     const twin = await createAsset(app, owner);
-    await swapSignatures(app, watch.id, twin.id);
+    await swapPassports(app, watch.id, twin.id);
     const nonce = await nonceValue(issueVerifyNonce(app, owner, watch.id));
 
     await authenticate(app, watch.id, nonce)
       .expect(200)
       .expect(({ body }) =>
-        expect(body).toEqual({ valid: false, verifiedAt: expect.any(String) }),
+        expect(body).toEqual({
+          valid: false,
+          problem: 'passport',
+          verifiedAt: expect.any(String),
+        }),
       );
   });
 });

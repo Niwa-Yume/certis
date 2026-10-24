@@ -15,7 +15,7 @@ import {
   ownerOf,
   registerUser,
   resetDatabase,
-  swapSignatures,
+  swapPassports,
 } from './helpers';
 
 // Chaînes d'attaque de docs/AUDIT.md : chaque test décrit le comportement sûr attendu.
@@ -77,12 +77,12 @@ describe('Transfer attack chains (e2e)', () => {
     expect(transfers).toBe(1);
   });
 
-  it('E (S6): a signature cannot be transplanted between identical watches', async () => {
+  it('E (S6): a passport cannot be transplanted between identical watches', async () => {
     const twin = { brand: 'Rolex', model: 'Submariner', reference: '126610LN' };
     const a = await createAsset(app, owner, twin);
     const b = await createAsset(app, owner, twin);
 
-    await swapSignatures(app, a.id, b.id);
+    await swapPassports(app, a.id, b.id);
 
     await http(app)
       .get(`/assets/${a.id}/verify`)
