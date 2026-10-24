@@ -103,7 +103,7 @@ export default function VerifyScreen() {
                         {[
                             'Demandez au vendeur un nouveau QR et vérifiez à nouveau.',
                             'Faites examiner la pièce par un revendeur agréé de la marque.',
-                            'Conservez ce résultat : il est horodaté.',
+                            'Gardez une capture de cet écran : il indique la date et l’heure de la vérification.',
                         ].map((step, i) => (
                             <View key={step} style={{ flexDirection: 'row', gap: 10 }}>
                                 <Text style={[t.body, t.medium, { color: color.seal }]}>{i + 1}.</Text>
