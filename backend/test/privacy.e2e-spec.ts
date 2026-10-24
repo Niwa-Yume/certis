@@ -76,7 +76,11 @@ describe('Privacy: erasure and the append-only journal (e2e)', () => {
   });
 
   it('S-01: an account can be erased, and nothing links the journal to it any more', async () => {
-    await http(app).delete('/auth/me').set(auth(owner)).expect(204);
+    await http(app)
+      .delete('/auth/me')
+      .set(auth(owner))
+      .send({ password: 'Password123!' })
+      .expect(204);
 
     await http(app)
       .post('/auth/login')
@@ -93,10 +97,20 @@ describe('Privacy: erasure and the append-only journal (e2e)', () => {
       .expect(({ body }) => expect(body.valid).toBe(true));
   });
 
+  it('S-01: erasing an account requires its password, not just a token', async () => {
+    await http(app).delete('/auth/me').set(auth(owner)).send({}).expect(400);
+    await http(app)
+      .delete('/auth/me')
+      .set(auth(owner))
+      .send({ password: 'wrong-password' })
+      .expect(401);
+  });
+
   it('S-01: an owner must cede their pieces before erasing the account', async () => {
     await http(app)
       .delete('/auth/me')
       .set(auth(buyer))
+      .send({ password: 'Password123!' })
       .expect(409)
       .expect(({ body }) => expect(body.message).toMatch(/céde/i));
   });

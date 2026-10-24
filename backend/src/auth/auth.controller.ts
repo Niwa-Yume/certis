@@ -1,7 +1,20 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
-import { LoginDto, RegisterDto } from './dto/auth-credentials.dto';
+import {
+  EraseAccountDto,
+  LoginDto,
+  RegisterDto,
+} from './dto/auth-credentials.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
@@ -26,5 +39,17 @@ export class AuthController {
   @Get('me')
   me(@Req() request: Request & { user: { id: string } }) {
     return this.authService.me(request.user.id);
+  }
+
+  // Droit à l'effacement (S-01). Même limite que la connexion : le mot de passe y est vérifié.
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Delete('me')
+  @HttpCode(204)
+  erase(
+    @Body() dto: EraseAccountDto,
+    @Req() request: Request & { user: { id: string } },
+  ) {
+    return this.authService.erase(request.user.id, dto.password);
   }
 }

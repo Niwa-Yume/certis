@@ -50,6 +50,15 @@ export class AuthService {
     };
   }
 
+  /** Suppression du compte, après vérification du mot de passe : un jeton volé ne suffit pas. */
+  async erase(userId: string, password: string) {
+    const user = await this.userService.findWithIssuer(userId);
+    if (!(await bcrypt.compare(password, user.passwordHash))) {
+      throw new UnauthorizedException('Mot de passe incorrect');
+    }
+    await this.userService.erase(userId);
+  }
+
   async me(userId: string) {
     const user = await this.userService.findWithIssuer(userId);
     return {

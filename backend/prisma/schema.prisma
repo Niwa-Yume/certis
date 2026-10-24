@@ -116,8 +116,7 @@ model Event {
   hash      String
   kid       String
   signature String
-  // Hors du hash : l'identifiant réel, pour les contrôles de droits. La chaîne n'en porte qu'un pseudonyme.
-  actorId   String?
+  // Aucune identité réelle : seulement des pseudonymes par pièce dans `data` (S-01, EDPB 02/2025).
 
   asset Asset @relation(fields: [assetId], references: [id])
 

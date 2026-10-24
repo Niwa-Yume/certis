@@ -13,6 +13,14 @@ export class RegisterDto {
   password: string;
 }
 
+/** Suppression du compte : action irréversible, le mot de passe est redemandé. */
+export class EraseAccountDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(72)
+  password: string;
+}
+
 export class LoginDto {
   @Transform(normalizeEmail)
   @IsEmail()

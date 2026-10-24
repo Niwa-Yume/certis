@@ -73,7 +73,6 @@ export class AssetController {
     return this.assetService.recordService(
       id,
       request.user.issuerId!,
-      request.user.id,
       dto.note,
     );
   }

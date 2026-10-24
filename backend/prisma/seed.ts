@@ -111,7 +111,10 @@ async function main() {
   try {
     // Idempotent : ne touche pas une base qui a déjà son émetteur, sauf `--reset`.
     // Une base sans émetteur (venue d'avant la Phase 3) est reprise de zéro.
-    if (!process.argv.includes('--reset') && (await prisma.issuer.count()) > 0) {
+    if (
+      !process.argv.includes('--reset') &&
+      (await prisma.issuer.count()) > 0
+    ) {
       console.log(
         'Base déjà seedée, rien à faire (npm run db:reset pour repartir de zéro).',
       );
@@ -153,7 +156,6 @@ async function main() {
               asset,
               'SERVICE',
               { issuer: issuer.id, note: event.note },
-              issuerUserId,
               at,
             );
             return;
@@ -167,7 +169,6 @@ async function main() {
               from: registry.actorRef(id, ownerId),
               to: registry.actorRef(id, to),
             },
-            to,
             at,
           );
           await tx.asset.update({ where: { id }, data: { ownerId: to } });

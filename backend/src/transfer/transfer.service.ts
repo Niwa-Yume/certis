@@ -74,16 +74,10 @@ export class TransferService {
       }
 
       // Le passeport ne change pas : la cession est un maillon de la chaîne, signé par la plateforme.
-      await this.registry.append(
-        tx,
-        asset,
-        'TRANSFER',
-        {
-          from: this.registry.actorRef(assetId, offer.issuedById),
-          to: this.registry.actorRef(assetId, newOwnerId),
-        },
-        newOwnerId,
-      );
+      await this.registry.append(tx, asset, 'TRANSFER', {
+        from: this.registry.actorRef(assetId, offer.issuedById),
+        to: this.registry.actorRef(assetId, newOwnerId),
+      });
       return { id: assetId, transferred: true };
     });
   }

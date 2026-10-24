@@ -113,7 +113,6 @@ export class AssetService {
           passport: sha256(passport),
           owner: this.registry.actorRef(id, ownerId),
         },
-        issuerUserId,
         at,
       );
       return this.summary(asset);
@@ -184,13 +183,9 @@ export class AssetService {
             : "Cette montre n'est pas déclarée volée",
         );
       }
-      await this.registry.append(
-        tx,
-        asset,
-        type,
-        { by: this.registry.actorRef(id, userId) },
-        userId,
-      );
+      await this.registry.append(tx, asset, type, {
+        by: this.registry.actorRef(id, userId),
+      });
       const updated = await tx.asset.update({
         where: { id },
         data: { status: stolen ? 'STOLEN' : 'ACTIVE' },
@@ -200,12 +195,7 @@ export class AssetService {
   }
 
   /** Révision enregistrée et signée par l'émetteur de la pièce, et par lui seul. */
-  async recordService(
-    id: string,
-    issuerId: string,
-    actorId: string,
-    note: string,
-  ) {
+  async recordService(id: string, issuerId: string, note: string) {
     const asset = await this.prisma.asset.findUnique({ where: { id } });
     if (!asset) throw new NotFoundException(`Asset ${id} introuvable`);
     if (asset.issuerId !== issuerId) {
@@ -214,13 +204,7 @@ export class AssetService {
       );
     }
     await this.prisma.$transaction((tx) =>
-      this.registry.append(
-        tx,
-        asset,
-        'SERVICE',
-        { issuer: issuerId, note },
-        actorId,
-      ),
+      this.registry.append(tx, asset, 'SERVICE', { issuer: issuerId, note }),
     );
     return { recorded: true };
   }

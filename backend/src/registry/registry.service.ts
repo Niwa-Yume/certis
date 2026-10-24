@@ -164,7 +164,6 @@ export class RegistryService {
     asset: Pick<Asset, 'id' | 'issuerId'>,
     type: EventType,
     data: Record<string, string>,
-    actorId?: string,
     at = new Date(),
   ) {
     const last = await tx.event.findFirst({
@@ -191,7 +190,6 @@ export class RegistryService {
           hash: sha256(bytes),
           kid: signer.kid,
           signature: sign(bytes, signer.key),
-          actorId,
         },
       });
     } catch (error) {
