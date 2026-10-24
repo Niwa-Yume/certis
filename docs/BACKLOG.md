@@ -249,6 +249,30 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 
 **Total Phase 5 : environ 16 h.**
 
+### Bilan Phase 5 (2026-10-24, branche `phase-5/demo`)
+
+| ID | Statut | Preuve | Écart par rapport aux critères |
+|---|---|---|---|
+| P5-01 | Fait | `e8ebbc9`, `ba9d684`. `npm run demo` : 8 étapes (émission, vente, vérification en maison de ventes, révision, revente, vol, fraude, preuve indépendante). `npm run demo -- N` rejoue chaque étape seule, `-- next` poursuit la même pièce en direct. | Une 8ᵉ étape, la preuve indépendante, s'ajoute aux 7 prévues. La « fraude » montre trois refus (QR photographié, QR fabriqué, alerte levée par un tiers). |
+| P5-02 | Fait | [`docs/DEMO_SCRIPT.md`](DEMO_SCRIPT.md) : 10 segments avec heure de début, durée, écran, phrase clé et repli, plus les replis généraux et l'ordre de coupe. | Le déroulé n'a été rejoué qu'en machine (enregistrement de la vidéo), pas à voix haute. |
+| P5-03 | **À faire par toi** | Journal prêt en bas de `DEMO_SCRIPT.md`. | Les répétitions sont les tiennes : je ne peux pas chronométrer ta parole. |
+| P5-04 | Fait | `2cf105e`. [`docs/demo/certis-demo.mp4`](demo/certis-demo.mp4) (34 s, 1 Mo) et le GIF du README (2,7 Mo), enregistrés par `docs/demo/record.mjs`. | Vidéo sans voix, avec sous-titres incrustés. |
+| P5-05 | Fait | `31f35b1`. README lisible en 60 s, schéma Mermaid, captures, vidéo, résumé du modèle de menace. Clone neuf (2026-10-24) : `git clone`, puis `npm run dev` seul. Dépendances installées, `.env` créé, migrations et seed passés, API et web en ligne ; `npm run demo` passe ses 8 étapes et la collection s'affiche avec ses photos. | Les liens vers les commits ne fonctionneront qu'une fois la branche poussée. |
+| P5-06 | **À valider par toi** | Section « Périmètre » du README. | Validation mot à mot, en particulier la phrase sur les stages. |
+
+**Ajouté en cours de route**
+- `npm run issuer:grant` : faire d'un compte l'émetteur d'une maison, sans rien effacer. Sans cette commande, une instance déployée n'aurait aucun émetteur (le seed y est refusé).
+- Sur le web, l'app déduit l'adresse de l'API de l'adresse de la page, et `npm run dev` autorise l'origine du réseau local. Le téléphone de l'acheteur peut donc ouvrir le QR affiché par l'ordinateur.
+- Une pièce inscrite par l'API peut pointer vers une photo servie par l'API (`/public/…`) et la déclarer détourée.
+- Documentation périmée retirée : l'architecture et les modules du backend, ainsi que le guide Expo Go du professeur, décrivaient des routes qui n'existent plus.
+
+**Imprévus rencontrés**
+- La pièce créée par le script n'avait pas de photo : le DTO n'acceptait que des URL absolues, et `localhost` ne marche pas sur un téléphone. D'où le chemin `/public/…`, résolu par l'app.
+- `npm run demo -- N` crée une pièce neuve à chaque appel : une démo en direct sur une seule pièce exigeait le mode `next`.
+- Playwright exige sa propre version de ffmpeg pour filmer (1,4 Mo, installée par `npx playwright install ffmpeg`).
+- Le test du clone neuf a révélé que les jetons gardés par le script de démo survivaient à une remise à zéro de la base : le script les teste désormais (`GET /auth/me`) avant de s'en servir.
+- `container_name: certis_db` empêche deux copies du projet de tourner en même temps : le test du clone neuf a exigé d'arrêter le conteneur principal, sans toucher à son volume.
+
 ## Phase 6 — Vision marché · branche `phase-6/market`
 
 | ID | Item | MoSCoW | Est. | Couvre | Critères d'acceptation |
