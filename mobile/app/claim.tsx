@@ -45,7 +45,7 @@ export default function ClaimScreen() {
                 <Wordmark />
                 {!id || !nonce ? (
                     <View style={styles.block}>
-                        <Text accessibilityRole="header" style={[t.serif, styles.title]}>QR incomplet</Text>
+                        <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, styles.title]}>QR incomplet</Text>
                         <Text style={t.body}>Ce lien de cession est incomplet. Demandez au propriétaire d’afficher à nouveau le QR, puis scannez-le.</Text>
                     </View>
                 ) : claimed ? (
@@ -62,7 +62,7 @@ export default function ClaimScreen() {
                 ) : (
                     <View style={styles.block}>
                         <Text style={t.caps}>CESSION</Text>
-                        <Text accessibilityRole="header" style={[t.serif, styles.title]}>
+                        <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, styles.title]}>
                             Recevoir <Text style={[t.italic, { color: color.seal }]}>une pièce</Text>
                         </Text>
                         <Text style={t.body}>

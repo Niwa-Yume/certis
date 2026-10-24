@@ -156,8 +156,7 @@ function Hero({ style, word, wordSize, wordTop, photo, onError, label, box, lens
             {photo ? (
                 <Pressable
                     onPress={onPin}
-                    accessibilityRole="togglebutton"
-                    accessibilityState={{ checked: pinned }}
+                    accessibilityRole="button"
                     style={styles.inspect}
                 >
                     <Icon name="loupe" size={16} tone={color.mist} />
@@ -243,7 +242,7 @@ function Tabs({ value, onChange }: { value: Tab; onChange: (t: Tab) => void }) {
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
     return (
-        <Pressable style={(s) => [styles.rowItem, (s as { hovered?: boolean }).hovered && styles.rowHover, transition('background-color, padding')]}>
+        <Pressable tabIndex={-1} style={(s) => [styles.rowItem, (s as { hovered?: boolean }).hovered && styles.rowHover, transition('background-color, padding')]}>
             <Text style={[t.small, { flexShrink: 0 }]}>{label}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexShrink: 1 }}>{children}</View>
         </Pressable>

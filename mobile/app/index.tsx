@@ -88,7 +88,7 @@ export default function IndexScreen() {
             <Container style={{ paddingVertical: compact ? 64 : 110, gap: space.xl }}>
                 <View style={{ gap: 12, maxWidth: 640 }}>
                     <Text style={t.caps}>VOUS ACHETEZ UNE MONTRE ?</Text>
-                    <Text accessibilityRole="header" style={[t.serif, { fontSize: fluid(width, 40, 5, 72), lineHeight: fluid(width, 40, 5, 72) }]}>
+                    <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: fluid(width, 40, 5, 72), lineHeight: fluid(width, 40, 5, 72) }]}>
                         Vérifiez-la <Text style={[t.italic, { color: color.seal }]}>avant de payer.</Text>
                     </Text>
                 </View>

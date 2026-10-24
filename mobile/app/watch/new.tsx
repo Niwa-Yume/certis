@@ -55,7 +55,7 @@ export default function NewWatchScreen() {
                         </Pressable>
                         <View style={{ gap: 8 }}>
                             <Text style={t.caps}>INSCRIPTION AU REGISTRE</Text>
-                            <Text accessibilityRole="header" style={[t.serif, { fontSize: 48, lineHeight: 50 }]}>Inscrire une pièce</Text>
+                            <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: 48, lineHeight: 50 }]}>Inscrire une pièce</Text>
                             <Text style={[t.body, { color: color.slate }]}>
                                 Certis signe ces informations : une fois inscrites, toute modification briserait le sceau. Vérifiez-les sur la pièce et ses papiers.
                             </Text>

@@ -75,7 +75,7 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
             {wide ? null : <Wordmark />}
             <View style={{ gap: 8 }}>
                 <Text style={t.caps}>ESPACE PROPRIÉTAIRE</Text>
-                <Text accessibilityRole="header" style={[t.serif, { fontSize: 48, lineHeight: 50 }]}>{copy.title}</Text>
+                <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: 48, lineHeight: 50 }]}>{copy.title}</Text>
                 <Text style={[t.body, { color: color.slate }]}>{copy.text}</Text>
             </View>
             <TextField

@@ -52,7 +52,7 @@ export default function DashboardScreen() {
             <Container style={styles.head}>
                 <View style={{ gap: 8, flexShrink: 1 }}>
                     <Text style={t.caps}>COLLECTION PRIVÉE</Text>
-                    <Text accessibilityRole="header" style={[t.serif, { fontSize: compact ? 48 : 72, lineHeight: compact ? 50 : 74 }]}>
+                    <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: compact ? 48 : 72, lineHeight: compact ? 50 : 74 }]}>
                         Vos <Text style={[t.italic, { color: color.seal }]}>pièces</Text>
                     </Text>
                     {assets ? (

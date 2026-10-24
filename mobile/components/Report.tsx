@@ -67,7 +67,7 @@ export default function Report({ result }: { result: Verification }) {
 
             <View onLayout={at('provenance')} style={styles.ruled}>
                 <Container style={{ paddingVertical: layout.compact ? 64 : 110, gap: 28 }}>
-                    <Text accessibilityRole="header" style={t.caps}>PROVENANCE</Text>
+                    <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={t.caps}>PROVENANCE</Text>
                     <View>
                         {[...result.provenance.map((p) => ({ ...p, report: false })), { event: 'VERIFIED' as const, at: result.verifiedAt, report: true }].map((p, i) => (
                             <Animated.View key={i} style={[styles.event, { opacity: lit(sections.provenance === undefined ? undefined : sections.provenance + 120 + i * 100) }]}>
@@ -217,7 +217,7 @@ function WideHero({ result, number }: { result: Verification; number: string }) 
                     <Rise delay={500} style={{ maxWidth: 360, gap: 10 }}>
                         <Text style={[t.lead, { color: color.paper }]}>Son certificat est intact : il n’a pas été modifié depuis son inscription au registre.</Text>
                         <Text style={[t.small, { color: color.mist }]}>Vérifiée le {longDate(result.verifiedAt)} à {clock(result.verifiedAt)}</Text>
-                        <Pressable nativeID="inspect" onPress={() => setPinned((p) => !p)} accessibilityRole="togglebutton" accessibilityState={{ checked: pinned }} style={styles.inspect}>
+                        <Pressable nativeID="inspect" onPress={() => setPinned((p) => !p)} accessibilityRole="button" style={styles.inspect}>
                             <Icon name="loupe" size={16} tone={color.mist} />
                             <Text style={[t.mono, { color: color.mist }]}>{pinned ? 'Fermer la loupe' : 'Survolez la montre ou inspectez le cadran'}</Text>
                         </Pressable>
@@ -264,7 +264,7 @@ function Fiche({ result, number }: { result: Verification; number: string }) {
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
     return (
-        <Pressable style={(s) => [styles.row, (s as { hovered?: boolean }).hovered && styles.rowHover, transition('background-color, padding')]}>
+        <Pressable tabIndex={-1} style={(s) => [styles.row, (s as { hovered?: boolean }).hovered && styles.rowHover, transition('background-color, padding')]}>
             <Text style={t.small}>{label}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 }}>{children}</View>
         </Pressable>
@@ -314,7 +314,7 @@ function Anatomy({ result, number, scrollY, top }: { result: Verification; numbe
     return (
         <Container style={[styles.split, { alignItems: 'center', paddingVertical: compact ? 64 : 110 }]}>
             <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 380, gap: 18 }}>
-                <Text accessibilityRole="header" style={[t.serif, { fontSize: fluid(width, 48, 6, 92), lineHeight: fluid(width, 48, 6, 92) * 0.92 }]}>
+                <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: fluid(width, 48, 6, 92), lineHeight: fluid(width, 48, 6, 92) * 0.92 }]}>
                     Anatomie <Text style={[t.italic, { color: color.seal }]}>d’un certificat</Text>
                 </Text>
                 <Text style={[t.lead, { maxWidth: 520 }]}>
@@ -390,7 +390,7 @@ function Proof({ result }: { result: Verification }) {
         <View style={{ backgroundColor: color.night }}>
             <Container style={[styles.split, { paddingTop: compact ? 72 : 120, paddingBottom: compact ? 56 : 90 }]}>
                 <View style={{ flexGrow: 1.2, flexShrink: 1, flexBasis: 480, gap: 20 }}>
-                    <Text accessibilityRole="header" style={[t.serif, { color: color.paper, fontSize: fluid(width, 48, 6.5, 104), lineHeight: fluid(width, 48, 6.5, 104) * 0.92 }]}>
+                    <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { color: color.paper, fontSize: fluid(width, 48, 6.5, 104), lineHeight: fluid(width, 48, 6.5, 104) * 0.92 }]}>
                         Le cœur <Text style={[t.italic, { color: color.gold }]}>cryptographique</Text>
                     </Text>
                     <Text style={[t.lead, { color: color.mist, maxWidth: 560 }]}>

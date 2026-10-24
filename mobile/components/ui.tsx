@@ -128,7 +128,7 @@ export const t = StyleSheet.create({
 
 export function Wordmark({ tone = color.ink, size = 13 }: { tone?: string; size?: number }) {
     return (
-        <Text accessibilityRole="header" accessibilityLabel="Certis" style={{ fontFamily: font.wideMedium, fontSize: size, letterSpacing: size * 0.26, color: tone }}>
+        <Text accessibilityLabel="Certis" maxFontSizeMultiplier={1.5} style={{ fontFamily: font.wideMedium, fontSize: size, letterSpacing: size * 0.26, color: tone }}>
             CERTIS
         </Text>
     );
@@ -139,7 +139,7 @@ export function PieceName({ parts, size, style, accent = color.seal, stacked = f
     parts: [string, string]; size: number; style?: StyleProp<TextStyle>; accent?: string; stacked?: boolean;
 }) {
     return (
-        <Text accessibilityRole="header" style={[t.serif, { fontSize: size, lineHeight: size * 0.95 }, style]}>
+        <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: size, lineHeight: size * 0.95 }, style]}>
             {parts[0]}
             {parts[1] ? <Text style={[t.italic, { color: accent }]}>{stacked ? '\n' : ' '}{parts[1]}</Text> : null}
         </Text>
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     button: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 20, borderWidth: 1 },
     textLink: { minHeight: 44, justifyContent: 'center' },
     iconButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-    copy: { minHeight: 32, minWidth: 44, paddingHorizontal: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: color.hairline },
+    copy: { minHeight: 44, minWidth: 64, paddingHorizontal: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: color.hairline },
     input: {
         minHeight: 52,
         paddingHorizontal: 14,

@@ -98,7 +98,7 @@ export default function NonceSheet({ kind, assetId, onClose }: { kind: Kind | nu
                     <View style={styles.head}>
                         <View style={{ flex: 1, gap: 6 }}>
                             <Text style={t.caps}>{copy.kicker}</Text>
-                            <Text accessibilityRole="header" style={[t.serif, { fontSize: 36, lineHeight: 36 }]}>{copy.title}</Text>
+                            <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: 36, lineHeight: 36 }]}>{copy.title}</Text>
                         </View>
                         <IconButton icon="close" label="Fermer" onPress={onClose} />
                     </View>
