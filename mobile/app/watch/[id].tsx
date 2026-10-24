@@ -1,23 +1,25 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
 import api from '../../lib/api';
 import { registryNumber, shortDate, splitName } from '../../lib/format';
+import { type EventType, SPEC_LABELS, type Specs, describeEvent, downloadJson } from '../../lib/registry';
 import { type Photo, WatchVisual, usePhoto } from '../../components/WatchPhoto';
 import NonceSheet from '../../components/NonceSheet';
 import {
-    Badge, Button, CopyButton, Glow, Icon, IconButton, PieceName, Rise, Spinner, TrackIn, Wordmark,
+    Badge, Button, CopyButton, Glow, Icon, IconButton, PieceName, Rise, Spinner, TextLink, TrackIn, Wordmark,
     t, transition, useLayout, useReducedMotion,
 } from '../../components/ui';
 import { color, motion, space } from '../../theme/tokens';
 
 type Watch = {
-    id: string; name: string; brand: string; model: string; reference: string;
-    ownerId: string; signature: string; imageUrl?: string | null; createdAt: string;
+    id: string; name: string; brand: string; model: string; reference: string; status: string;
+    imageUrl: string | null; imageCutout: boolean; specs: Specs; issuer: { id: string; name: string };
+    provenance: { seq: number; type: EventType; at: string; note?: string; you: boolean }[];
 };
-type Transfer = { id: string; toOwnerId: string; createdAt: string };
-type Loaded = { watch: Watch; history: Transfer[]; valid: boolean | null };
+// valid : passeport, chaîne et base concordent (null si la vérification n'a pas pu tourner).
+type Loaded = { watch: Watch; valid: boolean | null };
 type Tab = 'fiche' | 'provenance' | 'preuve';
 
 const TABS: { id: Tab; label: string }[] = [
@@ -39,10 +41,10 @@ export default function WatchScreen() {
     const load = useCallback(async () => {
         setError(null);
         try {
-            const [watch, history] = await Promise.all([api.get(`/assets/${id}`), api.get(`/assets/${id}/history`)]);
+            const watch = await api.get(`/assets/${id}`);
             // La vérification d'intégrité ne doit pas empêcher d'afficher la pièce.
             const valid = await api.get(`/assets/${id}/verify`).then((r) => Boolean(r.data.valid), () => null);
-            setData({ watch: watch.data, history: history.data, valid });
+            setData({ watch: watch.data, valid });
         } catch (e) {
             if (axios.isAxiosError(e) && e.response?.status === 401) return router.replace('/login');
             setError(axios.isAxiosError(e) && e.response?.status === 404
@@ -54,7 +56,7 @@ export default function WatchScreen() {
     useEffect(() => { load(); }, [load]);
 
     const back = () => (router.canGoBack() ? router.back() : router.replace('/dashboard'));
-    const { photo, onError } = usePhoto(data?.watch.reference ?? '', data?.watch.imageUrl);
+    const { photo, onError } = usePhoto(data?.watch.imageUrl, data?.watch.imageCutout);
 
     if (!data) {
         return (
@@ -75,7 +77,8 @@ export default function WatchScreen() {
     const { watch } = data;
     const word = watch.model.toUpperCase();
     const label = `${watch.brand} ${watch.name}, référence ${watch.reference}`;
-    const details = <Details data={data} tab={tab} onTab={setTab} big={wide} />;
+    const stolen = watch.status === 'STOLEN';
+    const details = <Details data={data} tab={tab} onTab={setTab} big={wide} onChange={load} />;
 
     if (wide) {
         const heroH = Math.max(640, height);
@@ -100,7 +103,7 @@ export default function WatchScreen() {
                     <Rise delay={350} distance={24}>{details}</Rise>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.xl }}>
                         <Button label="Présenter pour vérification" arrow onPress={() => setSheet('verify')} style={{ flexGrow: 1 }} />
-                        <Button label="Céder la pièce" variant="secondary" onPress={() => setSheet('transfer')} />
+                        {stolen ? null : <Button label="Céder la pièce" variant="secondary" onPress={() => setSheet('transfer')} />}
                     </View>
                 </ScrollView>
                 <NonceSheet kind={sheet} assetId={watch.id} onClose={() => setSheet(null)} />
@@ -127,7 +130,7 @@ export default function WatchScreen() {
             </ScrollView>
             <View style={styles.actionBar}>
                 <Button label="Présenter pour vérification" arrow onPress={() => setSheet('verify')} style={{ flex: 1 }} />
-                <IconButton icon="transfer" label="Céder la pièce" bordered onPress={() => setSheet('transfer')} />
+                {stolen ? null : <IconButton icon="transfer" label="Céder la pièce" bordered onPress={() => setSheet('transfer')} />}
             </View>
             <NonceSheet kind={sheet} assetId={watch.id} onClose={() => setSheet(null)} />
         </View>
@@ -167,14 +170,16 @@ function Hero({ style, word, wordSize, wordTop, photo, onError, label, box, lens
     );
 }
 
-function Details({ data, tab, onTab, big }: { data: Loaded; tab: Tab; onTab: (t: Tab) => void; big: boolean }) {
-    const { watch, history, valid } = data;
+function Details({ data, tab, onTab, big, onChange }: { data: Loaded; tab: Tab; onTab: (t: Tab) => void; big: boolean; onChange: () => void }) {
+    const { watch, valid } = data;
+    const minted = watch.provenance[0]?.at;
     return (
         <View style={{ gap: space.md }}>
             <View style={{ gap: 6 }}>
                 <Text style={t.caps}>{watch.brand.toUpperCase()}</Text>
                 <PieceName parts={splitName(watch.name)} size={big ? 72 : 46} />
                 <View style={styles.badgeRow}>
+                    {watch.status === 'STOLEN' ? <Badge label="Déclarée volée" tone="refused" /> : null}
                     {valid === true ? <Badge label="Certificat intact" /> : null}
                     {valid === false ? <Badge label="Certificat altéré" tone="refused" /> : null}
                     <Text selectable style={[t.mono, { fontSize: 14 }]}>N° {registryNumber(watch.id)}</Text>
@@ -191,25 +196,70 @@ function Details({ data, tab, onTab, big }: { data: Loaded; tab: Tab; onTab: (t:
                     </Row>
                     <Row label="Marque"><Value>{watch.brand}</Value></Row>
                     <Row label="Modèle"><Value>{watch.model}</Value></Row>
-                    <Row label="Inscrite au registre"><Value>{shortDate(watch.createdAt)}</Value></Row>
+                    {/* Seulement ce que l'émetteur a renseigné (ADR-0009). */}
+                    {SPEC_LABELS.map(([key, label]) => (watch.specs[key] ? <Row key={key} label={label}><Value>{watch.specs[key]!}</Value></Row> : null))}
+                    <Row label="Émise par"><Value>{watch.issuer.name}</Value></Row>
+                    {minted ? <Row label="Inscrite au registre"><Value>{shortDate(minted)}</Value></Row> : null}
                 </View>
             ) : null}
 
             {tab === 'provenance' ? (
                 <View>
-                    <Event date={watch.createdAt} label="Inscription au registre" />
-                    {history.map((h, i) => (
-                        <Event
-                            key={h.id}
-                            date={h.createdAt}
-                            label={i === history.length - 1 && h.toOwnerId === watch.ownerId ? 'Reçue par vous' : 'Changement de propriétaire'}
-                        />
+                    {watch.provenance.map((e) => (
+                        <Event key={e.seq} date={e.at} {...describeEvent(e.type, { issuer: watch.issuer.name, note: e.note, you: e.you })} />
                     ))}
                 </View>
             ) : null}
 
-            {tab === 'preuve' ? <Proof valid={valid} signature={watch.signature} /> : null}
+            {tab === 'preuve' ? <Proof watch={watch} valid={valid} /> : null}
+
+            <Theft watch={watch} onChange={onChange} />
         </View>
+    );
+}
+
+/** Déclaration de vol puis de restitution, en deux temps pour éviter l'erreur (ADR-0006). */
+function Theft({ watch, onChange }: { watch: Watch; onChange: () => void }) {
+    const [confirming, setConfirming] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const stolen = watch.status === 'STOLEN';
+    const declare = async () => {
+        setBusy(true);
+        setError(null);
+        try {
+            await api.post(`/assets/${watch.id}/${stolen ? 'recovered' : 'stolen'}`);
+            setConfirming(false);
+            onChange();
+        } catch {
+            setError('Déclaration impossible pour le moment. Réessayez.');
+        } finally {
+            setBusy(false);
+        }
+    };
+    const since = [...watch.provenance].reverse().find((e) => e.type === 'STOLEN_REPORTED')?.at;
+
+    if (stolen) {
+        return (
+            <View accessibilityLiveRegion="polite" style={styles.alert}>
+                <Text style={[t.body, t.strong, { color: color.refused }]}>Déclarée volée{since ? ` le ${shortDate(since)}` : ''}</Text>
+                <Text style={t.body}>Elle ne peut pas changer de propriétaire, et toute vérification affiche l’alerte à l’acheteur.</Text>
+                <Button label="Déclarer retrouvée" variant="secondary" loading={busy} onPress={declare} />
+                {error ? <Text style={[t.small, { color: color.refused }]}>{error}</Text> : null}
+            </View>
+        );
+    }
+    return confirming ? (
+        <View style={styles.alert}>
+            <Text style={t.body}>La pièce sera bloquée : aucune cession possible, et chaque vérification signalera le vol. Vous pourrez la déclarer retrouvée.</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+                <Button label="Confirmer : déclarer volée" loading={busy} onPress={declare} />
+                <Button label="Annuler" variant="secondary" onPress={() => setConfirming(false)} />
+            </View>
+            {error ? <Text style={[t.small, { color: color.refused }]}>{error}</Text> : null}
+        </View>
+    ) : (
+        <TextLink label="Pièce perdue ou volée ? La déclarer" tone={color.refused} onPress={() => setConfirming(true)} />
     );
 }
 
@@ -251,22 +301,30 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 
 const Value = ({ children }: { children: string }) => <Text style={[t.body, t.medium, { textAlign: 'right' }]}>{children}</Text>;
 
-function Event({ date, label }: { date: string; label: string }) {
+function Event({ date, label, note }: { date: string; label: string; note?: string }) {
     return (
         <View style={styles.event}>
             <Text style={[t.wide, { width: 104, fontSize: 14 }]}>{shortDate(date)}</Text>
-            <Text style={[t.body, { flex: 1 }]}>{label}</Text>
+            <View style={{ flex: 1, gap: 2 }}>
+                <Text style={t.body}>{label}</Text>
+                {note ? <Text style={t.small}>{note}</Text> : null}
+            </View>
         </View>
     );
 }
 
-function Proof({ valid, signature }: { valid: boolean | null; signature: string }) {
+function Proof({ watch, valid }: { watch: Watch; valid: boolean | null }) {
     const [open, setOpen] = useState(false);
     const text = valid === true
-        ? 'Certificat intact : la signature numérique correspond aux données de la pièce.'
+        ? `Certificat intact : le passeport signé par ${watch.issuer.name} et la chaîne de ses ${watch.provenance.length} événements concordent.`
         : valid === false
-            ? 'Certificat altéré : les données ne correspondent plus à la signature. Contactez Certis avant toute transaction.'
+            ? 'Certificat altéré : le registre ne concorde plus avec ses signatures. Contactez Certis avant toute transaction.'
             : 'Vérification indisponible pour le moment. Réessayez plus tard.';
+    // Pour un expert : le fichier que lit le vérificateur indépendant (tools/verify), sans Certis.
+    const download = async () => {
+        const { data } = await api.get(`/assets/${watch.id}/history`);
+        downloadJson(`certis-preuve-${registryNumber(watch.id).replace(/·/g, '-')}.json`, data);
+    };
     return (
         <View style={{ gap: space.sm }}>
             <Text style={t.body}>{text}</Text>
@@ -278,9 +336,10 @@ function Proof({ valid, signature }: { valid: boolean | null; signature: string 
             </Pressable>
             {open ? (
                 <View style={{ gap: 6 }}>
-                    <Text style={[t.mono, { color: color.ink }]}>ECDSA P-256 · SHA-256</Text>
-                    <Text style={[t.mono, { color: color.ink }]}>JCS (RFC 8785) · format v1</Text>
-                    <Text selectable style={[t.mono, { color: color.ink }]}>{signature.slice(0, 12)}…{signature.slice(-12)}</Text>
+                    <Text style={[t.mono, { color: color.ink }]}>Passeport : JWS ES256, signé par {watch.issuer.name}</Text>
+                    <Text style={[t.mono, { color: color.ink }]}>Chaîne : {watch.provenance.length} maillons, JCS (RFC 8785) + SHA-256</Text>
+                    <Text style={[t.mono, { color: color.ink }]}>Clés publiques : /.well-known/certis-keys</Text>
+                    {Platform.OS === 'web' ? <TextLink label="Télécharger la preuve (JSON)" onPress={download} /> : null}
                 </View>
             ) : null}
         </View>
@@ -308,6 +367,7 @@ const styles = StyleSheet.create({
     rowHover: { backgroundColor: color.hover, paddingHorizontal: 14 },
     event: { flexDirection: 'row', alignItems: 'baseline', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderColor: color.hairline },
     disclosure: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
+    alert: { gap: space.sm, padding: space.md, borderWidth: 1, borderColor: color.refused, backgroundColor: color.card },
     actionBar: {
         position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', gap: 8,
         paddingHorizontal: 20, paddingTop: 12, paddingBottom: 22, backgroundColor: color.paper, borderTopWidth: 1, borderColor: color.hairline,

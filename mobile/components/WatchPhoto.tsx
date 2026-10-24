@@ -1,18 +1,21 @@
 import { type ReactNode, useMemo, useRef, useState } from 'react';
 import { Image, type ImageSourcePropType, PanResponder, Platform, type PointerEvent, StyleSheet, Text, View } from 'react-native';
-import watchImages from '../lib/watchImages';
+import { absoluteUrl } from '../lib/api';
 import { color } from '../theme/tokens';
 import { t, web } from './ui';
 
 export type Photo = { source: ImageSourcePropType; cutout: boolean };
 
-/** La photo fournie par l'émetteur, sinon celle du registre de démo ; null si aucune ne s'affiche. */
-export function usePhoto(reference: string, imageUrl?: string | null) {
+/** La photo inscrite avec la pièce ; null si elle manque ou ne se charge pas. */
+export function usePhoto(imageUrl?: string | null, cutout = false) {
     const [failed, setFailed] = useState(false);
     const url = imageUrl?.trim();
-    const photo: Photo | null = url && !failed ? { source: { uri: url }, cutout: false } : (watchImages[reference] ?? null);
+    const photo: Photo | null = url && !failed ? { source: { uri: absoluteUrl(url) }, cutout } : null;
     return { photo, onError: () => setFailed(true) };
 }
+
+/** La Carrera de l'accueil et de la connexion : embarquée, l'écran ne dépend pas de l'API. */
+export const SHOWCASE: Photo = { source: require('../assets/watch/carrera.webp'), cutout: true };
 
 export function NoPhoto({ tone = color.mist }: { tone?: string }) {
     return (

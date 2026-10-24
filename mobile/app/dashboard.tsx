@@ -7,20 +7,27 @@ import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import { registryNumber, splitName } from '../lib/format';
 import { deleteItemAsync } from '../lib/storage';
 import { NoPhoto, usePhoto } from '../components/WatchPhoto';
-import { Button, Container, Glow, PieceName, Rise, Spinner, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
+import { Badge, Button, Container, Glow, PieceName, Rise, Spinner, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
 import { color, space } from '../theme/tokens';
 
-type Asset = { id: string; name: string; brand: string; model: string; reference: string; imageUrl?: string | null };
+type Asset = {
+    id: string; name: string; brand: string; model: string; reference: string;
+    status: string; imageUrl: string | null; imageCutout: boolean;
+};
+type Me = { role: 'OWNER' | 'ISSUER'; issuer: { name: string } | null };
 
 export default function DashboardScreen() {
     const router = useRouter();
     const { size, compact } = useLayout();
     const [assets, setAssets] = useState<Asset[] | null>(null);
+    const [me, setMe] = useState<Me | null>(null);
     const [error, setError] = useState(false);
 
     const load = useCallback(() => {
         let cancelled = false;
         setError(false);
+        // Le rôle décide de l'écran : seul un émetteur inscrit des pièces (ADR-0003).
+        api.get('/auth/me').then((res) => !cancelled && setMe(res.data), () => undefined);
         api.get('/assets')
             .then((res) => !cancelled && setAssets(res.data))
             .catch((e) => {
@@ -40,6 +47,7 @@ export default function DashboardScreen() {
     };
 
     const columns = size === 'wide' ? 3 : size === 'medium' ? 2 : 1;
+    const issuer = me?.role === 'ISSUER' ? me.issuer?.name ?? 'Émetteur' : null;
     const count = assets?.length ?? 0;
 
     return (
@@ -51,7 +59,7 @@ export default function DashboardScreen() {
 
             <Container style={styles.head}>
                 <View style={{ gap: 8, flexShrink: 1 }}>
-                    <Text style={t.caps}>COLLECTION PRIVÉE</Text>
+                    <Text style={t.caps}>{issuer ? `${issuer.toUpperCase()} · ÉMETTEUR` : 'COLLECTION PRIVÉE'}</Text>
                     <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: compact ? 48 : 72, lineHeight: compact ? 50 : 74 }]}>
                         Vos <Text style={[t.italic, { color: color.seal }]}>pièces</Text>
                     </Text>
@@ -61,7 +69,7 @@ export default function DashboardScreen() {
                         </Text>
                     ) : null}
                 </View>
-                <Button label="Inscrire une pièce" arrow onPress={() => router.push('/watch/new')} style={{ minWidth: 240 }} />
+                {issuer ? <Button label="Inscrire une pièce" arrow onPress={() => router.push('/watch/new')} style={{ minWidth: 240 }} /> : null}
             </Container>
 
             <Container>
@@ -76,9 +84,11 @@ export default function DashboardScreen() {
                     </View>
                 ) : count === 0 ? (
                     <View style={styles.message}>
-                        <Text style={t.lead}>Votre collection est vide.</Text>
+                        <Text style={t.lead}>{issuer ? 'Votre stock est vide.' : 'Votre collection est vide.'}</Text>
                         <Text style={[t.body, { color: color.slate, maxWidth: 520 }]}>
-                            Inscrivez votre première pièce : Certis la signe, et vous pourrez la présenter à un acheteur ou la céder.
+                            {issuer
+                                ? 'Inscrivez une pièce que vous avez examinée : vous signez son passeport, puis vous pouvez la remettre à son acheteur.'
+                                : 'Une pièce arrive dans votre collection quand son émetteur ou son propriétaire vous la cède : scannez le QR qu’il vous présente, depuis votre compte.'}
                         </Text>
                     </View>
                 ) : (
@@ -96,7 +106,7 @@ export default function DashboardScreen() {
 }
 
 function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
-    const { photo, onError } = usePhoto(asset.reference, asset.imageUrl);
+    const { photo, onError } = usePhoto(asset.imageUrl, asset.imageCutout);
     return (
         <Pressable
             onPress={onPress}
@@ -128,6 +138,11 @@ function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
                 ) : (
                     <NoPhoto />
                 )}
+                {asset.status === 'STOLEN' ? (
+                    <View style={{ position: 'absolute', top: 12, left: 12 }}>
+                        <Badge label="Déclarée volée" tone="refused" />
+                    </View>
+                ) : null}
             </View>
             <View style={styles.cardBody}>
                 <Text style={[t.caps, { fontSize: 12 }]}>{asset.brand.toUpperCase()}</Text>

@@ -39,6 +39,9 @@ const api = axios.create({
     timeout: 15000,
 });
 
+/** Les photos des pièces sont servies par l'API (`/public/watches/…`) ou par l'émetteur (URL complète). */
+export const absoluteUrl = (path: string) => (path.startsWith('/') ? `${api.defaults.baseURL}${path}` : path);
+
 // Intercepteur de requête : lit le token via le wrapper storage et l'ajoute au header Authorization.
 // Pourquoi un intercepteur plutôt que le passer manuellement ?
 // → Centralise la logique auth en un seul endroit. Chaque appel api.get/post/...

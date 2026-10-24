@@ -5,7 +5,7 @@ import axios from 'axios';
 import api from '../lib/api';
 import { ACCESS_TOKEN_KEY, safeNext } from '../lib/auth';
 import { setItemAsync } from '../lib/storage';
-import watchImages from '../lib/watchImages';
+import { SHOWCASE } from './WatchPhoto';
 import { color, space } from '../theme/tokens';
 import { Button, Glow, Icon, PieceName, Rise, TextField, TextLink, Wordmark, t, useLayout, web } from './ui';
 
@@ -116,7 +116,7 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
                     </View>
                     <Rise delay={150} distance={28} scale={0.97} style={styles.panelPhoto}>
                         <Image
-                            source={watchImages['CV7A12.BA0795'].source}
+                            source={SHOWCASE.source}
                             accessibilityLabel="TAG Heuer Carrera Calibre S"
                             resizeMode="contain"
                             style={[{ width: 250, height: 450 }, web({ filter: 'drop-shadow(0 24px 30px rgba(0,0,0,0.45))' })]}

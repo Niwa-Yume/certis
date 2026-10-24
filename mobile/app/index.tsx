@@ -5,8 +5,7 @@ import { useRouter } from 'expo-router';
 import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import api from '../lib/api';
 import { deleteItemAsync, getItemAsync } from '../lib/storage';
-import watchImages from '../lib/watchImages';
-import { WatchVisual } from '../components/WatchPhoto';
+import { SHOWCASE, WatchVisual } from '../components/WatchPhoto';
 import { Button, Container, Glow, PieceName, Rise, Seal, Spinner, Stamp, TextLink, Wordmark, fluid, t, useLayout } from '../components/ui';
 import { color, space } from '../theme/tokens';
 
@@ -44,7 +43,6 @@ export default function IndexScreen() {
         );
     }
 
-    const carrera = watchImages['CV7A12.BA0795'];
     const title = fluid(width, 46, 6.2, 96);
 
     return (
@@ -76,7 +74,7 @@ export default function IndexScreen() {
                         </View>
                     </Rise>
                     <Rise delay={200} distance={28} scale={0.97} style={{ alignSelf: 'center' }}>
-                        <WatchVisual photo={carrera} label="TAG Heuer Carrera Calibre S" width={compact ? 200 : 280} height={compact ? 360 : 504}>
+                        <WatchVisual photo={SHOWCASE} label="TAG Heuer Carrera Calibre S" width={compact ? 200 : 280} height={compact ? 360 : 504}>
                             <Stamp delay={900} style={{ position: 'absolute', right: compact ? -12 : -24, bottom: compact ? 56 : 90 }}>
                                 <Seal number="SPÉCIMEN" size={compact ? 80 : 104} />
                             </Stamp>

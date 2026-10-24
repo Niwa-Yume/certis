@@ -1,20 +1,34 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import axios from 'axios';
+import api from '../lib/api';
 import { capsDate, clock, longDate, registryNumber, shortDate, splitName } from '../lib/format';
+import { type EventType, SPEC_LABELS, type Specs, describeEvent, downloadJson } from '../lib/registry';
 import { color, font, motion, space } from '../theme/tokens';
 import { WatchVisual, usePhoto } from './WatchPhoto';
 import {
-    Badge, Button, Container, CopyButton, Glow, Icon, PieceName, Rise, Seal, Stamp, TrackIn, Wordmark,
+    Badge, Button, Container, CopyButton, Glow, Icon, PieceName, Rise, Seal, Stamp, TextField, TextLink, TrackIn, Wordmark,
     fluid, t, transition, useEntrance, useLayout, useReducedMotion, web,
 } from './ui';
 
+/** Réponse de POST /assets/:id/authenticate quand passeport, chaîne et registre concordent. */
 export type Verification = {
     valid: true;
     verifiedAt: string;
-    asset: { id: string; name: string; brand: string; model: string; reference: string; imageUrl: string | null; registeredAt: string };
-    provenance: { event: 'REGISTERED' | 'TRANSFERRED'; at: string }[];
-    proof: { algorithm: string; format: string; signature: string };
+    status: 'ACTIVE' | 'STOLEN';
+    imageCutout: boolean;
+    // Tout ce que voit l'acheteur vient du passeport signé par l'émetteur (ADR-0004).
+    passport: {
+        issuer: { id: string; name: string };
+        validFrom: string;
+        credentialSubject: {
+            id: string; brand: string; model: string; name: string; reference: string;
+            specs: Specs; image: string | null;
+        };
+    };
+    provenance: { type: EventType; at: string; note?: string }[];
+    proof: { passport: string; events: { seq: number; hash: string }[]; keys: string };
 };
 
 const CHECKS = (reference: string) => [
@@ -24,13 +38,13 @@ const CHECKS = (reference: string) => [
 ];
 
 /** Le rapport d'une vérification réussie : la pièce, son certificat, sa provenance, la preuve. */
-export default function Report({ result }: { result: Verification }) {
+export default function Report({ result, nonce }: { result: Verification; nonce: string }) {
     const layout = useLayout();
     const reduced = useReducedMotion();
     const scroll = useRef<ScrollViewHandle>(null);
     const scrollY = useRef(new Animated.Value(0)).current;
     const [sections, setSections] = useState<Record<string, number>>({});
-    const { asset } = result;
+    const asset = result.passport.credentialSubject;
     const number = registryNumber(asset.id);
     const at = (key: string) => (e: { nativeEvent: { layout: { y: number } } }) => {
         const y = e.nativeEvent.layout.y;
@@ -58,22 +72,25 @@ export default function Report({ result }: { result: Verification }) {
             )}
 
             <View onLayout={at('fiche')}>
-                <Fiche result={result} number={number} />
+                <Fiche result={result} number={number} nonce={nonce} />
             </View>
 
             <View onLayout={at('anatomy')} style={styles.ruled}>
-                <Anatomy result={result} number={number} scrollY={scrollY} top={sections.anatomy} />
+                <Anatomy result={result} scrollY={scrollY} top={sections.anatomy} />
             </View>
 
             <View onLayout={at('provenance')} style={styles.ruled}>
                 <Container style={{ paddingVertical: layout.compact ? 64 : 110, gap: 28 }}>
                     <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={t.caps}>PROVENANCE</Text>
                     <View>
-                        {[...result.provenance.map((p) => ({ ...p, report: false })), { event: 'VERIFIED' as const, at: result.verifiedAt, report: true }].map((p, i) => (
+                        {[
+                            ...result.provenance.map((p) => ({ at: p.at, ...describeEvent(p.type, { issuer: result.passport.issuer.name, note: p.note }) })),
+                            { at: result.verifiedAt, label: 'Vérification publique', note: 'ce rapport' },
+                        ].map((p, i) => (
                             <Animated.View key={i} style={[styles.event, { opacity: lit(sections.provenance === undefined ? undefined : sections.provenance + 120 + i * 100) }]}>
                                 <Text style={[t.wide, { fontSize: fluid(layout.width, 26, 3.6, 52), letterSpacing: -0.3 }]}>{capsDate(p.at)}</Text>
-                                <Text style={[t.serif, t.italic, { fontSize: fluid(layout.width, 26, 3.2, 46) }]}>{EVENT[p.event].label}</Text>
-                                <Text style={t.small}>{EVENT[p.event].note}</Text>
+                                <Text style={[t.serif, t.italic, { fontSize: fluid(layout.width, 26, 3.2, 46) }]}>{p.label}</Text>
+                                <Text style={t.small}>{p.note}</Text>
                             </Animated.View>
                         ))}
                     </View>
@@ -87,11 +104,6 @@ export default function Report({ result }: { result: Verification }) {
 
 type ScrollViewHandle = { scrollTo: (o: { y: number }) => void };
 
-const EVENT = {
-    REGISTERED: { label: 'Inscription au registre', note: 'première inscription de la pièce' },
-    TRANSFERRED: { label: 'Changement de propriétaire', note: 'accepté par le nouveau propriétaire' },
-    VERIFIED: { label: 'Vérification publique', note: 'ce rapport' },
-};
 
 // ── Héros ───────────────────────────────────────────────────────────────
 
@@ -128,8 +140,8 @@ function ScanLine({ height, delay }: { height: number; delay: number }) {
 function Piece({ result, number, width, height, lens, zoom, pinned, seal }: {
     result: Verification; number: string; width: number; height: number; lens?: number; zoom?: number; pinned?: boolean; seal: number;
 }) {
-    const { asset } = result;
-    const { photo, onError } = usePhoto(asset.reference, asset.imageUrl);
+    const asset = result.passport.credentialSubject;
+    const { photo, onError } = usePhoto(asset.image, result.imageCutout);
     return (
         <WatchVisual
             photo={photo} onError={onError} width={width} height={height} lens={lens} zoom={zoom} pinned={pinned}
@@ -145,7 +157,7 @@ function Piece({ result, number, width, height, lens, zoom, pinned, seal }: {
 
 function CompactHero({ result, number, onReport }: { result: Verification; number: string; onReport: () => void }) {
     const { width } = useLayout();
-    const { asset } = result;
+    const asset = result.passport.credentialSubject;
     return (
         <View style={styles.navy}>
             <Glow cy="25%" rx="70%" ry="40%" strength={0.26} />
@@ -235,9 +247,9 @@ function WideHero({ result, number }: { result: Verification; number: string }) 
 
 // ── Sections du rapport ─────────────────────────────────────────────────
 
-function Fiche({ result, number }: { result: Verification; number: string }) {
+function Fiche({ result, number, nonce }: { result: Verification; number: string; nonce: string }) {
     const { width, compact } = useLayout();
-    const { asset } = result;
+    const asset = result.passport.credentialSubject;
     return (
         <Container style={[styles.split, { paddingTop: compact ? 64 : 120, paddingBottom: compact ? 56 : 100 }]}>
             <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 400, gap: 14 }}>
@@ -247,7 +259,8 @@ function Fiche({ result, number }: { result: Verification; number: string }) {
                     <Badge label="Signature valide" />
                     <Text selectable style={[t.wide, { fontSize: 20, letterSpacing: 0.8 }]}>N° {number}</Text>
                 </View>
-                <Text style={t.small}>Inscrite au registre le {longDate(asset.registeredAt)}</Text>
+                <Text style={t.small}>Inscrite au registre le {longDate(result.passport.validFrom)} par {result.passport.issuer.name}</Text>
+                <SerialCheck assetId={asset.id} nonce={nonce} />
             </View>
             <View style={{ flexGrow: 1.25, flexShrink: 1, flexBasis: 480, borderTopWidth: 1, borderColor: color.ink }}>
                 <Row label="Référence">
@@ -256,9 +269,60 @@ function Fiche({ result, number }: { result: Verification; number: string }) {
                 </Row>
                 <Row label="Marque"><Value>{asset.brand}</Value></Row>
                 <Row label="Modèle"><Value>{asset.model}</Value></Row>
+                {SPEC_LABELS.map(([key, label]) => (asset.specs[key] ? <Row key={key} label={label}><Value>{asset.specs[key]!}</Value></Row> : null))}
+                <Row label="Émise par"><Value>{result.passport.issuer.name}</Value></Row>
                 <Row label="Propriétaire"><Value>Identité protégée</Value></Row>
             </View>
         </Container>
+    );
+}
+
+/**
+ * L'acheteur lit le numéro gravé sur la pièce et le compare à l'empreinte du passeport.
+ * Le serveur ne répond que « correspond » ou non, 5 fois au plus pour ce QR (ADR-0005).
+ */
+function SerialCheck({ assetId, nonce }: { assetId: string; nonce: string }) {
+    const [serial, setSerial] = useState('');
+    const [busy, setBusy] = useState(false);
+    const [answer, setAnswer] = useState<{ match: boolean } | { error: string } | null>(null);
+    const compare = async () => {
+        if (!serial.trim()) return;
+        setBusy(true);
+        try {
+            const { data } = await api.post(`/assets/${assetId}/serial-check`, { nonce, serial });
+            setAnswer(data);
+        } catch (e) {
+            const status = axios.isAxiosError(e) ? e.response?.status : undefined;
+            setAnswer({
+                error: status === 429
+                    ? 'Nombre de contrôles atteint pour ce QR. Demandez-en un nouveau au vendeur.'
+                    : status === 403
+                        ? 'Le délai de 10 minutes est passé : vérifiez la pièce à nouveau.'
+                        : 'Contrôle impossible pour le moment.',
+            });
+        } finally {
+            setBusy(false);
+        }
+    };
+    return (
+        <View nativeID="serial" style={styles.serial}>
+            <Text style={[t.body, t.strong]}>Le numéro de série correspond-il ?</Text>
+            <Text style={t.small}>Il est gravé sur le boîtier. Certis ne le conserve pas en clair : il compare seulement son empreinte à celle du passeport.</Text>
+            <TextField label="Numéro gravé sur la pièce" value={serial} onChangeText={setSerial} autoCapitalize="characters" onSubmitEditing={compare} />
+            <Button label="Comparer" variant="secondary" loading={busy} onPress={compare} />
+            {answer ? (
+                <View accessibilityLiveRegion="polite">
+                    {'match' in answer ? (
+                        <Badge
+                            label={answer.match ? 'Correspond au passeport' : 'Ne correspond pas au passeport'}
+                            tone={answer.match ? 'verified' : 'refused'}
+                        />
+                    ) : (
+                        <Text style={[t.small, { color: color.refused }]}>{answer.error}</Text>
+                    )}
+                </View>
+            ) : null}
+        </View>
     );
 }
 
@@ -273,19 +337,23 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 
 const Value = ({ children }: { children: string }) => <Text style={[t.body, { fontSize: 17, textAlign: 'right' }]}>{children}</Text>;
 
-// Les couches réellement couvertes par la signature v1 (backend/src/crypto/crypto.service.ts).
-const LAYERS = (result: Verification, number: string) => [
-    { caps: 'LA PIÈCE', name: 'La pièce', desc: 'Marque, modèle, référence, photographie.', headline: result.asset.name, mono: result.asset.reference },
-    { caps: 'LE PROPRIÉTAIRE', name: 'Le propriétaire', desc: 'Un compte Certis, identité protégée.', headline: 'Propriétaire inscrit', mono: 'identité non divulguée' },
-    { caps: 'L’INSCRIPTION', name: 'Le numéro d’inscription', desc: 'Lie la signature à cette pièce et à aucune autre.', headline: number, mono: 'unique au registre' },
-    { caps: 'LA SIGNATURE', name: 'La signature', desc: 'Le sceau qui lie les trois autres couches.', headline: 'Scellé par Certis', mono: 'ECDSA P-256 · JCS' },
+// Quatre couches, chacune réellement signée : passeport de l'émetteur, chaîne signée (ADR-0004, 0006).
+const LAYERS = (result: Verification) => [
+    { caps: 'LA PIÈCE', name: 'La pièce', desc: `Son passeport, signé par ${result.passport.issuer.name}.`, headline: result.passport.credentialSubject.name, mono: result.passport.credentialSubject.reference },
+    { caps: 'LE PROPRIÉTAIRE', name: 'Le propriétaire', desc: 'Un compte Certis, sous pseudonyme.', headline: 'Propriétaire inscrit', mono: 'identité non divulguée' },
+    {
+        caps: 'L’HISTORIQUE', name: 'L’historique', desc: 'Chaque événement est chaîné au précédent.',
+        headline: `${result.provenance.length} événement${result.provenance.length > 1 ? 's' : ''} chaînés`,
+        mono: result.provenance.map((e) => shortDate(e.at).slice(0, 5)).join(' → '),
+    },
+    { caps: 'LA SIGNATURE', name: 'La signature', desc: 'Le sceau de l’émetteur et celui de Certis.', headline: 'Doublement scellé', mono: 'ECDSA P-256 · JCS' },
 ];
 
-function Anatomy({ result, number, scrollY, top }: { result: Verification; number: string; scrollY: Animated.Value; top?: number }) {
+function Anatomy({ result, scrollY, top }: { result: Verification; scrollY: Animated.Value; top?: number }) {
     const { width, height, compact } = useLayout();
     const reduced = useReducedMotion();
     const [active, setActive] = useState(3);
-    const layers = LAYERS(result, number);
+    const layers = LAYERS(result);
     const S = compact ? Math.min(300, width - 60) : 390;
     const K = 0.62; // projection à l'écran d'un écart en profondeur (rotateX 56°)
     const lifts = useRef(layers.map(() => new Animated.Value(0))).current;
@@ -318,7 +386,7 @@ function Anatomy({ result, number, scrollY, top }: { result: Verification; numbe
                     Anatomie <Text style={[t.italic, { color: color.seal }]}>d’un certificat</Text>
                 </Text>
                 <Text style={[t.lead, { maxWidth: 520 }]}>
-                    Un certificat Certis n’est pas une image : ce sont des données, scellées ensemble par une signature. Si une seule change, le sceau se brise.
+                    Un certificat Certis n’est pas une image : ce sont quatre couches de données, scellées ensemble. Si une seule change, le sceau se brise.
                 </Text>
                 <View style={{ borderTopWidth: 1, borderColor: color.hairline, marginTop: 8 }}>
                     {layers.map((l, i) => (
@@ -381,10 +449,13 @@ function Proof({ result }: { result: Verification }) {
     const { width, compact, wide } = useLayout();
     const [open, setOpen] = useState(false);
     const { proof } = result;
+    const kid = (JSON.parse(atob(proof.passport.split('.')[0].replace(/-/g, '+').replace(/_/g, '/'))) as { kid: string }).kid;
+    const head = proof.events[proof.events.length - 1]?.hash ?? '';
     const details = [
-        { label: 'Algorithme', value: proof.algorithm },
-        { label: 'Données signées', value: proof.format },
-        { label: 'Signature', value: `${proof.signature.slice(0, 16)}…${proof.signature.slice(-16)}` },
+        { label: 'Signatures', value: 'ECDSA P-256 · SHA-256 (ES256)' },
+        { label: 'Données signées', value: 'JSON canonique, RFC 8785' },
+        { label: 'Clé de l’émetteur', value: `${kid.slice(0, 16)}…` },
+        { label: 'Tête de chaîne', value: `${head.slice(0, 16)}…` },
     ];
     return (
         <View style={{ backgroundColor: color.night }}>
@@ -394,7 +465,7 @@ function Proof({ result }: { result: Verification }) {
                         Le cœur <Text style={[t.italic, { color: color.gold }]}>cryptographique</Text>
                     </Text>
                     <Text style={[t.lead, { color: color.mist, maxWidth: 560 }]}>
-                        La pièce, son propriétaire et son numéro d’inscription sont signés ensemble par Certis. La moindre modification, même d’un seul caractère, rend la signature invalide.
+                        La maison qui a inscrit la pièce signe son passeport ; Certis signe chaque changement de mains. Chaque événement est chaîné au précédent : la moindre modification, même d’un seul caractère, rompt la chaîne.
                     </Text>
                     <Pressable onPress={() => setOpen((o) => !o)} accessibilityRole="button" accessibilityState={{ expanded: open }} style={styles.disclosure}>
                         <Text style={[t.body, t.medium, { color: color.paper }]}>Détails techniques, pour les experts</Text>
@@ -410,12 +481,22 @@ function Proof({ result }: { result: Verification }) {
                                     <Text selectable style={{ fontFamily: font.mono, fontSize: 14, color: color.paper }}>{d.value}</Text>
                                 </View>
                             ))}
+                            <Text style={[t.small, { color: color.mist }]}>
+                                Vérifiable sans Certis : le fichier de preuve et la clé publique suffisent (outil libre tools/verify).
+                            </Text>
+                            {Platform.OS === 'web' ? (
+                                <TextLink
+                                    label="Télécharger la preuve (JSON)"
+                                    tone={color.gold}
+                                    onPress={() => downloadJson(`certis-preuve-${registryNumber(result.passport.credentialSubject.id).replace(/·/g, '-')}.json`, { passport: proof.passport, events: proof.events })}
+                                />
+                            ) : null}
                         </View>
                     ) : null}
                 </View>
                 <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 380, gap: 18 }}>
                     <Text style={[t.lead, t.strong, { color: color.paper }]}>Avant de conclure</Text>
-                    {CHECKS(result.asset.reference).map((c) => (
+                    {CHECKS(result.passport.credentialSubject.reference).map((c) => (
                         <View key={c} style={{ flexDirection: 'row', gap: 10 }}>
                             <Text style={[t.body, { color: color.gold }]}>—</Text>
                             <Text style={[t.body, { color: color.paper, flex: 1 }]}>{c}</Text>
@@ -457,5 +538,6 @@ const styles = StyleSheet.create({
     event: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 28, rowGap: 6, paddingVertical: 22, borderBottomWidth: 1, borderColor: color.hairline },
     disclosure: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start' },
     proofRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: 16, rowGap: 6, paddingBottom: 10, borderBottomWidth: 1, borderColor: 'rgba(174,184,214,0.25)' },
+    serial: { gap: 10, marginTop: 14, padding: 16, borderWidth: 1, borderColor: color.hairline, backgroundColor: color.card },
     disclaimer: { color: color.mist, paddingTop: 24, paddingBottom: 48, borderTopWidth: 1, borderColor: 'rgba(174,184,214,0.25)' },
 });

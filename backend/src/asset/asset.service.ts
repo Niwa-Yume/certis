@@ -243,6 +243,8 @@ export class AssetService {
       verifiedAt,
       status: result.stolen ? 'STOLEN' : 'ACTIVE',
       passport: result.payload,
+      // Indication d'affichage (photo détourée), hors du passeport signé.
+      imageCutout: asset.imageCutout,
       provenance: result.events.map((e) => ({
         type: e.type,
         at: e.at,

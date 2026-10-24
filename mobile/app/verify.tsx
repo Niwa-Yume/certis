@@ -4,15 +4,17 @@ import axios from 'axios';
 import { useLocalSearchParams } from 'expo-router';
 import Svg, { Circle, Path } from 'react-native-svg';
 import api from '../lib/api';
-import { clock, shortDate } from '../lib/format';
+import { clock, longDate, registryNumber, shortDate, splitName } from '../lib/format';
 import Report, { type Verification } from '../components/Report';
-import { Button, Glow, Spinner, Wordmark, t, useLayout } from '../components/ui';
+import { Button, Glow, PieceName, Spinner, Wordmark, t, useLayout } from '../components/ui';
 import { color, space } from '../theme/tokens';
 
-// Trois issues distinctes : une erreur technique ne doit jamais se lire « non authentique » (AUDIT N2).
+// Issues distinctes : une erreur technique ne doit jamais se lire « non authentique » (AUDIT N2),
+// et un certificat authentique d'une pièce volée ne doit jamais se lire « vous pouvez acheter ».
 type Outcome =
     | { state: 'loading' }
     | { state: 'authentic'; result: Verification }
+    | { state: 'stolen'; result: Verification }
     | { state: 'not-authentic'; verifiedAt: string }
     | { state: 'unverifiable'; reason: string; retry: boolean };
 
@@ -37,18 +39,30 @@ export default function VerifyScreen() {
         setOutcome({ state: 'loading' });
         // Route publique : aucun compte n'est nécessaire pour vérifier.
         api.post(`/assets/${id}/authenticate`, { nonce })
-            .then((res) => setOutcome(res.data.valid
-                ? { state: 'authentic', result: res.data }
-                : { state: 'not-authentic', verifiedAt: res.data.verifiedAt }))
+            .then((res) => setOutcome(!res.data.valid
+                ? { state: 'not-authentic', verifiedAt: res.data.verifiedAt }
+                : res.data.status === 'STOLEN'
+                    ? { state: 'stolen', result: res.data }
+                    : { state: 'authentic', result: res.data }))
             .catch((error) => setOutcome(unverifiable(error)));
     }, [id, nonce]);
 
     useEffect(() => { run(); }, [run]);
 
-    if (outcome.state === 'authentic') return <Report result={outcome.result} />;
+    if (outcome.state === 'authentic') return <Report result={outcome.result} nonce={nonce} />;
 
     const dark = outcome.state === 'loading';
+    const alarm = outcome.state === 'not-authentic' || outcome.state === 'stolen';
+    const verifiedAt = outcome.state === 'not-authentic' ? outcome.verifiedAt : outcome.state === 'stolen' ? outcome.result.verifiedAt : null;
+    const stolenSince = outcome.state === 'stolen'
+        ? [...outcome.result.provenance].reverse().find((e) => e.type === 'STOLEN_REPORTED')?.at
+        : undefined;
     const copy = {
+        stolen: {
+            a: 'Pièce',
+            b: 'DÉCLARÉE VOLÉE',
+            message: `Son propriétaire l’a déclarée volée${stolenSince ? ` le ${longDate(stolenSince)}` : ''}. Son certificat est authentique, mais n’achetez pas cette pièce.`,
+        },
         loading: { a: 'Vérification', b: 'EN COURS', message: 'Quelques secondes. Ne fermez pas cette page.' },
         'not-authentic': { a: 'Authenticité', b: 'NON CONFIRMÉE', message: 'Les données de cette pièce ne correspondent pas à sa signature. Ne concluez pas la transaction pour l’instant.' },
         unverifiable: { a: 'Vérification', b: 'IMPOSSIBLE', message: outcome.state === 'unverifiable' ? outcome.reason : '' },
@@ -61,14 +75,14 @@ export default function VerifyScreen() {
             <View style={[styles.column, compact ? null : styles.centered]}>
                 <View style={styles.header}>
                     <Wordmark tone={dark ? color.paper : color.ink} />
-                    {outcome.state === 'not-authentic' ? (
-                        <Text style={t.mono}>{shortDate(outcome.verifiedAt)} · {clock(outcome.verifiedAt).replace(' h ', ':')}</Text>
+                    {verifiedAt ? (
+                        <Text style={t.mono}>{shortDate(verifiedAt)} · {clock(verifiedAt).replace(' h ', ':')}</Text>
                     ) : null}
                 </View>
 
                 <View style={styles.icon}>
                     {outcome.state === 'loading' ? <Spinner size={150} /> : null}
-                    {outcome.state === 'not-authentic' ? (
+                    {alarm ? (
                         <Svg width={150} height={150} viewBox="0 0 120 120" aria-hidden>
                             <Circle cx={60} cy={60} r={54} fill={color.white} stroke={color.refused} strokeWidth={2} />
                             <Path d="M60 36v30M60 80v2" fill="none" stroke={color.refused} strokeWidth={6} strokeLinecap="round" />
@@ -87,7 +101,7 @@ export default function VerifyScreen() {
 
                 <View accessibilityLiveRegion="polite" style={{ gap: 6, paddingHorizontal: 22 }}>
                     <Text style={[t.serif, t.italic, { fontSize: 30, lineHeight: 32, color: dark ? color.paper : color.ink }]}>{copy.a}</Text>
-                    <Text style={[t.wide, { fontSize: 34, lineHeight: 38, color: outcome.state === 'not-authentic' ? color.refused : dark ? color.gold : color.ink }]}>
+                    <Text style={[t.wide, { fontSize: 34, lineHeight: 38, color: alarm ? color.refused : dark ? color.gold : color.ink }]}>
                         {copy.b}
                     </Text>
                     <Text style={[t.body, { marginTop: 6, color: dark ? color.mist : color.ink }]}>{copy.message}</Text>
@@ -113,6 +127,12 @@ export default function VerifyScreen() {
                     </View>
                 ) : null}
 
+                {outcome.state === 'stolen' ? (
+                    <View style={[styles.card, compact ? null : styles.inline]}>
+                        <StolenCard result={outcome.result} />
+                    </View>
+                ) : null}
+
                 {outcome.state === 'unverifiable' ? (
                     <View style={[styles.card, compact ? null : styles.inline]}>
                         <Text style={t.body}>
@@ -124,6 +144,31 @@ export default function VerifyScreen() {
                 ) : null}
             </View>
         </ScrollView>
+    );
+}
+
+/** La pièce désignée, pour que l'acheteur sache laquelle ne pas acheter, et la marche à suivre. */
+function StolenCard({ result }: { result: Verification }) {
+    const { issuer, credentialSubject: piece } = result.passport;
+    return (
+        <>
+            <View style={{ gap: 3, paddingBottom: 10, borderBottomWidth: 1, borderColor: color.hairline }}>
+                <Text style={[t.caps, { fontSize: 12 }]}>{piece.brand.toUpperCase()} · {piece.reference}</Text>
+                <PieceName parts={splitName(piece.name)} size={26} />
+                <Text style={t.mono}>N° {registryNumber(piece.id)}</Text>
+            </View>
+            <Text style={[t.body, t.strong]}>Que faire maintenant ?</Text>
+            {[
+                'Ne concluez pas la transaction.',
+                'Signalez la pièce aux autorités, avec sa référence et son numéro d’inscription.',
+                `Prévenez son émetteur : ${issuer.name}.`,
+            ].map((step, i) => (
+                <View key={step} style={{ flexDirection: 'row', gap: 10 }}>
+                    <Text style={[t.body, t.medium, { color: color.seal }]}>{i + 1}.</Text>
+                    <Text style={[t.body, { flex: 1 }]}>{step}</Text>
+                </View>
+            ))}
+        </>
     );
 }
 
