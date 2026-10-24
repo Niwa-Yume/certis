@@ -55,9 +55,45 @@ export class AssetService {
     return this.nonce.issue(id, ownerId, 'VERIFY');
   }
 
-  // Consomme un nonce de vérification lié à cette montre, puis vérifie la signature.
+  /**
+   * Consomme un nonce de vérification lié à cette montre, puis vérifie la signature.
+   * Si elle est valide, l'acheteur reçoit de quoi comparer le certificat à la pièce :
+   * données publiques et provenance datée, jamais d'identité (ADR-0009).
+   */
   async authenticate(id: string, nonceValue: string) {
     await this.nonce.consume(nonceValue, id, 'VERIFY');
-    return this.verify(id);
+    const asset = await this.prisma.asset.findUniqueOrThrow({
+      where: { id },
+      include: { transfers: { orderBy: { createdAt: 'asc' } } },
+    });
+    const verifiedAt = new Date().toISOString();
+    if (!this.crypto.verifyAsset(asset, asset.signature)) {
+      return { valid: false, verifiedAt };
+    }
+    return {
+      valid: true,
+      verifiedAt,
+      asset: {
+        id: asset.id,
+        name: asset.name,
+        brand: asset.brand,
+        model: asset.model,
+        reference: asset.reference,
+        imageUrl: asset.imageUrl,
+        registeredAt: asset.createdAt,
+      },
+      provenance: [
+        { event: 'REGISTERED', at: asset.createdAt },
+        ...asset.transfers.map((t) => ({
+          event: 'TRANSFERRED',
+          at: t.createdAt,
+        })),
+      ],
+      proof: {
+        algorithm: 'ECDSA P-256 / SHA-256',
+        format: 'JCS (RFC 8785) v1',
+        signature: asset.signature,
+      },
+    };
   }
 }

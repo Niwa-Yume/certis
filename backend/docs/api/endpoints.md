@@ -1,136 +1,59 @@
-# API Backend Certis
+# API Certis
 
-Base URL locale par defaut: `http://localhost:3000`
+Base URL locale : `http://localhost:3001` (`npm run dev` à la racine).
+Toutes les routes valident leur corps (champs inconnus refusés, 400). Les routes marquées 🔒 exigent `Authorization: Bearer <accessToken>`.
 
-## POST `/assets`
+## Comptes
 
-Cree un asset et calcule la signature ECDSA (`integrityHash`).
+| Route | Corps | Réponse |
+|---|---|---|
+| `POST /auth/register` | `{ email, password }` (8 à 72 caractères) | 201 `{ accessToken, user: { id, email } }` |
+| `POST /auth/login` (10/min) | `{ email, password }` | 201 `{ accessToken, user }`, 401 sinon |
 
-Payload JSON:
+## Montres du propriétaire 🔒
 
-```json
-{
-  "name": "Rolex Submariner",
-  "brand": "Rolex",
-  "model": "Submariner",
-  "reference": "126610LN",
-  "ownerId": "owner_001"
-}
-```
+Un utilisateur ne voit que ses montres : la montre d'autrui répond 404, comme une montre inexistante.
 
-Reponse (201): objet `Asset` cree.
+| Route | Rôle |
+|---|---|
+| `POST /assets` | Inscrit une montre `{ name, brand, model, reference, imageUrl? }` et la signe. Le serveur fixe l'id, le statut et le propriétaire. |
+| `GET /assets` | Liste les montres du propriétaire. |
+| `GET /assets/:id` | Détail, signature comprise. |
+| `GET /assets/:id/verify` | `{ valid }` : la signature correspond-elle aux données ? |
+| `GET /assets/:id/history` | Transferts de la montre, du plus ancien au plus récent. |
 
-## GET `/assets`
+## Vérification par QR
 
-Liste tous les assets.
+1. 🔒 `POST /assets/:id/verifications` (30/min) : le propriétaire obtient `{ nonce, expiresAt }`, valable 60 s, une seule fois, pour cette montre seulement.
+2. `POST /assets/:id/authenticate` `{ nonce }` (30/min, sans compte) : l'acheteur consomme le nonce.
 
-Reponse (200): tableau de `Asset`.
-
-## GET `/assets/:id`
-
-Recupere le detail d'un asset.
-
-Reponse (200): objet `Asset`.
-
-## GET `/assets/:id/verify`
-
-Verifie l'integrite ECDSA de l'asset.
-
-Reponse (200):
-
-```json
-{ "valid": true }
-```
-
-## GET `/assets/:id/nonce`
-
-Genere un nonce a usage unique pour cet asset.
-
-- Duree de validite: 30 secondes
-
-Reponse (200):
+Réponse 200 quand la signature est valide :
 
 ```json
 {
-  "nonce": "uuid",
-  "expiresAt": "2026-05-03T10:00:30.000Z"
+  "valid": true,
+  "verifiedAt": "2026-10-24T08:42:00.000Z",
+  "asset": {
+    "id": "…", "name": "Carrera Calibre S", "brand": "TAG Heuer", "model": "Carrera",
+    "reference": "CV7A12.BA0795", "imageUrl": null, "registeredAt": "2026-03-12T…"
+  },
+  "provenance": [
+    { "event": "REGISTERED", "at": "2026-03-12T…" },
+    { "event": "TRANSFERRED", "at": "2026-09-03T…" }
+  ],
+  "proof": { "algorithm": "ECDSA P-256 / SHA-256", "format": "JCS (RFC 8785) v1", "signature": "MEUCIQ…" }
 }
 ```
 
-## GET `/assets/:id/authenticate?nonce=...`
+Aucune identité n'est renvoyée. Si la signature ne correspond pas : `{ "valid": false, "verifiedAt": "…" }`, sans aucune donnée de la pièce.
 
-Consomme le nonce, puis verifie la signature de l'asset.
+Erreurs : 403 si le QR appartient à une autre montre ou sert à autre chose, 410 s'il a expiré ou déjà servi, 429 au-delà du quota.
 
-Reponse (200):
+## Transfert en deux temps 🔒
 
-```json
-{ "valid": true }
-```
+1. `POST /assets/:id/transfer-offers` (30/min) `{ recipientEmail? }` : le propriétaire obtient `{ nonce, expiresAt }`, valable 5 min. Avec un e-mail, seul ce compte peut accepter (404 si le compte n'existe pas).
+2. `POST /assets/:id/claim` `{ nonce }` : le destinataire accepte. La montre change de propriétaire et est signée à nouveau, en une seule transaction.
 
-Erreurs metier possibles (actuellement levees en `Error`):
+Erreurs : 403 (QR d'une autre montre, offre réservée à quelqu'un d'autre), 409 (déjà propriétaire, ou la montre a changé de main entre-temps), 410 (expiré ou déjà utilisé).
 
-- `NONCE_NOT_FOUND`
-- `NONCE_ALREADY_USED`
-- `NONCE_EXPIRED`
-
-## POST `/assets/:id/transfer`
-
-Transfere la propriete a un nouveau proprietaire.
-
-Payload JSON:
-
-```json
-{
-  "toOwnerId": "owner_002"
-}
-```
-
-Effets:
-
-- creation d'un enregistrement `Transfer`
-- mise a jour de `asset.ownerId`
-- recalcul de `asset.integrityHash`
-
-Reponse (201/200 selon config): objet `Asset` mis a jour.
-
-## GET `/assets/:id/history`
-
-Retourne l'historique de transfert d'un asset.
-
-Reponse (200): tableau de `Transfer` trie par `createdAt` ascendant.
-
-## Exemples cURL
-
-```bash
-# 1) Creer un asset
-curl -X POST http://localhost:3000/assets \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Rolex Submariner",
-    "brand": "Rolex",
-    "model": "Submariner",
-    "reference": "126610LN",
-    "ownerId": "owner_001"
-  }'
-
-# 2) Lister
-curl http://localhost:3000/assets
-
-# 3) Verifier
-curl http://localhost:3000/assets/<assetId>/verify
-
-# 4) Generer un nonce
-curl http://localhost:3000/assets/<assetId>/nonce
-
-# 5) Authentifier (remplacer <nonce>)
-curl "http://localhost:3000/assets/<assetId>/authenticate?nonce=<nonce>"
-
-# 6) Transferer
-curl -X POST http://localhost:3000/assets/<assetId>/transfer \
-  -H "Content-Type: application/json" \
-  -d '{"toOwnerId":"owner_002"}'
-
-# 7) Historique
-curl http://localhost:3000/assets/<assetId>/history
-```
-
+Le détail des attaques couvertes est dans `docs/security/THREAT_MODEL.md` et `backend/test/transfer-attacks.e2e-spec.ts`.
