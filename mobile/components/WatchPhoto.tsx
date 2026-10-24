@@ -74,7 +74,11 @@ export function WatchVisual({ photo, onError, label, width: W, height: H, lens: 
     };
 
     const p = pos ?? (pinned ? { x: W * 0.5, y: H * 0.45 } : null);
-    const shadow = photo?.cutout ? web({ filter: 'drop-shadow(0 24px 30px rgba(0,0,0,0.45))' }) : null;
+    // Détourage : ombre portée, et bracelet fondu aux extrémités plutôt que coupé net.
+    const fade = 'linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%)';
+    // Le masque rognerait l'ombre aux bords de la boîte : ombre sur le conteneur, masque sur l'image.
+    const shadow = photo?.cutout ? web({ filter: 'drop-shadow(0 20px 26px rgba(0,0,0,0.4))' }) : null;
+    const mask = photo?.cutout ? web({ maskImage: fade, WebkitMaskImage: fade }) : null;
 
     return (
         <View
@@ -85,16 +89,15 @@ export function WatchVisual({ photo, onError, label, width: W, height: H, lens: 
             {...(photo ? (Platform.OS === 'web' ? hover : touch.panHandlers) : null)}
         >
             {photo ? (
-                <Image source={photo.source} onError={onError} resizeMode="contain" style={[{ width: W, height: H }, shadow]} />
+                <View style={shadow}>
+                    <Image source={photo.source} onError={onError} resizeMode="contain" style={[{ width: W, height: H }, mask]} />
+                </View>
             ) : (
                 <NoPhoto />
             )}
             {children}
             {photo && p ? (
-                <View
-                    pointerEvents="none"
-                    style={[styles.lens, { left: p.x - L / 2, top: p.y - L / 2, width: L, height: L, borderRadius: L / 2 }]}
-                >
+                <View style={[styles.lens, { left: p.x - L / 2, top: p.y - L / 2, width: L, height: L, borderRadius: L / 2 }]}>
                     <Image
                         source={photo.source}
                         resizeMode="contain"
@@ -113,10 +116,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderColor: color.gold,
         backgroundColor: color.seal,
-        shadowColor: '#000',
-        shadowOpacity: 0.45,
-        shadowRadius: 15,
-        shadowOffset: { width: 0, height: 12 },
-        elevation: 12,
+        pointerEvents: 'none',
+        boxShadow: '0 12px 30px rgba(0,0,0,0.45)',
     },
 });

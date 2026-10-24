@@ -72,9 +72,15 @@ export function useEntrance(delay = 0, duration = 900, native = motion.native, e
 const range = (v: Animated.Value, from: number | string, to: number | string) =>
     v.interpolate({ inputRange: [0, 1], outputRange: [from, to] as number[] | string[] });
 
-export function Rise({ children, delay = 0, distance = 18, style }: { children: ReactNode; delay?: number; distance?: number; style?: StyleProp<ViewStyle> }) {
-    const v = useEntrance(delay);
-    return <Animated.View style={[style, { opacity: v, transform: [{ translateY: range(v, distance, 0) }] }]}>{children}</Animated.View>;
+export function Rise({ children, delay = 0, distance = 18, scale = 1, duration = 900, style }: {
+    children: ReactNode; delay?: number; distance?: number; scale?: number; duration?: number; style?: StyleProp<ViewStyle>;
+}) {
+    const v = useEntrance(delay, duration);
+    return (
+        <Animated.View style={[style, { opacity: v, transform: [{ translateY: range(v, distance, 0) }, { scale: range(v, scale, 1) }] }]}>
+            {children}
+        </Animated.View>
+    );
 }
 
 /** Les lettres se resserrent : le grand mot se pose. */
@@ -311,7 +317,7 @@ export function Seal({ number, size = 96 }: { number: string; size?: number }) {
 export function Glow({ cx = '50%', cy = '52%', rx = '60%', ry = '55%', strength = 0.28 }: { cx?: string; cy?: string; rx?: string; ry?: string; strength?: number }) {
     const id = useSvgId('glow');
     return (
-        <Svg width="100%" height="100%" style={StyleSheet.absoluteFill} pointerEvents="none" aria-hidden>
+        <Svg width="100%" height="100%" style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]} aria-hidden>
             <Defs>
                 <RadialGradient id={id} cx={cx} cy={cy} rx={rx} ry={ry}>
                     <Stop offset="0" stopColor={color.gold} stopOpacity={strength} />
