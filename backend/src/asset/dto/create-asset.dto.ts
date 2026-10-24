@@ -4,8 +4,9 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUrl,
+  IsBoolean,
   IsUUID,
+  Matches,
   MaxLength,
 } from 'class-validator';
 import { cleanText, normalizeEmail } from '../../common/dto-transforms';
@@ -67,11 +68,19 @@ export class CreateAssetDto {
   @MaxLength(120)
   bracelet?: string;
 
+  /** URL de l'émetteur, ou photo servie par l'API (`/public/…`), qui suit l'adresse de l'API d'un appareil à l'autre. */
   @IsOptional()
   @Transform(cleanText)
-  @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
+  @Matches(/^(https?:\/\/\S+|\/public\/[\w./-]+)$/, {
+    message: 'imageUrl doit être une URL http(s) ou un chemin /public/…',
+  })
   @MaxLength(2048)
   imageUrl?: string;
+
+  /** Photo détourée (fond transparent) : la montre flotte sur le fond de la page. */
+  @IsOptional()
+  @IsBoolean()
+  imageCutout?: boolean;
 
   /** Premier propriétaire, enregistré à la vente. Sans lui, la pièce reste dans le stock de l'émetteur. */
   @IsOptional()

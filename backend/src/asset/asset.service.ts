@@ -41,7 +41,7 @@ export class AssetService {
     issuerId: string,
     {
       at = new Date(),
-      imageCutout = false,
+      imageCutout = dto.imageCutout ?? false,
       imageUrl = dto.imageUrl,
     }: MintOptions = {},
   ) {

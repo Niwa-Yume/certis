@@ -21,7 +21,7 @@ Réservé aux comptes `ISSUER` : tout autre compte reçoit 403, avant même la v
 
 | Route | Rôle |
 |---|---|
-| `POST /assets` | Inscrit une pièce : `{ name, brand, model, reference, serial, movement?, case?, dial?, bracelet?, imageUrl?, ownerEmail? }`. Signe le passeport et écrit le premier maillon (`MINT`). Sans `ownerEmail`, la pièce reste dans le stock de l'émetteur ; 404 si le compte n'existe pas. Le numéro de série n'est jamais stocké. |
+| `POST /assets` | Inscrit une pièce : `{ name, brand, model, reference, serial, movement?, case?, dial?, bracelet?, imageUrl?, imageCutout?, ownerEmail? }`. Signe le passeport et écrit le premier maillon (`MINT`). Sans `ownerEmail`, la pièce reste dans le stock de l'émetteur ; 404 si le compte n'existe pas. Le numéro de série n'est jamais stocké. `imageUrl` : une URL http(s), ou une photo servie par l'API (`/public/…`) ; `imageCutout` : photo détourée. |
 | `POST /assets/:id/services` | `{ note }` : enregistre une révision (`SERVICE`), sur ses propres pièces seulement (403 sinon). |
 
 ## Propriétaire 🔒
