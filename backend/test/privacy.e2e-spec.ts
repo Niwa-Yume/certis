@@ -103,7 +103,9 @@ describe('Privacy: erasure and the append-only journal (e2e)', () => {
       .delete('/auth/me')
       .set(auth(owner))
       .send({ password: 'wrong-password' })
-      .expect(401);
+      .expect(403);
+    // La session reste valide : un mauvais mot de passe n'est pas une déconnexion.
+    await http(app).get('/auth/me').set(auth(owner)).expect(200);
   });
 
   it('S-01: an owner must cede their pieces before erasing the account', async () => {

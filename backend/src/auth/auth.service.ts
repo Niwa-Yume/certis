@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -50,11 +51,15 @@ export class AuthService {
     };
   }
 
-  /** Suppression du compte, après vérification du mot de passe : un jeton volé ne suffit pas. */
+  /**
+   * Suppression du compte, après vérification du mot de passe : un jeton volé ne suffit pas.
+   * 403 et non 401 : la session est valide, seule la confirmation est fausse. Un 401 ferait
+   * croire au client que la session a expiré.
+   */
   async erase(userId: string, password: string) {
     const user = await this.userService.findWithIssuer(userId);
     if (!(await bcrypt.compare(password, user.passwordHash))) {
-      throw new UnauthorizedException('Mot de passe incorrect');
+      throw new ForbiddenException('Mot de passe incorrect');
     }
     await this.userService.erase(userId);
   }
