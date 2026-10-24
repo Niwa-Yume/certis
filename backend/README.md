@@ -1,61 +1,25 @@
-# Backend Certis
+# API Certis
 
-Backend NestJS pour la certification et le transfert de propriete d'assets, avec signature ECDSA et authentification par nonce.
+NestJS 11, Prisma 7, PostgreSQL. Lancement, comptes de démo et déploiement : [README à la racine](../README.md).
 
-## Bilan backend valide
+- Routes et réponses : [`docs/api/endpoints.md`](docs/api/endpoints.md)
+- Décisions : [`../docs/adr`](../docs/adr) (clés des émetteurs, passeport, numéro de série, chaîne d'événements)
+- Menaces et contrôles : [`../docs/security/THREAT_MODEL.md`](../docs/security/THREAT_MODEL.md)
 
-- `POST /assets` pour creer un asset
-- `GET /assets` pour lister les assets
-- `GET /assets/:id` pour le detail
-- `GET /assets/:id/verify` pour verifier la signature ECDSA
-- `GET /assets/:id/nonce` pour generer un nonce (30s)
-- `GET /assets/:id/authenticate?nonce=...` pour authentifier via nonce
-- `POST /assets/:id/transfer` pour transferer la propriete
-- `GET /assets/:id/history` pour l'historique des transferts
+| Dossier | Rôle |
+|---|---|
+| `src/issuer` | Émetteurs, leurs clés, JWKS publique, contrôle du rôle |
+| `src/registry` | Chaîne d'événements : ajout d'un maillon, vérification complète |
+| `src/asset` | Inscription, vue du propriétaire, vol, vérification publique, numéro de série |
+| `src/transfer` | Cession en deux temps |
+| `src/nonce` | QR à usage unique, liés à une pièce et à une finalité |
+| `src/crypto` | JWS ES256, JSON canonique, chiffrement des clés, dérivations |
+| `src/config` | Configuration vérifiée au démarrage |
 
-Etat metier confirme:
-
-- transfert enregistre avec `fromOwnerId` et `toOwnerId`
-- signature ECDSA recalculee automatiquement apres transfert
-- authentification toujours valide apres transfert
-- historique de propriete chronologique
-
-## Documentation detaillee
-
-- `docs/README.md`
-- `docs/architecture.md`
-- `docs/api/endpoints.md`
-- `docs/modules/asset.md`
-- `docs/modules/transfer.md`
-- `docs/modules/security-and-auth.md`
-
-## Prerequis
-
-- Node.js (version compatible NestJS 11)
-- PostgreSQL (local ou via Docker)
-- Variables d'environnement:
-  - `DATABASE_URL`
-  - `JWT_SECRET` (32 caracteres minimum)
-  - `ECDSA_PRIVATE_KEY` (P-256 ; la cle publique en est derivee)
-  - `PORT` (optionnel, defaut 3000)
-- L'API refuse de demarrer si l'une d'elles manque ou est invalide (`src/config/env.ts`).
-
-## Lancer le projet
-
-```bash
-cd ..
-docker compose up -d
-
-cd backend
-npm install
-npm run start:dev
-```
-
-## Script utile
-
-Generation des secrets (format pret pour `.env` ou Render) :
-
-```bash
-node scripts/generate-secrets.mjs
-```
-
+| Commande | Effet |
+|---|---|
+| `npm run start:dev` | API en mode watch (port 3001 via `npm run dev` à la racine) |
+| `npm test` / `npm run test:e2e` | Tests unitaires / e2e (base `certis_test`) |
+| `npm run db:reset` | Base de démo propre (refusé en production) |
+| `npm run issuer:grant -- <e-mail> "<maison>"` | Faire d'un compte existant l'émetteur d'une maison |
+| `node scripts/generate-secrets.mjs` | Secrets neufs au format `.env` |

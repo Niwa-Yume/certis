@@ -54,6 +54,15 @@ Mot de passe des comptes de démo : `Demo2026!piece`. Émetteur : `atelier@certi
 | Trop de connexions (limite de 10 par minute) | Se connecter avant la démo. Le script garde ses jetons une heure. |
 | Instance déployée endormie | Rester en local : c'est la démo de référence. |
 
+## Facultatif : l'app native sur Expo Go
+
+Le web suffit à la démo. Pour montrer l'app native :
+1. Créer `mobile/.env` avec `EXPO_PUBLIC_API_URL=http://<adresse du réseau local>:3001`.
+2. Relancer `npm run dev`, puis scanner le QR d'Expo avec l'app Expo Go (SDK 54), sur le même Wi-Fi.
+3. En cas d'échec du réseau local : `cd mobile && npx expo start --tunnel`.
+
+Sur un réseau d'école qui isole les appareils, rester sur le partage de connexion du téléphone.
+
 ## Journal des répétitions (P5-03)
 
 Critère : écart de ±1 min au plus à la troisième répétition. Chronométrer chaque segment et noter ce qui a coûté du temps.
