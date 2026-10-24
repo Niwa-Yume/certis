@@ -28,7 +28,7 @@ Références étudiées le 2026-10-24 :
 - **Palette.** Papier `#F4F1EA`, encre `#14161C`, bleu sceau `#14275C`, nuit `#0B1430` (section Preuve), or `#C9A66B`, brume `#AEB8D6`, ardoise `#5B5E66`, vert `#17603F`, rouge `#A3172A`. Tous les textes respectent le contraste WCAG AA. L'or n'est jamais utilisé comme texte sur le papier (2,0:1).
 - **Typographie.** Unbounded, une grotesque large, pour les références, les grands mots et le logotype. Instrument Serif, en italique, pour les accents éditoriaux. Geist pour le texte, Geist Mono pour les identifiants techniques. Toutes sont libres (Google Fonts) et chargées via `@expo-google-fonts`.
 - **La pièce d'abord.** La photographie réelle de la montre est le héros. On peut l'inspecter avec une loupe (survol sur desktop, appui maintenu sur mobile, bouton « Inspecter le cadran » au clavier).
-- **Signature de Certis : l'anatomie du certificat.** Quatre couches (la pièce, le propriétaire, le numéro d'inscription, la signature) sont éclatées en vue isométrique. Elles expliquent ce qui est vérifié, et seulement ce que la signature v1 couvre réellement : l'historique n'y entrera que lorsque le journal d'événements sera signé (Phase 3, ADR-0006).
+- **Signature de Certis : l'anatomie du certificat.** Quatre couches (la pièce, le propriétaire, l'historique, la signature) sont éclatées en vue isométrique. Elles expliquent ce qui est vérifié, et seulement ce qui est réellement signé : en Phase 4, l'historique, encore non signé, était remplacé par le numéro d'inscription ; il a retrouvé sa place en Phase 3 avec la chaîne signée (ADR-0006).
 - **Mouvement porteur de sens et limité :**
   - les entrées en scène (lettres qui se resserrent, montre qui monte) et le sceau qui se pose ;
   - le balayage de vérification ;
@@ -64,7 +64,7 @@ Références étudiées le 2026-10-24 :
 
 ## Écarts relevés à l'implémentation (2026-10-24)
 
-- **L'anatomie** montrait l'historique comme une couche signée ; ce n'est pas le cas en v1. Remplacée par le numéro d'inscription, qui est signé (correctif S6 de la Phase 2).
+- **L'anatomie** montrait l'historique comme une couche signée ; ce n'était pas le cas en v1. Remplacée par le numéro d'inscription le temps de la Phase 4, puis rétablie en Phase 3, quand la chaîne d'événements est devenue signée.
 - **« Copier le lien du rapport »** a été retiré : un rapport n'est pas encore conservé par le serveur, le lien ne mènerait à rien. Il reviendra avec le journal d'événements. Le bouton « Imprimer » couvre le besoin d'ici là.
 - **Les repères annotés** de la maquette (« Lunette tachymètre », « Calibre S ») ont été retirés : ces caractéristiques ne sont pas dans le modèle de données (Phase 3).
 - **« Propriétaire vérifié »** est devenu « identité protégée » : Certis ne vérifie pas l'identité des comptes.

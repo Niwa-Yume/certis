@@ -150,6 +150,50 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 
 **Total Phase 3 : environ 37 h.**
 
+### Bilan Phase 3 (2026-10-24, branche `phase-3/domain-registry`)
+
+**Rouge, puis vert.**
+- `f1df856` : 17 tests sur 38 en échec, chacun pour la raison attendue. Le plus parlant : un simple propriétaire inscrit une « Nautilus 5711/1A-010 » et reçoit 201 au lieu de 403 (N3).
+- Après `81f0395` et `3e0ff0c` : **38 tests e2e sur 38**, et 12 tests unitaires.
+
+| ID | Statut | Preuve | Écart par rapport aux critères |
+|---|---|---|---|
+| P3-01 | Fait | `3e0ff0c`, ADR-0003. Tests N4 (×2) et P3-01 (rotation). | La JWKS ajoute un membre `issuer` à chaque clé : non standard, mais nécessaire pour vérifier qu'une inscription vient bien de la maison nommée. |
+| P3-02 | Fait, simplifié | `3e0ff0c`. Test N3. | Deux rôles (`OWNER`, `ISSUER`) : `SERVICE_CENTER` est fusionné avec `ISSUER`, premier élément de l'ordre de coupe. Un guard dédié plutôt qu'un décorateur `@Roles()` : deux routes seulement. |
+| P3-03 | Fait | `3e0ff0c`, ADR-0004. Test « passport verifies with the public keys alone ». | `node:crypto` plutôt que `jose` : un seul algorithme, aucune dépendance, et le vérificateur fait pareil. Le calibre est un champ de `specs`, pas un champ de premier niveau. |
+| P3-04 | Fait | `3e0ff0c`, ADR-0005. Tests S10 (×2). | **Ajouté** : contrôle du numéro par l'acheteur, après une vérification, 5 essais en 10 minutes. |
+| P3-05 | Fait | `3e0ff0c`, ADR-0006. Tests S9 (×3), dont le refus d'`UPDATE` et `DELETE` par la base. | Événements signés par l'émetteur ou par la plateforme, jamais par l'acteur (option écartée dans l'ADR). |
+| P3-06 | Fait | `3e0ff0c`. Tests P3-06 (×2). | La restitution n'exige aucune preuve : risque résiduel n° 11. |
+| P3-07 | Fait | `3e0ff0c`. Tests P3-07 (×2). | — |
+| P3-08 | Fait | `81f0395`, [`tools/verify`](../tools/verify/README.md). Test P3-08 : une ligne réécrite en contournant le trigger est signalée (`seq 1`). | — |
+| P3-09 | Reporté | — | Ancrage (*Should*) : l'UI n'en montre rien, et c'est le premier élément de l'ordre de coupe. En attendant, le vérificateur affiche la tête de chaîne à conserver (risque résiduel n° 3). ADR-0007 non écrite. |
+| P3-10 | Fait | Migration `20261024120000_issuer_passport_event_chain`, écrite à la main, sans toucher aux migrations déjà appliquées. Seed : `NODE_ENV=production` refusé. | La migration n'est pas qu'additive : elle supprime la table `Transfer`, la colonne `signature` et les pièces v1, qu'aucun émetteur n'a attestées. C'est acceptable faute de base de production. Émetteur fictif, montres réelles aux caractéristiques sourcées (WatchBase, 2026-10-24). |
+| P3-11 | Fait | `3c55b61`. `mobile/lib/watchImages.ts` supprimé, photos servies par l'API sous `/public/watches`. | Seule la Carrera de l'accueil et de la connexion reste embarquée, pour que ces écrans ne dépendent pas de l'API. |
+
+**Vérification finale (2026-10-24)** : backend lint, build, 12 tests unitaires et 38 e2e. Mobile : `tsc`, `expo-doctor` 18/18, export web 2,7 Mo. axe-core : 0 violation sur 9 écrans, à 375 et 1440 px. Parcours rejoués dans Chrome :
+- inscription par l'émetteur via le formulaire, avec remise directe à un propriétaire ;
+- déclaration de vol, alerte à la vérification publique, puis restitution ;
+- contrôle du numéro de série ;
+- cession avec retour après connexion.
+
+`tools/verify` valide les trois pièces de démo, avec la JWKS lue par URL.
+
+**Ajouté en cours de route**
+- `GET /auth/me` : l'interface s'adapte au rôle, et seul un émetteur voit « Inscrire une pièce ».
+- La vérification publique d'une pièce volée a son propre écran, au lieu de « authentique ».
+- « Télécharger la preuve » (web) produit le fichier lu par le vérificateur indépendant.
+- `npm run dev` ajoute un secret manquant à un `.env` existant ; le seed reprend une base qui n'a pas encore d'émetteur.
+
+**Estimé / réel** : environ 37 h estimées pour un développeur ; de l'ordre de 2 h de temps agent, d'après l'horodatage. Comme pour les phases précédentes, les deux ne sont pas comparables.
+
+**Imprévus rencontrés**
+- WatchBase refuse la lecture automatisée (403) : les caractéristiques ont été relevées dans le navigateur intégré.
+- ts-jest vérifie les types : un `import` vers un module encore absent aurait fait échouer toute la suite. Le helper rouge le chargeait donc à l'exécution.
+- Le test N3 échouait d'abord pour une mauvaise raison (400 sur un champ inconnu). Il reprend désormais l'exemple de l'audit, et le guard refuse avant toute validation.
+- Le test I aurait passé pour une mauvaise raison (champ `serial` manquant) : il envoie désormais un corps complet.
+- Le trigger append-only refuse `DELETE` : la remise à zéro des tests et du seed passe par `TRUNCATE`.
+- Les paramètres des outils passent par JSON : un `​` écrit dans un fichier devenait un vrai caractère invisible. Un cas de la Phase 4 a été retrouvé et corrigé, et un contrôle confirme qu'il n'en reste aucun.
+
 ## Phase 4 — Desktop et finition luxe · branche `phase-4/desktop-luxury`
 
 | ID | Item | MoSCoW | Est. | Couvre | Critères d'acceptation |

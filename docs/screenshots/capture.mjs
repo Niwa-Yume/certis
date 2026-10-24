@@ -3,7 +3,7 @@
 // Prérequis : `npm run dev` à la racine (API + web, base de démo fraîchement seedée) et Google Chrome.
 // Playwright n'est pas une dépendance du projet : depuis un dossier quelconque,
 //   npm i playwright@1.64.1 && node <chemin>/docs/screenshots/capture.mjs
-// L'état « non confirmée » exige une signature altérée en base : il n'est pas rejoué ici.
+// L'état « non confirmée » exige un passeport altéré en base : il n'est pas rejoué ici.
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
@@ -25,6 +25,7 @@ const post = async (path, body, token) => {
 // Comptes de démo de backend/prisma/seed.ts.
 const julien = (await post('/auth/login', { email: 'julien.castro@certis.local', password: 'ChangeMe123!' })).accessToken;
 const pro = (await post('/auth/login', { email: 'certis@pro.com', password: '1234567' })).accessToken;
+const atelier = (await post('/auth/login', { email: 'atelier@certis.demo', password: 'Atelier2026!' })).accessToken;
 const [carrera] = await (await fetch(`${API}/assets`, { headers: { Authorization: `Bearer ${julien}` } })).json();
 const verifyUrl = async () => `/verify?id=${carrera.id}&nonce=${(await post(`/assets/${carrera.id}/verifications`, {}, julien)).nonce}`;
 
@@ -63,9 +64,14 @@ for (const width of [375, 768, 1440]) {
             await page.waitForTimeout(1500);
         },
     });
-    await shoot('06-inscrire', width, '/watch/new', { token: pro, wait: 1500 });
+    await shoot('06-inscrire', width, '/watch/new', { token: atelier, wait: 1500 });
     await shoot('07-verification-authentique', width, verifyUrl, { scroll: wide ? [900, 1700, 2700] : [760, 1500, 2300, 3100] });
     await shoot('08-verification-impossible', width, `/verify?id=${carrera.id}&nonce=00000000-0000-4000-8000-000000000000`, { wait: 1500 });
+    // Vol déclaré le temps des captures, puis restitution : la base de démo revient à son état.
+    await post(`/assets/${carrera.id}/stolen`, {}, julien);
+    await shoot('10-verification-volee', width, verifyUrl, { wait: 2000 });
+    await shoot('11-fiche-volee', width, `/watch/${carrera.id}`, { token: julien });
+    await post(`/assets/${carrera.id}/recovered`, {}, julien);
 }
 await browser.close();
 console.log('Captures écrites dans', OUT);
