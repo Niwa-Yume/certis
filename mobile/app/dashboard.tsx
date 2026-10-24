@@ -7,7 +7,7 @@ import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import { registryNumber, splitName } from '../lib/format';
 import { deleteItemAsync } from '../lib/storage';
 import { NoPhoto, usePhoto } from '../components/WatchPhoto';
-import { Badge, Button, Container, Glow, PieceName, Rise, Spinner, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
+import { Badge, Button, Container, Glow, PieceName, Rise, Spinner, TextField, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
 import { color, space } from '../theme/tokens';
 
 type Asset = {
@@ -101,7 +101,56 @@ export default function DashboardScreen() {
                     </View>
                 )}
             </Container>
+
+            <Container style={styles.account}>
+                <EraseAccount onErased={logout} />
+            </Container>
         </ScrollView>
+    );
+}
+
+/**
+ * Droit à l'effacement (RGPD) : deux temps et le mot de passe, l'action est irréversible.
+ * Le serveur refuse tant que le compte détient des pièces, et le dit.
+ */
+function EraseAccount({ onErased }: { onErased: () => void }) {
+    const [open, setOpen] = useState(false);
+    const [password, setPassword] = useState('');
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const erase = async () => {
+        setBusy(true);
+        setError(null);
+        try {
+            await api.delete('/auth/me', { data: { password } });
+            onErased();
+        } catch (e) {
+            const status = axios.isAxiosError(e) ? e.response?.status : undefined;
+            const message = axios.isAxiosError(e) ? e.response?.data?.message : undefined;
+            setError(status === 409 && typeof message === 'string'
+                ? message
+                : status === 403 || status === 400
+                    ? 'Mot de passe incorrect.'
+                    : 'Suppression impossible pour le moment. Réessayez.');
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    if (!open) return <TextLink label="Supprimer mon compte" tone={color.slate} onPress={() => setOpen(true)} />;
+    return (
+        <View style={styles.erase}>
+            <Text style={[t.body, t.strong]}>Supprimer mon compte</Text>
+            <Text style={t.body}>
+                Votre compte et votre e-mail sont effacés. L’historique des pièces que vous avez possédées reste vérifiable, mais plus rien ne permet de le rattacher à vous.
+            </Text>
+            <TextField label="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" error={error} />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+                <Button label="Supprimer définitivement" loading={busy} disabled={!password} onPress={erase} />
+                <Button label="Annuler" variant="secondary" onPress={() => { setOpen(false); setPassword(''); setError(null); }} />
+            </View>
+        </View>
     );
 }
 
@@ -157,6 +206,8 @@ function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
+    account: { marginTop: space.xl, paddingTop: space.lg, borderTopWidth: 1, borderColor: color.hairline },
+    erase: { gap: space.md, maxWidth: 520, padding: space.md, borderWidth: 1, borderColor: color.hairline, backgroundColor: color.card },
     bar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderColor: color.hairline },
     head: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: space.lg, paddingTop: space.xl, paddingBottom: space.lg },
     message: { gap: space.md, paddingVertical: space.xl },
