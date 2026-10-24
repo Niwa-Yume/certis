@@ -1,141 +1,106 @@
 import { useState } from 'react';
-import { View, ScrollView } from 'react-native';
-import { Text, TextInput, Button, Card, ActivityIndicator } from 'react-native-paper';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
 import api from '../../lib/api';
-import BrandLogo from '../../components/BrandLogo';
-import { styles } from './new.styles';
+import { splitName } from '../../lib/format';
+import { Button, Container, Glow, Icon, PieceName, Seal, TextField, t, useLayout, web } from '../../components/ui';
+import { color, space } from '../../theme/tokens';
 
-type FormState = {
-  name: string;
-  brand: string;
-  model: string;
-  reference: string;
-};
+type Form = { brand: string; model: string; reference: string; name: string; imageUrl: string };
+const EMPTY: Form = { brand: '', model: '', reference: '', name: '', imageUrl: '' };
 
-const initialForm: FormState = { name: '', brand: '', model: '', reference: '' };
-
-const normalizeImageUrl = (value: string) => value
-  .replace(/[\u200B-\u200D\u2060\uFEFF\u00A0]/g, '')
-  .trim();
+// Les copier-coller depuis un site marchand embarquent souvent des espaces invisibles.
+const clean = (value: string) => value.replace(/[​-‍⁠﻿ ]/g, ' ').trim();
 
 export default function NewWatchScreen() {
-  const router = useRouter();
-  const [form, setForm] = useState<FormState>(initialForm);
-  const [imageUrl, setImageUrl] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
+    const { wide } = useLayout();
+    const [form, setForm] = useState<Form>(EMPTY);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const set = (field: keyof Form) => (value: string) => setForm((f) => ({ ...f, [field]: value }));
 
-  const updateField = (field: keyof FormState, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
+    const back = () => (router.canGoBack() ? router.back() : router.replace('/dashboard'));
 
-  const goBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace('/dashboard');
-  };
+    const submit = async () => {
+        const data = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, clean(v)])) as Form;
+        if (!data.brand || !data.model || !data.reference || !data.name) return setError('Marque, modèle, référence et nom sont obligatoires.');
+        if (data.imageUrl && !/^https?:\/\//.test(data.imageUrl)) return setError('L’adresse de la photo doit commencer par https://');
+        setLoading(true);
+        setError(null);
+        try {
+            const { imageUrl, ...rest } = data;
+            const res = await api.post('/assets', imageUrl ? { ...rest, imageUrl } : rest);
+            router.replace(`/watch/${res.data.id}`);
+        } catch (e) {
+            if (axios.isAxiosError(e) && e.response?.status === 401) return router.replace('/login');
+            setError(axios.isAxiosError(e) && e.response?.status === 400
+                ? 'Un champ n’est pas valide. Vérifiez les longueurs et l’adresse de la photo.'
+                : 'Inscription impossible pour le moment. Vérifiez votre connexion.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const goToDashboardWithRefresh = () => {
-    router.replace(`/dashboard?refresh=${Date.now()}`);
-  };
-
-  const handleCreateWatch = async () => {
-    const { name, brand, model, reference } = form;
-    const normalizedImageUrl = normalizeImageUrl(imageUrl);
-    if (!name.trim() || !brand.trim() || !model.trim() || !reference.trim()) {
-      setError('Tous les champs texte sont obligatoires.');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      await api.post('/assets', {
-        name: name.trim(),
-        brand: brand.trim(),
-        model: model.trim(),
-        reference: reference.trim(),
-        ...(normalizedImageUrl ? { imageUrl: normalizedImageUrl } : {}),
-      });
-      setSuccess(true);
-      setForm(initialForm);
-      setImageUrl('');
-    } catch (requestError) {
-      console.error(requestError);
-      setError("Impossible d'ajouter la montre. Verifie la connexion API.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+    const name = clean(form.name) || 'Nom de la pièce';
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
-      </View>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: color.paper }}>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 72 }}>
+                <Container style={[styles.layout, { flexDirection: wide ? 'row' : 'column' }]}>
+                    <View style={styles.form}>
+                        <Pressable onPress={back} accessibilityRole="link" style={styles.back}>
+                            <Icon name="back" size={18} />
+                            <Text style={[t.body, t.medium]}>Ma collection</Text>
+                        </Pressable>
+                        <View style={{ gap: 8 }}>
+                            <Text style={t.caps}>INSCRIPTION AU REGISTRE</Text>
+                            <Text accessibilityRole="header" style={[t.serif, { fontSize: 48, lineHeight: 50 }]}>Inscrire une pièce</Text>
+                            <Text style={[t.body, { color: color.slate }]}>
+                                Certis signe ces informations : une fois inscrites, toute modification briserait le sceau. Vérifiez-les sur la pièce et ses papiers.
+                            </Text>
+                        </View>
+                        <TextField label="Marque" value={form.brand} onChangeText={set('brand')} placeholder="ex. TAG Heuer" />
+                        <TextField label="Modèle" value={form.model} onChangeText={set('model')} placeholder="ex. Carrera" />
+                        <TextField label="Référence" value={form.reference} onChangeText={set('reference')} placeholder="ex. CV7A12.BA0795" autoCapitalize="characters" />
+                        <TextField
+                            label="Nom de la pièce"
+                            value={form.name}
+                            onChangeText={set('name')}
+                            placeholder="ex. Carrera Calibre S"
+                            hint="Tel qu’il apparaîtra sur le certificat."
+                        />
+                        <TextField
+                            label="Photo (facultatif)"
+                            value={form.imageUrl}
+                            onChangeText={set('imageUrl')}
+                            placeholder="https://"
+                            autoCapitalize="none"
+                            keyboardType="url"
+                            error={error}
+                        />
+                        <Button label="Inscrire au registre" arrow loading={loading} onPress={submit} />
+                    </View>
+
+                    {/* Aperçu du certificat, mis à jour à la frappe. */}
+                    <View aria-hidden style={[styles.preview, wide ? web({ position: 'sticky', top: 40 }) : null]}>
+                        <Glow />
+                        <Text style={[t.caps, { color: color.mist }]}>{clean(form.brand).toUpperCase() || 'MARQUE'}</Text>
+                        <PieceName parts={splitName(name)} size={40} accent={color.gold} style={{ color: color.paper }} />
+                        <Text style={[t.ref, { color: color.paper, fontSize: 14 }]}>{clean(form.reference) || 'RÉFÉRENCE'}</Text>
+                        <View style={{ alignSelf: 'flex-end', marginTop: space.lg }}>
+                            <Seal number="APERÇU" size={88} />
+                        </View>
+                    </View>
+                </Container>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
-  }
-
-  if (success) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.successIcon}>✅</Text>
-        <Text variant="headlineSmall" style={styles.successText}>Montre ajoutée</Text>
-        <Text variant="bodyMedium" style={styles.successHint}>
-          La montre est maintenant enregistrée sur ton compte.
-        </Text>
-        <Button mode="contained" onPress={goToDashboardWithRefresh}>
-          Retour à la liste
-        </Button>
-      </View>
-    );
-  }
-
-  return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      <Button mode="text" icon="arrow-left" onPress={goBack} style={styles.backButton}>
-        Retour
-      </Button>
-      <View style={styles.headerRow}>
-        <BrandLogo size={40} />
-        <Text variant="headlineMedium" style={styles.title}>Ajouter une montre</Text>
-      </View>
-
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="bodyMedium" style={styles.hint}>
-            La montre sera automatiquement liée à ton compte.
-          </Text>
-
-          <TextInput label="Nom de la montre" value={form.name} onChangeText={(v) => updateField('name', v)} mode="outlined" style={styles.input} />
-          <TextInput label="Marque" value={form.brand} onChangeText={(v) => updateField('brand', v)} mode="outlined" style={styles.input} />
-          <TextInput label="Modele" value={form.model} onChangeText={(v) => updateField('model', v)} mode="outlined" style={styles.input} />
-          <TextInput label="Reference" value={form.reference} onChangeText={(v) => updateField('reference', v)} mode="outlined" style={styles.input} autoCapitalize="characters" />
-          <TextInput
-            label="URL de l'image (optionnel)"
-            value={imageUrl}
-            onChangeText={(v) => setImageUrl(normalizeImageUrl(v))}
-            mode="outlined"
-            style={styles.input}
-            autoCapitalize="none"
-            keyboardType="url"
-          />
-
-          {error && <Text style={styles.error}>{error}</Text>}
-
-          <Button mode="contained" onPress={handleCreateWatch} style={styles.submitButton}>
-            Ajouter la montre
-          </Button>
-          <Button mode="outlined" onPress={goBack} style={styles.cancelButton}>
-            Annuler
-          </Button>
-        </Card.Content>
-      </Card>
-    </ScrollView>
-  );
 }
+
+const styles = StyleSheet.create({
+    layout: { gap: space.xl, paddingTop: space.lg, alignItems: 'flex-start' },
+    form: { flex: 1, width: '100%', maxWidth: 520, gap: space.lg },
+    back: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, alignSelf: 'flex-start' },
+    preview: { flex: 1, width: '100%', maxWidth: 480, minHeight: 300, padding: space.lg, gap: 10, backgroundColor: color.seal, overflow: 'hidden', marginTop: 92 },
+});
