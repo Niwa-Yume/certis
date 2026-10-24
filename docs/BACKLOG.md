@@ -164,6 +164,34 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 
 **Total Phase 4 : environ 26 h.**
 
+### Bilan Phase 4 (2026-10-24, branche `phase-4/desktop-luxury`)
+
+| ID | Statut | Preuve | Écart par rapport aux critères |
+|---|---|---|---|
+| P4-01 | Fait | `e728dbc`, ADR-0009. Canevas privé « Certis — directions visuelles ». | **Six itérations au lieu d'une révision** : le risque R5 s'est réalisé. Ce qui l'a débloqué : étudier de vrais sites primés dans le navigateur et partir des vraies photos du projet, plutôt que dessiner. |
+| P4-02 | Fait | `35da0eb`, `f01cc34`. Captures à 375, 768 et 1440 px dans [`docs/screenshots`](screenshots), sans débordement horizontal. | — |
+| P4-03 | Fait | `027b5dc` (API), `3e465bb` (rapport). L'impression tient sur 3 pages A4, en couleur et sans les commandes, vérifiée en PDF. | **Ajouté** : l'API publique renvoie la pièce et sa provenance datée, jamais d'identité. Test rouge `19a5990`, puis vert. Sans cela, l'acheteur ne pouvait pas comparer le certificat à la pièce. |
+| P4-04 | Fait | `35da0eb`, `8a2a8d1`. Le `grep` des emojis est vide dans `mobile/`. | Icônes dessinées en SVG (8 tracés) plutôt que `react-native-vector-icons`, qui est retiré avec React Native Paper. |
+| P4-05 | Fait | `f0d2116`, `f01cc34`. Boîtes à dimensions fixes, photo de repli, mention « Photographie à venir ». | Upload non fait (*Could*). **Ajouté** : trois photos dont la référence ne correspondait pas à la pièce montrée (Carrera, Patek, Speedmaster) ; le seed garde 3 pièces vérifiées, et les photos passent de 23 Mo à 320 Ko (WebP). |
+| P4-06 | Fait | `8fe71b1`. axe-core, règles WCAG 2.2 AA : **0 violation** sur 9 écrans, à 375 et 1440 px. Ordre de tabulation et anneau de focus vérifiés au clavier. | axe ne couvre qu'une partie de WCAG. Pas de test avec un lecteur d'écran (VoiceOver), ni sur appareil. |
+| P4-07 | Partiel | `08223b9`, `bf5d387`. 37 captures et le script [`capture.mjs`](screenshots/capture.mjs) qui les rejoue. | Pas encore publiées comme artefact de CI : le script exige l'API, la base seedée et Chrome, et la branche n'est pas poussée. Pas de captures « avant » dans le dossier : l'état précédent reste visible au commit `d337821`. |
+
+**Vérification finale (2026-10-24)** : `tsc` mobile sans erreur, `expo-doctor` 18/18, export web 2,9 Mo (bundle JS 1,3 Mo). Backend : lint, build, 11 tests unitaires et 24 tests e2e au vert. Parcours rejoués de bout en bout dans Chrome : inscription → collection vide → ajout d'une pièce ; cession → connexion → retour sur la cession → réception → provenance « Reçue par vous ».
+
+**Ajouté en cours de route**
+- La cession peut être réservée à l'e-mail du destinataire depuis l'interface (l'API le permettait depuis la Phase 2).
+- Après connexion, on revient à la page d'origine (`?next=`, chemins internes uniquement) : un QR de cession scanné hors connexion ramène bien à l'acceptation.
+- Les polices sont importées graisse par graisse (`2f3d9d1`) : 8 fichiers au lieu de 46, export web de 8,1 à 2,9 Mo.
+
+**Estimé / réel** : environ 26 h estimées pour un développeur. Côté agent, environ 1 h de directions visuelles (six itérations) puis environ 45 min d'implémentation, d'après l'horodatage des fichiers et des commits. Comme pour la Phase 1, les deux ne sont pas comparables.
+
+**Imprévus rencontrés**
+- Le panneau du navigateur intégré, masqué, met la page en arrière-plan : les animations n'avancent pas. Les vérifications visuelles passent par Playwright en headless.
+- React Native Web reprend la taille native d'une image si le style n'en fixe pas, et remplace `scrollTo()` sur le nœud DOM par sa propre signature `{ x, y }`.
+- Un masque CSS rognait l'ombre portée des photos détourées : ombre et masque sont désormais sur deux éléments distincts.
+- `web.output: single` n'utilise pas `+html.tsx` : le CSS global (focus, impression) est injecté depuis `_layout.tsx`.
+- Le `node_modules` orphelin à la racine du dépôt fait planter `npm install` : Playwright est installé hors du dépôt.
+
 ## Phase 5 — Démo et récit · branche `phase-5/demo`
 
 | ID | Item | MoSCoW | Est. | Couvre | Critères d'acceptation |
@@ -223,7 +251,7 @@ Les *Should* représentent environ 14 h. Ce sont les premiers à sauter si l'éc
 | R2 | Render : base gratuite expirée (30 jours), démarrage à froid d'environ 1 min | Élevée | Moyen | ADR-0008. Démo en local avec Docker. Requête de réveil 2 min avant. | Création ou âge de la base |
 | R3 | La réécriture d'historique casse des clones ou des liens (jury, CV) | Moyenne | Moyen | Décision explicite (ADR-0001). La rotation est obligatoire dans tous les cas. | Ta décision P1-02 |
 | R4 | Dérive du périmètre (section 4) | Élevée | Élevé | MoSCoW figé à la validation de la Phase 0. Timebox par phase. Ordre de coupe pré-accepté (section 0). | Dépassement de plus de 30 % sur une phase |
-| R5 | Boucle de design sans fin (Phase 4) | Moyenne | Moyen | 3 directions au maximum, un choix, une révision. | Deuxième demande de nouvelle direction |
+| R5 | Boucle de design sans fin (Phase 4) | Moyenne | Moyen | 3 directions au maximum, un choix, une révision. | Deuxième demande de nouvelle direction. **Réalisé en Phase 4** (six itérations) : débloqué en partant de références réelles et des vraies photos. |
 | R6 | Marque et légalité (AP, vraies maisons dans le seed) | Élevée tant que N1 est ouvert | Élevé | P1-05 en Phase 1, émetteurs fictifs. | — |
 | R7 | Faits de marché périmés le jour de la soutenance | Moyenne | Moyen | Chaque affirmation datée. Revérification 14 jours avant. | Date de soutenance |
 | R8 | Une migration de renommage perd des données | Faible | Élevé | Migration éditée à la main, testée sur une copie. | P2-06 |

@@ -28,7 +28,7 @@ Références étudiées le 2026-10-24 :
 - **Palette.** Papier `#F4F1EA`, encre `#14161C`, bleu sceau `#14275C`, nuit `#0B1430` (section Preuve), or `#C9A66B`, brume `#AEB8D6`, ardoise `#5B5E66`, vert `#17603F`, rouge `#A3172A`. Tous les textes respectent le contraste WCAG AA. L'or n'est jamais utilisé comme texte sur le papier (2,0:1).
 - **Typographie.** Unbounded, une grotesque large, pour les références, les grands mots et le logotype. Instrument Serif, en italique, pour les accents éditoriaux. Geist pour le texte, Geist Mono pour les identifiants techniques. Toutes sont libres (Google Fonts) et chargées via `@expo-google-fonts`.
 - **La pièce d'abord.** La photographie réelle de la montre est le héros. On peut l'inspecter avec une loupe (survol sur desktop, appui maintenu sur mobile, bouton « Inspecter le cadran » au clavier).
-- **Signature de Certis : l'anatomie du certificat.** Quatre couches (la pièce, le propriétaire, l'historique, la signature) sont éclatées en vue isométrique. Elles expliquent ce qui est vérifié.
+- **Signature de Certis : l'anatomie du certificat.** Quatre couches (la pièce, le propriétaire, le numéro d'inscription, la signature) sont éclatées en vue isométrique. Elles expliquent ce qui est vérifié, et seulement ce que la signature v1 couvre réellement : l'historique n'y entrera que lorsque le journal d'événements sera signé (Phase 3, ADR-0006).
 - **Mouvement porteur de sens et limité :**
   - les entrées en scène (lettres qui se resserrent, montre qui monte) et le sceau qui se pose ;
   - le balayage de vérification ;
@@ -49,14 +49,22 @@ Références étudiées le 2026-10-24 :
 ## Conséquences
 
 - **Front.**
-  - De nouveaux tokens et des primitives d'interface partagées.
+  - De nouveaux tokens et des primitives d'interface partagées (`mobile/components/ui.tsx`). React Native Paper et ses icônes sont retirés : un seul système de styles, sans thème Material à contourner.
   - Des points de rupture (compact < 600 px, moyen < 1024 px, large au-delà) et un conteneur limité à 1 240 px.
   - Le rapport de vérification passe en deux colonnes sur desktop.
+  - Les polices sont importées graisse par graisse : 8 fichiers embarqués au lieu de 46.
 - **API.** La vérification publique doit renvoyer les données publiques de la pièce et une provenance horodatée sans identité. Sans cela, l'acheteur ne peut pas comparer le certificat à la pièce qu'il a sous les yeux.
 - **Données.**
   - La fiche prévoit des champs (mouvement, boîtier, cadran, bracelet, papiers) qui n'existent pas encore dans le modèle : ils arrivent en Phase 3 et ne s'affichent que s'ils sont renseignés.
-  - La photo de la Carrera était associée à une mauvaise référence. Corrigé en CV7A12.BA0795, d'après [WatchBase](https://watchbase.com/tag-heuer/carrera/cv7a12-ba0795).
+  - La photo de la Carrera était associée à une mauvaise référence. Corrigé en CV7A12.BA0795, d'après [WatchBase](https://watchbase.com/tag-heuer/carrera/cv7a12-ba0795). Celle de la Royal Oak montre une 15202ST.OO.1240ST.01 ([WatchBase](https://watchbase.com/audemars-piguet/royal-oak/15202st-oo-1240st-01)). Les photos de la Patek (une 5726, pas une 5711) et de la Speedmaster (sur bracelet cuir) ne correspondaient pas à leur référence : retirées du seed.
   - En production, les photographies doivent venir de l'émetteur (Phase 3).
 - **Compatibilité.**
-  - Les effets liés au défilement n'existent que sur web.
-  - Sur mobile natif, la loupe fonctionne à l'appui maintenu.
+  - Les effets liés au défilement passent par `Animated` : ils fonctionnent aussi sur mobile natif.
+  - Le survol de la loupe n'existe que sur web ; sur mobile natif, l'appui maintenu le remplace.
+
+## Écarts relevés à l'implémentation (2026-10-24)
+
+- **L'anatomie** montrait l'historique comme une couche signée ; ce n'est pas le cas en v1. Remplacée par le numéro d'inscription, qui est signé (correctif S6 de la Phase 2).
+- **« Copier le lien du rapport »** a été retiré : un rapport n'est pas encore conservé par le serveur, le lien ne mènerait à rien. Il reviendra avec le journal d'événements. Le bouton « Imprimer » couvre le besoin d'ici là.
+- **Les repères annotés** de la maquette (« Lunette tachymètre », « Calibre S ») ont été retirés : ces caractéristiques ne sont pas dans le modèle de données (Phase 3).
+- **« Propriétaire vérifié »** est devenu « identité protégée » : Certis ne vérifie pas l'identité des comptes.
