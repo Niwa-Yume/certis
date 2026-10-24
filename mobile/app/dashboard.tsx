@@ -117,7 +117,7 @@ export default function DashboardScreen() {
                 renderItem={({ item }) => (
                     (() => {
                         const normalizedImageUrl = item.imageUrl?.trim();
-                        const fallbackImage = watchImages[item.reference];
+                        const fallbackImage = watchImages[item.reference]?.source;
                         const remoteImageKey = `${item.id}:${normalizedImageUrl ?? ''}`;
                         const remoteImageFailed = Boolean(normalizedImageUrl) && Boolean(failedRemoteImageKeys[remoteImageKey]);
                         const shouldUseRemoteImage = Boolean(normalizedImageUrl) && !failedRemoteImageKeys[remoteImageKey];

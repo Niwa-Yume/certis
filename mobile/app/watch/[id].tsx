@@ -149,7 +149,7 @@ export default function WatchScreen() {
     }
 
     const normalizedImageUrl = watch.imageUrl?.trim();
-    const fallbackImage = watchImages[watch.reference];
+    const fallbackImage = watchImages[watch.reference]?.source;
     const remoteImageFailed = Boolean(normalizedImageUrl) && imageLoadFailed;
     const shouldUseRemoteImage = Boolean(normalizedImageUrl) && !imageLoadFailed;
     const hasDisplayableImage = shouldUseRemoteImage || Boolean(fallbackImage);

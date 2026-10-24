@@ -20,16 +20,11 @@ const users = [
         reference: '126610LN',
       },
       {
-        name: 'Royal Oak',
+        // https://watchbase.com/audemars-piguet/royal-oak/15202st-oo-1240st-01
+        name: 'Royal Oak Extra-Plat',
         brand: 'Audemars Piguet',
         model: 'Royal Oak',
-        reference: '15510ST.OO.1320ST.06',
-      },
-      {
-        name: 'Speedmaster Moonwatch',
-        brand: 'Omega',
-        model: 'Speedmaster',
-        reference: '310.30.42.50.01.001',
+        reference: '15202ST.OO.1240ST.01',
       },
     ],
   },
@@ -39,16 +34,11 @@ const users = [
     password: 'ChangeMe123!',
     watches: [
       {
-        name: 'Nautilus',
-        brand: 'Patek Philippe',
-        model: 'Nautilus',
-        reference: '5711/1A-010',
-      },
-      {
-        name: 'Carrera Chronograph',
+        // https://watchbase.com/tag-heuer/carrera/cv7a12-ba0795
+        name: 'Carrera Calibre S',
         brand: 'TAG Heuer',
         model: 'Carrera',
-        reference: 'CBN2A1B.FC6492',
+        reference: 'CV7A12.BA0795',
       },
     ],
   },
