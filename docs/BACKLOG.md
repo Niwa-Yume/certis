@@ -283,6 +283,33 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 
 **Total Phase 6 : environ 14 h.**
 
+### Bilan Phase 6 (2026-10-24, branche `phase-6/market`)
+
+| ID | Statut | Preuve | Écart par rapport aux critères |
+|---|---|---|---|
+| P6-01 | Fait | [`docs/market/MARKET_VISION.md`](market/MARKET_VISION.md) : marché, paysage, réglementation, chaîne de valeur, clés côté émetteur, freins, 3 scénarios 2027-2030, conséquences pour Certis. 20 sources datées, dont 8 primaires. | Pas de probabilités chiffrées pour les scénarios : elles seraient inventées. Deux sources n'ont pas pu être lues directement (communiqué de la FH, PDF final de l'EDPB) : signalé. |
+| P6-02 | Fait | [`docs/onepagers/FONDATION_DOMINIQUE_RENAUD.md`](onepagers/FONDATION_DOMINIQUE_RENAUD.md) | Contact à compléter. Signale l'absence de licence, incompatible avec un discours de science ouverte. |
+| P6-03 | Fait | [`docs/onepagers/RECRUTEURS.md`](onepagers/RECRUTEURS.md) | Contact à compléter. Les liens vers les commits ne marchent qu'une fois la branche poussée. |
+
+**Vérifié en source primaire pendant cette phase** :
+- le règlement anti-blanchiment 2024/1624 vise les montres de plus de 10 000 € à partir du 10.07.2027 (EUR-Lex, art. 2 (54), 3 (3)(f), 90 et annexe IV) ;
+- le plan de travail écoconception 2025-2030 ne mentionne pas les montres (EUR-Lex, COM(2025) 187, lu en entier). Cela lève l'incertitude laissée ouverte en Phase 0.
+
+**Imprévus et découvertes**
+- EUR-Lex renvoie une page vide aux outils de récupération automatique, mais se lit dans le navigateur intégré.
+- **Écart RGPD dans Certis.** `Event.actorId` conserve l'identifiant réel dans une table que le trigger rend ineffaçable, contrairement aux lignes directrices 02/2025 de l'EDPB. Il est ajouté ci-dessous.
+
+## Suites identifiées après la Phase 6
+
+| ID | Item | MoSCoW | Origine |
+|---|---|---|---|
+| S-01 | Sortir l'identité réelle (`actorId`) du journal append-only, dans une table effaçable ; documenter la procédure d'effacement (supprimer le lien entre compte et pseudonyme) ; faire une AIPD avant toute donnée réelle | Must avant tout déploiement avec de vrais utilisateurs | Vision marché, section 9 ; EDPB 02/2025 |
+| S-02 | Révocation datée d'une clé d'émetteur compromise (distincte du retrait) | Should | Vision marché, section 9 |
+| S-03 | Clé fournie par l'émetteur : il garde sa clé privée, Certis n'enregistre que la publique | Should | ADR-0003, scénario B |
+| S-04 | Ancrage externe RFC 3161 de la tête de chaîne (ADR-0007) | Should | P3-09 reporté |
+| S-05 | Emballage `vc+jwt` du passeport et API de vérification pour les négociants assujettis | Could | Scénario B, anti-blanchiment 2027 |
+| S-06 | Licence du dépôt (Apache-2.0 conseillé dès la Phase 0) | Décision du propriétaire | One-pager de la Fondation |
+
 ## Won't (cette itération)
 
 | Item | Raison |

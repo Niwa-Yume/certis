@@ -128,3 +128,4 @@ L'API refuse de démarrer si une variable manque ou est trop faible : le message
 - [Audit de départ](docs/AUDIT.md), [backlog et bilans de phase](docs/BACKLOG.md), [critiques du jury → preuves](docs/JURY_FEEDBACK_MAP.md)
 - [Décisions (ADR)](docs/adr), [modèle de menace](docs/security/THREAT_MODEL.md), [référence de l'API](backend/docs/api/endpoints.md)
 - [Déroulé de la démo](docs/DEMO_SCRIPT.md), [vérificateur indépendant](tools/verify/README.md), [captures](docs/screenshots)
+- [Vision marché 2027-2030](docs/market/MARKET_VISION.md), notes d'une page : [Fondation Dominique Renaud](docs/onepagers/FONDATION_DOMINIQUE_RENAUD.md), [recruteurs](docs/onepagers/RECRUTEURS.md)
