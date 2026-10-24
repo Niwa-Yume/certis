@@ -258,7 +258,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | P5-03 | **À faire par toi** | Journal prêt en bas de `DEMO_SCRIPT.md`. | Les répétitions sont les tiennes : je ne peux pas chronométrer ta parole. |
 | P5-04 | Fait | `2cf105e`. [`docs/demo/certis-demo.mp4`](demo/certis-demo.mp4) (34 s, 1 Mo) et le GIF du README (2,7 Mo), enregistrés par `docs/demo/record.mjs`. | Vidéo sans voix, avec sous-titres incrustés. |
 | P5-05 | Fait | `31f35b1`. README lisible en 60 s, schéma Mermaid, captures, vidéo, résumé du modèle de menace. Clone neuf (2026-10-24) : `git clone`, puis `npm run dev` seul. Dépendances installées, `.env` créé, migrations et seed passés, API et web en ligne ; `npm run demo` passe ses 8 étapes et la collection s'affiche avec ses photos. | Les liens vers les commits ne fonctionneront qu'une fois la branche poussée. |
-| P5-06 | **À valider par toi** | Section « Périmètre » du README. | Validation mot à mot, en particulier la phrase sur les stages. |
+| P5-06 | Fait | Section « Périmètre » du README, validée telle quelle par toi le 2026-10-24. | — |
 
 **Ajouté en cours de route**
 - `npm run issuer:grant` : faire d'un compte l'émetteur d'une maison, sans rien effacer. Sans cette commande, une instance déployée n'aurait aucun émetteur (le seed y est refusé).

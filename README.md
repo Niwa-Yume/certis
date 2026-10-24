@@ -91,7 +91,7 @@ Projet personnel, sans affiliation avec aucune maison horlogère. Il ne contient
 | Interface desktop basique, en dessous des standards du luxe | Direction « Registre » (ADR-0009), responsive, accessibilité vérifiée | Fait |
 | Démo sommaire, écart entre promesse et livré | Émetteur, passeport, chaîne, vol, numéro de série, vérificateur, démo rejouable en 8 étapes | Fait |
 | Manque de méthode | Audit, backlog MoSCoW, ADR, tests rouges, bilan par phase | En cours |
-| Confusion bachelor, stage et entreprise | Rebrand neutre, section « Périmètre » ci-dessus | En cours |
+| Confusion bachelor, stage et entreprise | Rebrand neutre, section « Périmètre » ci-dessus | Fait |
 | Gestion du temps | Démo de 10 min chronométrée, répétitions journalisées | En cours |
 
 Le détail, preuve par preuve : [`docs/JURY_FEEDBACK_MAP.md`](docs/JURY_FEEDBACK_MAP.md).
