@@ -7,9 +7,9 @@ import { Geist_400Regular, Geist_500Medium, Geist_600SemiBold } from '@expo-goog
 import { GeistMono_400Regular } from '@expo-google-fonts/geist-mono';
 import { color } from '../theme/tokens';
 
-// Web : anneau de focus double (or puis bleu sceau), visible sur le papier comme sur le bleu nuit,
-// et couleurs conservées à l'impression du rapport. Injecté ici car `web.output: single`
-// n'utilise pas +html.tsx.
+// Web : anneau de focus double (or puis bleu sceau), visible sur le papier comme sur le bleu nuit.
+// Impression du rapport : couleurs conservées, page entière plutôt que l'écran visible, sans les
+// commandes ni les effets de défilement. Injecté ici car `web.output: single` n'utilise pas +html.tsx.
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
     document.documentElement.lang = 'fr';
     const style = document.createElement('style');
@@ -17,6 +17,13 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
         body { background-color: ${color.paper}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         :focus { outline: none; }
         :focus-visible { outline: 2px solid ${color.gold}; outline-offset: 2px; box-shadow: 0 0 0 5px ${color.seal}; }
+        @media print {
+            html, body, #root { height: auto !important; }
+            #root * { overflow: visible !important; }
+            #report { flex: none !important; height: auto !important; }
+            #report * { opacity: 1 !important; }
+            #scan, #stack, #inspect, #print-hero, #print-proof { display: none !important; }
+        }
     `;
     document.head.appendChild(style);
 }

@@ -178,13 +178,14 @@ const BUTTON = {
 
 type PressState = { pressed: boolean; hovered?: boolean };
 
-export function Button({ label, onPress, variant = 'primary', arrow = false, loading = false, disabled = false, style, accessibilityLabel }: {
+export function Button({ label, onPress, variant = 'primary', arrow = false, loading = false, disabled = false, style, accessibilityLabel, nativeID }: {
     label: string; onPress: () => void; variant?: keyof typeof BUTTON; arrow?: boolean; loading?: boolean; disabled?: boolean;
-    style?: StyleProp<ViewStyle>; accessibilityLabel?: string;
+    style?: StyleProp<ViewStyle>; accessibilityLabel?: string; nativeID?: string;
 }) {
     const c = BUTTON[variant];
     return (
         <Pressable
+            nativeID={nativeID}
             onPress={onPress}
             disabled={disabled || loading}
             accessibilityRole="button"
