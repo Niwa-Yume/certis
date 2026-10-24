@@ -1,10 +1,15 @@
 import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
-import { Unbounded_300Light, Unbounded_500Medium } from '@expo-google-fonts/unbounded';
-import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif';
-import { Geist_400Regular, Geist_500Medium, Geist_600SemiBold } from '@expo-google-fonts/geist';
-import { GeistMono_400Regular } from '@expo-google-fonts/geist-mono';
+// Une graisse par import : l'index des paquets embarquerait toutes les graisses (46 fichiers au lieu de 8).
+import { Unbounded_300Light } from '@expo-google-fonts/unbounded/300Light';
+import { Unbounded_500Medium } from '@expo-google-fonts/unbounded/500Medium';
+import { InstrumentSerif_400Regular } from '@expo-google-fonts/instrument-serif/400Regular';
+import { InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif/400Regular_Italic';
+import { Geist_400Regular } from '@expo-google-fonts/geist/400Regular';
+import { Geist_500Medium } from '@expo-google-fonts/geist/500Medium';
+import { Geist_600SemiBold } from '@expo-google-fonts/geist/600SemiBold';
+import { GeistMono_400Regular } from '@expo-google-fonts/geist-mono/400Regular';
 import { color } from '../theme/tokens';
 
 // Web : anneau de focus double (or puis bleu sceau), visible sur le papier comme sur le bleu nuit.
