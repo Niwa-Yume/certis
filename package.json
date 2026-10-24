@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "build:web": "cd mobile && npm ci && npx expo export --platform web --output-dir ../dist"
+    "build:web": "cd mobile && npm ci && npx expo export --platform web --output-dir ../dist",
+    "demo": "node scripts/demo.mjs"
   }
 }
