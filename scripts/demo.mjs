@@ -2,17 +2,21 @@
 //
 //   npm run demo          toutes les étapes, l'une après l'autre
 //   npm run demo -- 6     les étapes 1 à 5 en silence sur une pièce neuve, puis la 6 en détail
+//   npm run demo -- next  l'étape suivante, sur la même pièce que l'appel précédent (démo en direct)
+//   npm run demo -- next 4  jusqu'à l'étape 4 sur cette même pièce, par exemple si la 3 s'est faite dans l'interface
 //
 // Chaque étape est donc rejouable seule : c'est le plan B de la démonstration si l'interface,
 // le réseau ou un téléphone font défaut (docs/DEMO_SCRIPT.md). Aucune dépendance, Node 20 ou plus.
 // Autre instance : API_URL=https://… WEB_URL=https://… DEMO_ISSUER_EMAIL=… DEMO_ISSUER_PASSWORD=… npm run demo
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { networkInterfaces, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const API = process.env.API_URL ?? 'http://localhost:3001';
-const WEB = process.env.WEB_URL ?? 'http://localhost:8090';
+// Par l'IP du réseau local : les liens imprimés s'ouvrent aussi sur le téléphone de l'acheteur.
+const LAN = Object.values(networkInterfaces()).flat().find((net) => net?.family === 'IPv4' && !net.internal)?.address;
+const WEB = process.env.WEB_URL ?? `http://${LAN ?? 'localhost'}:8090`;
 const PASSWORD = 'Demo2026!piece'; // comptes de démonstration uniquement
 const ISSUER = {
   email: process.env.DEMO_ISSUER_EMAIL ?? 'atelier@certis.demo',
@@ -50,6 +54,8 @@ async function must(method, path, options) {
 // Jetons gardés une heure hors du dépôt : la connexion est limitée à 10 par minute,
 // et les répétitions enchaînent les étapes.
 const CACHE = join(tmpdir(), 'certis-demo-tokens.json');
+// La pièce en cours et ce qu'il faut pour continuer son histoire (`next`).
+const STATE = join(tmpdir(), 'certis-demo-state.json');
 const cache = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf8')) : {};
 
 async function account(email, password = PASSWORD) {
@@ -85,6 +91,7 @@ const STEPS = [
           name: 'Carrera Calibre S', brand: 'TAG Heuer', model: 'Carrera', reference: 'CV7A12.BA0795',
           serial: s.serial, movement: 'TAG Heuer Calibre S', case: 'Acier, 43 mm, lunette tachymètre',
           dial: 'Noir', bracelet: 'Acier', ownerEmail: s.revendeur.email,
+          imageUrl: '/public/watches/carrera.webp', imageCutout: true,
         },
       });
       s.id = piece.id;
@@ -191,7 +198,15 @@ const STEPS = [
 
 async function main() {
   const arg = process.argv[2];
-  const target = arg ? Number(arg) : STEPS.length;
+  const saved = existsSync(STATE) ? JSON.parse(readFileSync(STATE, 'utf8')) : null;
+  if (arg === 'next') {
+    if (!saved || saved.api !== API || saved.step >= STEPS.length) {
+      console.error('Aucune histoire en cours : commencez par « npm run demo -- 1 » (ou un autre numéro).');
+      process.exitCode = 2;
+      return;
+    }
+  }
+  const target = arg === 'next' ? Number(process.argv[3] ?? saved.step + 1) : arg ? Number(arg) : STEPS.length;
   if (!Number.isInteger(target) || target < 1 || target > STEPS.length) {
     console.error(`Usage : npm run demo [-- <étape 1 à ${STEPS.length}>]`);
     STEPS.forEach((step, i) => console.error(`  ${i + 1}. ${step.title}`));
@@ -202,8 +217,16 @@ async function main() {
     issuer: await account(ISSUER.email, ISSUER.password),
     ...Object.fromEntries(await Promise.all(Object.entries(PEOPLE).map(async ([role, email]) => [role, await account(email)]))),
   };
+  if (arg === 'next' && !(target > saved.step)) {
+    console.error(`L'histoire en cours est déjà à l'étape ${saved.step} : choisissez une étape suivante.`);
+    process.exitCode = 2;
+    return;
+  }
+  const first = arg === 'next' ? saved.step + 1 : 1;
+  if (arg === 'next') Object.assign(s, saved.piece);
   for (const [i, step] of STEPS.entries()) {
     const n = i + 1;
+    if (n < first) continue;
     if (n > target) break;
     // Sans numéro : tout en détail. Avec un numéro : les étapes précédentes préparent la pièce.
     quiet = Boolean(arg) && n < target;
@@ -212,7 +235,10 @@ async function main() {
     await step.run(s);
   }
   quiet = false;
-  say(`\nPièce ${s.id}`);
+  const { id, serial, photographed } = s;
+  writeFileSync(STATE, JSON.stringify({ api: API, step: target, piece: { id, serial, photographed } }));
+  say(`\nPièce ${s.id}${target < STEPS.length ? ` · suite : npm run demo -- next (étape ${target + 1}, ${STEPS[target].title.toLowerCase()})` : ''}`);
+  say(`Numéro de série gravé : ${s.serial}`);
   say(`Pour continuer dans l’interface (${WEB}) : mot de passe des comptes de démo « ${PASSWORD} », émetteur ${ISSUER.email}.`);
 }
 

@@ -22,6 +22,12 @@ function getApiBaseUrl(): string {
     const envUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
     if (envUrl) return envUrl;
 
+    // Web en dev : l'API est sur la même machine que la page. Ouverte depuis un téléphone par l'IP
+    // du réseau local, la page appelle cette IP, et le QR qu'elle affiche y renvoie aussi.
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        return `${window.location.protocol}//${window.location.hostname}:${DEFAULT_BACKEND_PORT}`;
+    }
+
     const host = getHostFromExpoConfig();
     if (!host) {
         return `http://localhost:${DEFAULT_BACKEND_PORT}`;
