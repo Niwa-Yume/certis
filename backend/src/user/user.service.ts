@@ -10,6 +10,13 @@ export class UserService {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
+  findWithIssuer(id: string) {
+    return this.prisma.user.findUniqueOrThrow({
+      where: { id },
+      include: { issuer: true },
+    });
+  }
+
   async create(email: string, plainPassword: string) {
     const passwordHash = await bcrypt.hash(plainPassword, 10);
 

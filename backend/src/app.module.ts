@@ -10,6 +10,8 @@ import { NonceModule } from './nonce/nonce.module';
 import { TransferModule } from './transfer/transfer.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { IssuerModule } from './issuer/issuer.module';
+import { RegistryModule } from './registry/registry.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { AuthModule } from './auth/auth.module';
     UserModule,
     AuthModule,
     CryptoModule,
+    IssuerModule,
+    RegistryModule,
     AssetModule,
     NonceModule,
     TransferModule,

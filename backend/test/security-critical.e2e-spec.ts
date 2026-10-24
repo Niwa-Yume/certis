@@ -78,11 +78,11 @@ describe('Verification and transfer flows (e2e)', () => {
       .set(auth(recipient))
       .expect(200)
       .expect(({ body }) => {
-        expect(body).toHaveLength(1);
-        expect(body[0]).toMatchObject({
-          fromOwnerId: owner.id,
-          toOwnerId: recipient.id,
-        });
+        const { events } = body as { events: { type: string }[] };
+        expect(events.map((e) => e.type)).toEqual(['MINT', 'TRANSFER']);
+        // Des pseudonymes seulement : l'historique ne révèle aucun compte (ADR-0006).
+        expect(JSON.stringify(body)).not.toContain(owner.id);
+        expect(JSON.stringify(body)).not.toContain(recipient.id);
       });
   });
 

@@ -12,35 +12,74 @@ datasource db {
 }
 
 model Asset {
-  id            String      @id @default(uuid())
-  name          String
-  brand         String
-  model         String
-  reference     String
-  status        AssetStatus @default(ACTIVE)
-  signature     String // ECDSA P-256 sur le payload JCS v1 (src/crypto/crypto.service.ts)
-  ownerId       String
-  imageUrl      String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              String      @id @default(uuid())
+  name            String
+  brand           String
+  model           String
+  reference       String
+  caliber         String?
+  caseDescription String?
+  dial            String?
+  bracelet        String?
+  status          AssetStatus @default(ACTIVE)
+  // Copies de la chaîne (propriétaire, statut) : la vérification les recalcule (ADR-0006).
+  ownerId         String
+  issuerId        String
+  // Passeport JWS signé par l'émetteur (ADR-0004) ; le numéro de série n'y figure qu'en empreinte (ADR-0005).
+  passport        String
+  serialHash      String
+  imageUrl        String?
+  imageCutout     Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
-  owner     User      @relation(fields: [ownerId], references: [id])
-  nonces    AuthNonce[]
-  transfers Transfer[]
+  owner  User        @relation(fields: [ownerId], references: [id])
+  issuer Issuer      @relation(fields: [issuerId], references: [id])
+  nonces AuthNonce[]
+  events Event[]
 }
 
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
   passwordHash String
+  role         Role     @default(OWNER)
+  issuerId     String?
   createdAt    DateTime @default(now())
 
+  issuer         Issuer?     @relation(fields: [issuerId], references: [id])
   assets         Asset[]
   issuedNonces   AuthNonce[] @relation("NonceIssuer")
   reservedNonces AuthNonce[] @relation("NonceRecipient")
 }
 
-// Un nonce est lié à un actif, à une finalité et au propriétaire qui l'a émis.
+enum Role {
+  OWNER
+  ISSUER
+}
+
+// La maison (ou l'expert) qui atteste les pièces qu'elle inscrit (ADR-0003).
+model Issuer {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  keys   IssuerKey[]
+  users  User[]
+  assets Asset[]
+}
+
+model IssuerKey {
+  kid        String    @id // empreinte JWK, RFC 7638
+  issuerId   String
+  publicJwk  Json
+  privateKey String // PKCS#8 chiffrée par la clé maîtresse (AES-256-GCM)
+  createdAt  DateTime  @default(now())
+  retiredAt  DateTime?
+
+  issuer Issuer @relation(fields: [issuerId], references: [id])
+}
+
 model AuthNonce {
   id         String       @id @default(uuid())
   nonceValue String       @unique
@@ -48,13 +87,14 @@ model AuthNonce {
   expiresAt  DateTime
   used       Boolean      @default(false)
   usedAt     DateTime? //horodatage au moment où le nonce a été consommé permet de vérifier que le nonce n'est pas réutilisé après son expiration (en gros traçabilité !!!)
+  // Contrôles du numéro de série permis après cette vérification (ADR-0005).
+  serialChecks Int        @default(0)
   createdAt  DateTime     @default(now())
 
   assetId     String
   asset       Asset   @relation(fields: [assetId], references: [id])
   issuedById  String
   issuedBy    User    @relation("NonceIssuer", fields: [issuedById], references: [id])
-  // Offre de transfert réservée à un destinataire (optionnel).
   recipientId String?
   recipient   User?   @relation("NonceRecipient", fields: [recipientId], references: [id])
 }
@@ -64,18 +104,37 @@ enum NoncePurpose {
   TRANSFER
 }
 
-model Transfer {
-  id          String   @id @default(uuid())
-  fromOwnerId String
-  toOwnerId   String
-  createdAt   DateTime @default(now())
+// Journal append-only : un trigger refuse UPDATE et DELETE (ADR-0006).
+model Event {
+  id        String    @id @default(uuid())
+  assetId   String
+  seq       Int
+  type      EventType
+  at        DateTime
+  data      Json
+  prevHash  String?
+  hash      String
+  kid       String
+  signature String
+  // Hors du hash : l'identifiant réel, pour les contrôles de droits. La chaîne n'en porte qu'un pseudonyme.
+  actorId   String?
 
-  assetId String
-  asset   Asset  @relation(fields: [assetId], references: [id])
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  @@unique([assetId, seq])
+}
+
+enum EventType {
+  MINT
+  TRANSFER
+  SERVICE
+  STOLEN_REPORTED
+  RECOVERED
 }
 
 enum AssetStatus {
   ACTIVE
   INACTIVE
   TRANSFERRED
+  STOLEN
 }

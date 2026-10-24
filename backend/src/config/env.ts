@@ -1,9 +1,11 @@
-import { createPrivateKey, KeyObject } from 'crypto';
+import { createPrivateKey, hkdfSync, KeyObject } from 'crypto';
 
 export type Env = {
   databaseUrl: string;
   jwtSecret: string;
   signingKey: KeyObject;
+  /** Clé maîtresse : chiffre les clés des émetteurs et dérive les secrets HMAC (ADR-0003, 0005). */
+  masterKey: Buffer;
   corsOrigins: string[];
   trustProxyHops: number;
 };
@@ -40,6 +42,15 @@ export function readEnv(env: NodeJS.ProcessEnv = process.env): Env {
     );
   }
 
+  // N'importe quel secret long (Render `generateValue`, `openssl rand -base64 32`) : on en dérive 32 octets.
+  const masterSecret = env.KEY_ENCRYPTION_KEY ?? '';
+  if (masterSecret.length < 32) {
+    errors.push('KEY_ENCRYPTION_KEY doit faire au moins 32 caractères');
+  }
+  const masterKey = Buffer.from(
+    hkdfSync('sha256', masterSecret, '', 'certis/master-key', 32),
+  );
+
   const corsOrigins = (env.CORS_ORIGINS ?? DEV_CORS_ORIGINS)
     .split(',')
     .map((origin) => origin.trim())
@@ -56,5 +67,12 @@ export function readEnv(env: NodeJS.ProcessEnv = process.env): Env {
     throw new Error(`Configuration invalide :\n- ${errors.join('\n- ')}`);
   }
 
-  return { databaseUrl, jwtSecret, signingKey, corsOrigins, trustProxyHops };
+  return {
+    databaseUrl,
+    jwtSecret,
+    signingKey,
+    masterKey,
+    corsOrigins,
+    trustProxyHops,
+  };
 }

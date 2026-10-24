@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Param,
-  Body,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Post, Param, Body, Req, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { TransferService } from './transfer.service';
@@ -39,11 +31,6 @@ export class TransferController {
       request.user.id,
       dto.recipientEmail,
     );
-  }
-
-  @Get(':id/history')
-  getHistory(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
-    return this.transferService.getHistory(id, request.user.id);
   }
 
   // Le receveur appelle cet endpoint après avoir scanné le QR de transfert du propriétaire.

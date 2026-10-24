@@ -10,6 +10,7 @@ const valid = {
   DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
   JWT_SECRET: 'x'.repeat(32),
   ECDSA_PRIVATE_KEY: pem('P-256'),
+  KEY_ENCRYPTION_KEY: 'k'.repeat(44),
 };
 
 describe('readEnv', () => {
@@ -42,6 +43,11 @@ describe('readEnv', () => {
       /DATABASE_URL/,
     ],
     ['negative TRUST_PROXY_HOPS', { TRUST_PROXY_HOPS: '-1' }, /TRUST_PROXY/],
+    [
+      'missing KEY_ENCRYPTION_KEY',
+      { KEY_ENCRYPTION_KEY: undefined },
+      /KEY_ENCRYPTION_KEY/,
+    ],
   ])('rejects %s', (_label, override, message) => {
     expect(() => readEnv({ ...valid, ...override })).toThrow(message);
   });

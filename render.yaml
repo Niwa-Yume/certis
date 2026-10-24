@@ -31,6 +31,8 @@ services:
         generateValue: true # 256 bits aléatoires générés par Render
       - key: ECDSA_PRIVATE_KEY
         sync: false # sortie de `node backend/scripts/generate-secrets.mjs`
+      - key: KEY_ENCRYPTION_KEY
+        generateValue: true # clé maîtresse des clés d'émetteurs (ADR-0003) ; la changer rend ces clés illisibles
       - key: CORS_ORIGINS
         sync: false # URL publique de certis-web (ex. https://certis-web.onrender.com)
       # Hypothèse à vérifier au premier déploiement : Render ne documente pas le nombre de

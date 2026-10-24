@@ -3,6 +3,7 @@ import { execFileSync } from 'child_process';
 import { mkdtempSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { IssuerService } from '../src/issuer/issuer.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   Issuer,
@@ -130,9 +131,6 @@ describe('Registry: issuer, passport and event chain (e2e)', () => {
 
     it('P3-01: a key rotation keeps earlier passports verifiable', async () => {
       const before = (await history(owner)).passport;
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
-      const { IssuerService } = require('../src/issuer/issuer.service');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
       await app.get(IssuerService).rotateKey(issuer.issuerId);
       const second = (
         await mint(app, issuer, { ownerEmail: owner.email }).expect(201)

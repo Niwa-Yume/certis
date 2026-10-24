@@ -7,3 +7,5 @@ const pem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
 
 console.log(`JWT_SECRET="${randomBytes(48).toString('base64url')}"`);
 console.log(`ECDSA_PRIVATE_KEY="${pem.trim().replace(/\n/g, '\\n')}"`);
+// Clé maîtresse : chiffre les clés des émetteurs, dérive les secrets HMAC (ADR-0003, ADR-0005).
+console.log(`KEY_ENCRYPTION_KEY="${randomBytes(32).toString('base64url')}"`);

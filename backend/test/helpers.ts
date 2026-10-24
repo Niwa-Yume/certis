@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { JsonWebKey, createPublicKey, randomUUID, verify } from 'crypto';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { IssuerService } from '../src/issuer/issuer.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 export type User = { id: string; email: string; token: string };
@@ -18,12 +19,13 @@ export async function createApp() {
   return app;
 }
 
+// TRUNCATE plutôt que DELETE : le journal est append-only, et TRUNCATE ne déclenche pas le trigger (ADR-0006).
 export async function resetDatabase(app: INestApplication) {
-  const prisma = app.get(PrismaService);
-  await prisma.transfer.deleteMany();
-  await prisma.authNonce.deleteMany();
-  await prisma.asset.deleteMany();
-  await prisma.user.deleteMany();
+  await app
+    .get(PrismaService)
+    .$executeRawUnsafe(
+      'TRUNCATE "Event", "AuthNonce", "Asset", "IssuerKey", "User", "Issuer" CASCADE',
+    );
 }
 
 export const http = (app: INestApplication) => request(app.getHttpServer());
@@ -38,23 +40,18 @@ export async function registerUser(app: INestApplication): Promise<User> {
   return { id: res.body.user.id, email, token: res.body.accessToken };
 }
 
+/** Une pièce inscrite par un émetteur de test au nom de `owner`. */
 export async function createAsset(
   app: INestApplication,
-  user: User,
+  owner: User,
   overrides: Record<string, unknown> = {},
 ): Promise<{ id: string }> {
-  const res = await http(app)
-    .post('/assets')
-    .set(auth(user))
-    .send({
-      name: 'Montre test',
-      brand: 'Brand',
-      model: 'Model',
-      reference: `REF-${randomUUID()}`,
-      ...overrides,
-    })
-    .expect(201);
-  return res.body;
+  const issuer = await createIssuer(app);
+  const res = await mint(app, issuer, {
+    ownerEmail: owner.email,
+    ...overrides,
+  }).expect(201);
+  return res.body as { id: string };
 }
 
 export const ownerOf = async (app: INestApplication, assetId: string) =>
@@ -140,17 +137,10 @@ export async function createIssuer(
   name = 'Atelier test',
 ): Promise<Issuer> {
   const user = await registerUser(app);
-  // Chargé à l'exécution : tant que le module n'existe pas, l'échec est explicite.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
-  const { IssuerService } = require('../src/issuer/issuer.service');
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
   const issuers = app.get(IssuerService);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   const issuer = await issuers.create(name);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   await issuers.grant(user.id, issuer.id);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  return { ...user, issuerId: issuer.id as string };
+  return { ...user, issuerId: issuer.id };
 }
 
 export const mint = (

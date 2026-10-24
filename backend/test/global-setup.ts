@@ -31,6 +31,7 @@ export default async function globalSetup() {
 
   // Secrets jetables : l'app n'a plus de fallback, elle exige une config complète.
   process.env.JWT_SECRET = randomBytes(32).toString('hex');
+  process.env.KEY_ENCRYPTION_KEY = randomBytes(32).toString('base64');
   process.env.ECDSA_PRIVATE_KEY = generateKeyPairSync('ec', {
     namedCurve: 'P-256',
   })

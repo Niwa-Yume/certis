@@ -8,6 +8,7 @@ import {
   claim,
   createApp,
   createAsset,
+  createIssuer,
   http,
   issueTransferNonce,
   issueVerifyNonce,
@@ -73,7 +74,7 @@ describe('Transfer attack chains (e2e)', () => {
     expect(results.filter((res) => res.status === 201)).toHaveLength(1);
     const transfers = await app
       .get(PrismaService)
-      .transfer.count({ where: { assetId: watch.id } });
+      .event.count({ where: { assetId: watch.id, type: 'TRANSFER' } });
     expect(transfers).toBe(1);
   });
 
@@ -117,9 +118,11 @@ describe('Transfer attack chains (e2e)', () => {
   });
 
   it('I (N8): clients cannot set server-controlled fields', async () => {
+    // Seul un émetteur peut inscrire une pièce (Phase 3) : c'est lui qui tente l'injection.
+    const issuer = await createIssuer(app);
     await http(app)
       .post('/assets')
-      .set(auth(owner))
+      .set(auth(issuer))
       .send({
         id: 'chosen-id',
         status: 'TRANSFERRED',
@@ -127,6 +130,7 @@ describe('Transfer attack chains (e2e)', () => {
         brand: 'x',
         model: 'x',
         reference: 'x',
+        serial: 'x',
       })
       .expect(400);
   });

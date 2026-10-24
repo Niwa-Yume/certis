@@ -50,6 +50,16 @@ export class AuthService {
     };
   }
 
+  async me(userId: string) {
+    const user = await this.userService.findWithIssuer(userId);
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      issuer: user.issuer && { id: user.issuer.id, name: user.issuer.name },
+    };
+  }
+
   private async signToken(userId: string, email: string) {
     return this.jwtService.signAsync(
       {
