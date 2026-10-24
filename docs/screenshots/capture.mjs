@@ -1,4 +1,4 @@
-// Captures de référence de l'interface (Phase 4), mobile 375 px et desktop 1440 px.
+// Captures de référence de l'interface (Phase 4) : mobile 375 px, tablette 768 px, desktop 1440 px.
 //
 // Prérequis : `npm run dev` à la racine (API + web, base de démo fraîchement seedée) et Google Chrome.
 // Playwright n'est pas une dépendance du projet : depuis un dossier quelconque,
@@ -31,7 +31,7 @@ const verifyUrl = async () => `/verify?id=${carrera.id}&nonce=${(await post(`/as
 const browser = await chromium.launch({ channel: 'chrome' });
 
 async function shoot(name, width, path, { token, wait = 3500, scroll = [], act } = {}) {
-    const page = await browser.newPage({ viewport: { width, height: width < 600 ? 812 : 900 } });
+    const page = await browser.newPage({ viewport: { width, height: { 375: 812, 768: 1024 }[width] ?? 900 } });
     if (token) {
         await page.goto(WEB);
         await page.evaluate((t) => localStorage.setItem('certis_access_token', t), token);
@@ -39,7 +39,7 @@ async function shoot(name, width, path, { token, wait = 3500, scroll = [], act }
     await page.goto(WEB + (typeof path === 'function' ? await path() : path), { waitUntil: 'networkidle' });
     await page.waitForTimeout(wait);
     if (act) await act(page);
-    const file = (suffix) => `${OUT}${width < 600 ? 'mobile' : 'desktop'}-${name}${suffix}.jpg`;
+    const file = (suffix) => `${OUT}${{ 375: 'mobile', 768: 'tablette' }[width] ?? 'desktop'}-${name}${suffix}.jpg`;
     await page.screenshot({ path: file(''), type: 'jpeg', quality: 85 });
     for (const [i, y] of scroll.entries()) {
         // RN Web remplace scrollTo() sur ce nœud par sa propre signature : on fixe scrollTop.
@@ -50,8 +50,8 @@ async function shoot(name, width, path, { token, wait = 3500, scroll = [], act }
     await page.close();
 }
 
-for (const width of [375, 1440]) {
-    const wide = width > 600;
+for (const width of [375, 768, 1440]) {
+    const wide = width >= 1024;
     await shoot('01-accueil', width, '/');
     await shoot('02-connexion', width, '/login', { wait: 1500 });
     await shoot('03-collection', width, '/dashboard', { token: pro });
