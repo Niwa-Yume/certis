@@ -34,8 +34,8 @@ const fromB64 = (part) => JSON.parse(Buffer.from(part, 'base64url').toString());
 // ES256 au format JOSE : r‖s sur 64 octets.
 const signed = (bytes, signature, key) =>
   verify('sha256', Buffer.from(bytes), { key, dsaEncoding: 'ieee-p1363' }, Buffer.from(signature, 'base64url'));
-const fail = (message) => {
-  console.log(`ALTÉRATION : ${message}`);
+const fail = (message, label = 'ALTÉRATION') => {
+  console.log(`${label} : ${message}`);
   process.exit(1);
 };
 
@@ -62,7 +62,7 @@ if (passportKey.issuer !== payload.issuer.id) {
   fail("passeport — signé par une clé qui n'appartient pas à son émetteur");
 }
 if (revokedFor(passportKey, payload.validFrom)) {
-  fail(`passeport — signé par une clé révoquée depuis le ${passportKey.revokedAt}`);
+  fail(`passeport — signé par une clé révoquée depuis le ${passportKey.revokedAt}`, 'CLÉ RÉVOQUÉE');
 }
 const assetId = payload.credentialSubject.id;
 
@@ -81,7 +81,7 @@ for (const [i, e] of events.entries()) {
   const key = keys.get(e.kid);
   const expected = SIGNED_BY_PLATFORM.has(e.type) ? 'certis' : payload.issuer.id;
   if (!key || key.issuer !== expected) fail(`${where} — signé par une clé qui n'a pas le droit de signer ce type`);
-  if (revokedFor(key, e.at)) fail(`${where} — signé par une clé révoquée depuis le ${key.revokedAt}`);
+  if (revokedFor(key, e.at)) fail(`${where} — signé par une clé révoquée depuis le ${key.revokedAt}`, 'CLÉ RÉVOQUÉE');
   if (!signed(bytes, e.signature, key.key)) fail(`${where} — signature invalide`);
   if (e.type === 'MINT' && e.data.passport !== sha256(passport)) fail(`${where} — l'inscription ne porte pas ce passeport`);
   if (e.type === 'STOLEN_REPORTED') stolen = true;
