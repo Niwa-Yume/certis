@@ -77,7 +77,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | P1-04 | Fait | `a98ec9b`, ADR-0008. Démarrage Render simulé en local (variables seules, sans `.env`). | Pas encore déployé : il faut ton compte Render et ton compte Neon (voir README, Déploiement). |
 | P1-05 | Fait (identité provisoire) | `4dbfb22`. Le `grep` sur « Audemars » ne renvoie plus que les données de montres. Mention de non-affiliation dans le README. | Icônes : placeholders Expo en attendant l'identité visuelle de la Phase 4. |
 | P1-06 | Fait | `38e4c63`. Le garde-fou refuse `certis_db`. | — |
-| P1-07 | Fait localement | `367eb9a`. Toutes les étapes passent en local. | Pas encore exécutée sur GitHub : la branche n'est pas poussée. |
+| P1-07 | Fait | `367eb9a`. Toutes les étapes passent en local, puis sur GitHub au premier push (2026-10-25, [exécution verte](https://github.com/Niwa-Yume/certis/actions/runs/40175180664)). | GitHub annonce le passage du label `ubuntu-latest` à Ubuntu 26 : sans effet aujourd'hui, `ubuntu-24.04` le figerait. |
 | P1-08 | Fait | `.nvmrc` = 24 (lu par Render et par la CI). | Pas d'`engines` : Node 22 en local reste accepté. |
 | P1-09 | Partiel | README « photo par URL », `dotenv` déclaré. | `public/uploads`, `@types/multer`, `expo-image-picker` et le double `NonceModule` sont reportés (*Should*). |
 | P1-11 | Fait | `00f77a8`. Le build produit `dist/main.js`, et `start:prod` démarre. | — |
@@ -115,7 +115,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 
 | ID | Statut | Preuve | Écart par rapport aux critères |
 |---|---|---|---|
-| P2-01 | Fait | `9fd0503` (rouge) | Le relevé rouge est dans le message de commit plutôt qu'en capture CI, puisque la branche n'est pas poussée. |
+| P2-01 | Fait | `9fd0503` (rouge) | Le relevé rouge est dans le message de commit plutôt qu'en capture CI : les commits rouges n'ont été poussés qu'avec leurs correctifs. |
 | P2-02 | Fait | `90b0b35`. Tests A, B, C au vert. | — |
 | P2-03 | Fait | `90b0b35`, ADR-0002. Test D : 15/15. | Répété 15 fois au lieu de 20. |
 | P2-04 | Fait | `90b0b35`, `d337821`. Tests G, H et offres ciblées. | Pas de champ « destinataire » dans l'UI (l'API le gère) : prévu en Phase 4. |
@@ -166,7 +166,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | P3-06 | Fait | `3e0ff0c`. Tests P3-06 (×2). | La restitution n'exige aucune preuve : risque résiduel n° 11. |
 | P3-07 | Fait | `3e0ff0c`. Tests P3-07 (×2). | — |
 | P3-08 | Fait | `81f0395`, [`tools/verify`](../tools/verify/README.md). Test P3-08 : une ligne réécrite en contournant le trigger est signalée (`seq 1`). | — |
-| P3-09 | Reporté | — | Ancrage (*Should*) : l'UI n'en montre rien, et c'est le premier élément de l'ordre de coupe. En attendant, le vérificateur affiche la tête de chaîne à conserver (risque résiduel n° 3). ADR-0007 non écrite. |
+| P3-09 | Reporté, puis fait en S-04 | `57d8e43` (2026-10-25), ADR-0007 | Ancrage (*Should*) reporté en Phase 3 : l'UI n'en montre rien, et c'était le premier élément de l'ordre de coupe. Repris en S-04 ; l'interface ne le montre toujours pas. |
 | P3-10 | Fait | Migration `20261024120000_issuer_passport_event_chain`, écrite à la main, sans toucher aux migrations déjà appliquées. Seed : `NODE_ENV=production` refusé. | La migration n'est pas qu'additive : elle supprime la table `Transfer`, la colonne `signature` et les pièces v1, qu'aucun émetteur n'a attestées. C'est acceptable faute de base de production. Émetteur fictif, montres réelles aux caractéristiques sourcées (WatchBase, 2026-10-24). |
 | P3-11 | Fait | `3c55b61`. `mobile/lib/watchImages.ts` supprimé, photos servies par l'API sous `/public/watches`. | Seule la Carrera de l'accueil et de la connexion reste embarquée, pour que ces écrans ne dépendent pas de l'API. |
 
@@ -218,7 +218,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | P4-04 | Fait | `35da0eb`, `8a2a8d1`. Le `grep` des emojis est vide dans `mobile/`. | Icônes dessinées en SVG (8 tracés) plutôt que `react-native-vector-icons`, qui est retiré avec React Native Paper. |
 | P4-05 | Fait | `f0d2116`, `f01cc34`. Boîtes à dimensions fixes, photo de repli, mention « Photographie à venir ». | Upload non fait (*Could*). **Ajouté** : trois photos dont la référence ne correspondait pas à la pièce montrée (Carrera, Patek, Speedmaster) ; le seed garde 3 pièces vérifiées, et les photos passent de 23 Mo à 320 Ko (WebP). |
 | P4-06 | Fait | `8fe71b1`. axe-core, règles WCAG 2.2 AA : **0 violation** sur 9 écrans, à 375 et 1440 px. Ordre de tabulation et anneau de focus vérifiés au clavier. | axe ne couvre qu'une partie de WCAG. Pas de test avec un lecteur d'écran (VoiceOver), ni sur appareil. |
-| P4-07 | Partiel | `08223b9`, `bf5d387`. 37 captures et le script [`capture.mjs`](screenshots/capture.mjs) qui les rejoue. | Pas encore publiées comme artefact de CI : le script exige l'API, la base seedée et Chrome, et la branche n'est pas poussée. Pas de captures « avant » dans le dossier : l'état précédent reste visible au commit `d337821`. |
+| P4-07 | Partiel | `08223b9`, `bf5d387`. 37 captures et le script [`capture.mjs`](screenshots/capture.mjs) qui les rejoue. | Pas encore publiées comme artefact de CI : le script exige l'API, la base seedée et Chrome, que la CI ne lance pas. Pas de captures « avant » dans le dossier : l'état précédent reste visible au commit `d337821`. |
 
 **Vérification finale (2026-10-24)** : `tsc` mobile sans erreur, `expo-doctor` 18/18, export web 2,9 Mo (bundle JS 1,3 Mo). Backend : lint, build, 11 tests unitaires et 24 tests e2e au vert. Parcours rejoués de bout en bout dans Chrome : inscription → collection vide → ajout d'une pièce ; cession → connexion → retour sur la cession → réception → provenance « Reçue par vous ».
 
@@ -257,7 +257,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | P5-02 | Fait | [`docs/DEMO_SCRIPT.md`](DEMO_SCRIPT.md) : 10 segments avec heure de début, durée, écran, phrase clé et repli, plus les replis généraux et l'ordre de coupe. | Le déroulé n'a été rejoué qu'en machine (enregistrement de la vidéo), pas à voix haute. |
 | P5-03 | **À faire par toi** | Journal prêt en bas de `DEMO_SCRIPT.md`. | Les répétitions sont les tiennes : je ne peux pas chronométrer ta parole. |
 | P5-04 | Fait | `2cf105e`. [`docs/demo/certis-demo.mp4`](demo/certis-demo.mp4) (34 s, 1 Mo) et le GIF du README (2,7 Mo), enregistrés par `docs/demo/record.mjs`. | Vidéo sans voix, avec sous-titres incrustés. |
-| P5-05 | Fait | `31f35b1`. README lisible en 60 s, schéma Mermaid, captures, vidéo, résumé du modèle de menace. Clone neuf (2026-10-24) : `git clone`, puis `npm run dev` seul. Dépendances installées, `.env` créé, migrations et seed passés, API et web en ligne ; `npm run demo` passe ses 8 étapes et la collection s'affiche avec ses photos. | Les liens vers les commits ne fonctionneront qu'une fois la branche poussée. |
+| P5-05 | Fait | `31f35b1`. README lisible en 60 s, schéma Mermaid, captures, vidéo, résumé du modèle de menace. Clone neuf (2026-10-24) : `git clone`, puis `npm run dev` seul. Dépendances installées, `.env` créé, migrations et seed passés, API et web en ligne ; `npm run demo` passe ses 8 étapes et la collection s'affiche avec ses photos. | Les liens vers les commits fonctionnent depuis le push de `main` (2026-10-25). |
 | P5-06 | Fait | Section « Périmètre » du README, validée telle quelle par toi le 2026-10-24. | — |
 
 **Ajouté en cours de route**
@@ -289,7 +289,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 |---|---|---|---|
 | P6-01 | Fait | [`docs/market/MARKET_VISION.md`](market/MARKET_VISION.md) : marché, paysage, réglementation, chaîne de valeur, clés côté émetteur, freins, 3 scénarios 2027-2030, conséquences pour Certis. 20 sources datées, dont 8 primaires. | Pas de probabilités chiffrées pour les scénarios : elles seraient inventées. Deux sources n'ont pas pu être lues directement (communiqué de la FH, PDF final de l'EDPB) : signalé. |
 | P6-02 | Fait | [`docs/onepagers/FONDATION_DOMINIQUE_RENAUD.md`](onepagers/FONDATION_DOMINIQUE_RENAUD.md) | Contact à compléter. Signale l'absence de licence, incompatible avec un discours de science ouverte. |
-| P6-03 | Fait | [`docs/onepagers/RECRUTEURS.md`](onepagers/RECRUTEURS.md) | Contact à compléter. Les liens vers les commits ne marchent qu'une fois la branche poussée. |
+| P6-03 | Fait | [`docs/onepagers/RECRUTEURS.md`](onepagers/RECRUTEURS.md) | Contact à compléter. Les liens vers les commits fonctionnent depuis le push de `main` (2026-10-25). |
 
 **Vérifié en source primaire pendant cette phase** :
 - le règlement anti-blanchiment 2024/1624 vise les montres de plus de 10 000 € à partir du 10.07.2027 (EUR-Lex, art. 2 (54), 3 (3)(f), 90 et annexe IV) ;
@@ -306,7 +306,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | S-01 | Sortir l'identité réelle (`actorId`) du journal append-only, dans une table effaçable ; documenter la procédure d'effacement (supprimer le lien entre compte et pseudonyme) ; faire une AIPD avant toute donnée réelle | **Fait** (2026-10-24, branche `s-01/gdpr-erasure`) : rouge `4af2a2a`, puis `f58a8f2`, `de0342f`, `373cc9f` ; [AIPD](security/AIPD.md) en brouillon, à valider par un juriste | Vision marché, section 9 ; EDPB 02/2025 |
 | S-02 | Révocation datée d'une clé d'émetteur compromise (distincte du retrait) | **Fait** (2026-10-25, branche `s-02/key-revocation`) : rouge `f05265b`, puis `4581ac7`, `5be7e17` ; ADR-0011 | Vision marché, section 9 |
 | S-03 | Clé fournie par l'émetteur : il garde sa clé privée, Certis n'enregistre que la publique | Should | ADR-0003, scénario B |
-| S-04 | Ancrage externe RFC 3161 de la tête de chaîne (ADR-0007) | Should | P3-09 reporté |
+| S-04 | Ancrage externe RFC 3161 de la tête de chaîne (ADR-0007) | **Fait** (2026-10-25, branche `s-04/anchoring`) : rouge `5c9ad80`, puis `57d8e43`, `66fb1c9` ; ADR-0007 | P3-09 reporté |
 | S-05 | Emballage `vc+jwt` du passeport et API de vérification pour les négociants assujettis | Could | Scénario B, anti-blanchiment 2027 |
 | S-06 | Licence du dépôt (Apache-2.0 conseillé dès la Phase 0) | Décision du propriétaire | One-pager de la Fondation |
 | S-07 | Réémission par la maison, avec sa nouvelle clé, des pièces légitimes signées pendant une fenêtre de compromission | Should | ADR-0011, apparu avec S-02 |
@@ -365,7 +365,7 @@ Les *Should* représentent environ 14 h. Ce sont les premiers à sauter si l'éc
 | 0004 | Format du passeport : JWS + JCS ou W3C VC 2.0 | 3 |
 | 0005 | `serialHash` : HMAC à clé émetteur ou sel public + KDF lente | 3 |
 | 0006 | Journal d'événements : chaîne par actif, append-only imposé par la base, droits vol/récupération | 3 |
-| 0007 | Ancrage externe : RFC 3161 ou OpenTimestamps | 3 |
+| 0007 | Ancrage externe : RFC 3161 ou OpenTimestamps (écrite en S-04 : RFC 3161) | 3 |
 | 0008 | Hébergement durable à coût minimal | 1 |
 | 0009 | Direction visuelle (ton choix) | 4 |
 | 0010 | Licence | 1 |
@@ -414,3 +414,16 @@ Aujourd'hui, `backend/package.json:7` indique `UNLICENSED` et il n'y a pas de fi
 - **Vert** : 46 tests e2e sur 46.
 - **Limites, consignées dans l'ADR-0011 et le modèle de menace (n° 14 à 16)** : antidatage possible hors du registre jusqu'à l'ancrage (S-04) ; réémission non outillée (S-07) ; clé de la plateforme ni révocable ni renouvelable.
 
+### Bilan S-04 (2026-10-25)
+
+- **Rouge** : `5c9ad80`, 5 tests en échec. Rien n'était ancré, et aucune commande ne le faisait. Une autorité RFC 3161 locale (`openssl ts -reply` derrière un serveur HTTP) tient lieu de vraie autorité dans les tests.
+- **Correctif** (`57d8e43`) :
+  - les têtes de chaîne nouvelles forment un arbre de Merkle, dont seule la racine part chez FreeTSA ;
+  - l'API ancre toutes les 10 minutes s'il y a du nouveau, et `npm run registry:anchor` tout de suite ;
+  - chaque preuve porte ses ancrages, et `tools/verify` les contrôle en Node seul : jeton, certificats, chemin d'audit, présence dans la chaîne ;
+  - une preuve antérieure passée au vérificateur trahit une réécriture ;
+  - hors ligne, une clé révoquée ne vaut que pour ce qu'un ancrage prouve antérieur.
+- **Démo** (`66fb1c9`) : l'étape 8 ancre sur le moment. Essai réel : 4 têtes horodatées par FreeTSA, jeton accepté par `openssl ts -verify` et par le vérificateur.
+- **Vert** : 51 tests e2e sur 51, 14 tests unitaires. Le vérificateur a aussi été essayé sur de vrais jetons FreeTSA (ECDSA P-384) et DigiCert (RSA, avec intermédiaire).
+- **Imprévu** : en avançant `main` ce matin, Git a supprimé `backend/.env`, qui n'est plus suivi depuis `22412d8`. Le passage par l'ancien `main`, où il l'était encore, l'a d'abord écrasé, puis l'avance l'a retiré. `npm run dev` l'a recréé avec des secrets neufs, et la base de démo a été réinitialisée ; elle ne contenait que le seed et une pièce de démo.
+- **Reste, consigné dans l'ADR-0007 et le modèle de menace (n° 3, 14, 17)** : confiance dans une autorité unique et gratuite ; fenêtre non ancrée ; historique importé attesté seulement depuis son premier ancrage ; rien dans l'interface.
