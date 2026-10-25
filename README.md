@@ -67,6 +67,7 @@ Elle affiche aussi l'adresse à ouvrir depuis un téléphone du même réseau. `
 | `npm --prefix backend run test:e2e` | Tests e2e (base isolée `certis_test`) |
 | `npm --prefix backend run issuer:grant -- <e-mail> "<maison>"` | Faire d'un compte l'émetteur d'une maison |
 | `npm --prefix backend run issuer:revoke -- <kid> [date ISO]` | Révoquer une clé d'émetteur compromise (ADR-0011) |
+| `npm --prefix backend run registry:anchor` | Horodater tout de suite les têtes de chaîne chez un tiers (ADR-0007) |
 
 Comptes de démo, en dev uniquement (mots de passe dans `backend/prisma/seed.ts`) :
 
@@ -80,7 +81,7 @@ Comptes de démo, en dev uniquement (mots de passe dans `backend/prisma/seed.ts`
 
 | Travail de bachelor (CREA, avril à août 2026) | Repris après le jury (octobre 2026) | Hors périmètre |
 |---|---|---|
-| App Expo et API NestJS, comptes, inscription d'une montre par son propriétaire, QR de vérification et de cession, signature ECDSA par la plateforme, historique des cessions. État exact : `main` @ `9de1082`, audité dans [`docs/AUDIT.md`](docs/AUDIT.md). | Audit et backlog. Failles de cession corrigées, tests rouges d'abord. Modèle émetteur, passeport signé, chaîne d'événements, vol, numéro de série. Vérificateur indépendant. Interface refaite (desktop, accessibilité). Démo rejouable. | Blockchain, intégration Aura ou Arianee, paiements, publication sur les stores, puce NFC, Verifiable Credentials W3C, ancrage chez un tiers horodateur (reporté). |
+| App Expo et API NestJS, comptes, inscription d'une montre par son propriétaire, QR de vérification et de cession, signature ECDSA par la plateforme, historique des cessions. État exact : `main` @ `9de1082`, audité dans [`docs/AUDIT.md`](docs/AUDIT.md). | Audit et backlog. Failles de cession corrigées, tests rouges d'abord. Modèle émetteur, passeport signé, chaîne d'événements, vol, numéro de série. Vérificateur indépendant. Ancrage chez un tiers horodateur. Interface refaite (desktop, accessibilité). Démo rejouable. | Blockchain, intégration Aura ou Arianee, paiements, publication sur les stores, puce NFC, Verifiable Credentials W3C. |
 
 Projet personnel, sans affiliation avec aucune maison horlogère. Il ne contient aucun code, document ni information issus de mes stages, et n'engage aucune entreprise. Les marques et références des données de démonstration appartiennent à leurs propriétaires ; l'émetteur de démonstration est fictif.
 
@@ -101,9 +102,9 @@ Le détail, preuve par preuve : [`docs/JURY_FEEDBACK_MAP.md`](docs/JURY_FEEDBACK
 
 - **Cession** : nonce lié à la pièce, à une finalité et, au choix, à un destinataire. Consommation atomique (ADR-0002), pièce verrouillée si déclarée volée.
 - **Authenticité** : seule une maison inscrit. Son passeport est une JWS ES256 sur du JSON canonique (RFC 8785), vérifiable avec la JWKS publique (ADR-0003, ADR-0004).
-- **Provenance** : chaîne par pièce. Base append-only (trigger), sans fourche possible (`UNIQUE`). Aucune identité réelle dans la chaîne, seulement des pseudonymes ; un compte supprimé n'y est plus rattachable (ADR-0006, RGPD).
+- **Provenance** : chaîne par pièce. Base append-only (trigger), sans fourche possible (`UNIQUE`). Aucune identité réelle dans la chaîne, seulement des pseudonymes ; un compte supprimé n'y est plus rattachable (ADR-0006, RGPD). Les têtes de chaîne sont horodatées par une autorité tierce (RFC 3161) : même avec toutes les clés, on ne réécrit pas l'histoire à une date passée (ADR-0007).
 - **Numéro de série** : jamais stocké. Seule une empreinte HMAC l'est, et la comparaison est limitée à 5 essais (ADR-0005).
-- **Limites assumées** : Certis garde les clés des maisons pour la démo, un QR prouve l'enregistrement et non l'objet, l'ancrage est reporté. Détail : [modèle de menace](docs/security/THREAT_MODEL.md).
+- **Limites assumées** : Certis garde les clés des maisons pour la démo, un QR prouve l'enregistrement et non l'objet, l'autorité d'horodatage est gratuite et sans engagement. Détail : [modèle de menace](docs/security/THREAT_MODEL.md).
 
 ## Stack
 

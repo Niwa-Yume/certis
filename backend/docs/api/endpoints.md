@@ -33,7 +33,7 @@ Un utilisateur ne voit que ses pièces : la pièce d'autrui répond 404, comme u
 |---|---|
 | `GET /assets` | Ses pièces : identité, statut, photo, caractéristiques. |
 | `GET /assets/:id` | Détail, émetteur et provenance ; `you: true` sur la cession qu'il a reçue. |
-| `GET /assets/:id/history` | `{ passport, events }` : l'entrée du vérificateur indépendant (`tools/verify`). |
+| `GET /assets/:id/history` | `{ passport, events, anchors }` : l'entrée du vérificateur indépendant (`tools/verify`). Chaque ancrage (ADR-0007) donne la tête ancrée (`seq`, `hash`), son chemin d'audit Merkle (`path`), la racine horodatée (`root`) et le jeton RFC 3161 (`token`, DER en base64). |
 | `GET /assets/:id/verify` | `{ valid, problem? }` : passeport, chaîne et base concordent-ils ? |
 | `POST /assets/:id/stolen` | Déclare la pièce volée (`STOLEN_REPORTED`) ; 409 si elle l'est déjà. |
 | `POST /assets/:id/recovered` | Déclare la pièce retrouvée (`RECOVERED`) ; 409 si elle n'est pas déclarée volée. |
@@ -66,7 +66,7 @@ Réponse 200 quand tout concorde :
     { "type": "SERVICE", "at": "2025-11-18T00:00:00.000Z", "note": "Remplacement de la pile du Calibre S" },
     { "type": "TRANSFER", "at": "2026-09-03T00:00:00.000Z" }
   ],
-  "proof": { "passport": "eyJhbGciOiJFUzI1NiIs…", "events": [ "… maillons complets …" ], "keys": "/.well-known/certis-keys" }
+  "proof": { "passport": "eyJhbGciOiJFUzI1NiIs…", "events": [ "… maillons complets …" ], "anchors": [ "… ancrages …" ], "keys": "/.well-known/certis-keys" }
 }
 ```
 

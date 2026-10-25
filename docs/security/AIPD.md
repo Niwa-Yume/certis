@@ -16,6 +16,7 @@ Cadres concernés :
 | Émetteur et destinataire d'un QR, dates | `AuthNonce` | Vérification, cession réservée | **Pas de purge aujourd'hui** (à corriger) |
 | Pseudonymes par pièce, dates | `Event.data` (append-only) | Provenance vérifiable | Permanente ; non rattachables après suppression du compte |
 | Numéro de série | Nulle part : seulement une empreinte HMAC | Lier le passeport à l'objet | — |
+| Racine de Merkle des têtes de chaîne (32 octets) | Autorité d'horodatage (FreeTSA), et `Anchor` | Ancrage (ADR-0007) | Permanente ; aucune donnée personnelle, ni identifiant de pièce |
 | Jeton de session | Navigateur (`localStorage`), 1 h | Session | Expiration |
 | Adresses IP | Journaux de l'hébergeur (Render) | Exploitation, limitation de débit | **Inconnue** : dépend de l'hébergeur |
 

@@ -23,4 +23,5 @@ NestJS 11, Prisma 7, PostgreSQL. Lancement, comptes de démo et déploiement : [
 | `npm run db:reset` | Base de démo propre (refusé en production) |
 | `npm run issuer:grant -- <e-mail> "<maison>"` | Faire d'un compte existant l'émetteur d'une maison |
 | `npm run issuer:revoke -- <kid> [date ISO]` | Révoquer une clé d'émetteur compromise, à la date de la fuite (ADR-0011) ; affiche ce qui devient invalide |
+| `npm run registry:anchor` | Horodater tout de suite les têtes de chaîne nouvelles (ADR-0007) ; l'API le fait seule toutes les 10 min |
 | `node scripts/generate-secrets.mjs` | Secrets neufs au format `.env` |

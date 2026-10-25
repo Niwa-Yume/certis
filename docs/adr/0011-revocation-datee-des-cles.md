@@ -22,6 +22,7 @@ L'ADR-0003 prévoit la **rotation** : une nouvelle clé remplace l'ancienne, qui
 
 - **Dans le registre Certis, la règle est fiable.** Les dates des passeports et des maillons sont posées par le serveur au moment de l'écriture, et une clé révoquée ne signe plus rien. Un voleur qui n'a que la clé ne peut rien inscrire au registre.
 - **Hors du registre, pas encore.** La date d'une signature est déclarée par le signataire. Avec la clé volée, on peut fabriquer un fichier de preuve antidaté, d'avant la révocation, que `tools/verify` accepterait. Seul un **ancrage horodaté** de la tête de chaîne chez un tiers (S-04, ADR-0007) prouvera qu'un maillon existait avant une date.
+  - *Révision S-04 (2026-10-25)* : c'est fait. Hors ligne, le vérificateur n'accepte une signature d'une clé révoquée que si un ancrage la prouve antérieure à la révocation (ADR-0007). Le serveur garde la règle ci-dessus.
 - **Le prix d'une révocation antidatée.** Les pièces légitimes inscrites par la maison entre la fuite et sa découverte deviennent « non confirmées ». C'est voulu : faute de pouvoir distinguer le vrai du faux dans cette fenêtre, on refuse. La maison doit ensuite les **réémettre**, opération qui n'existe pas encore (suite S-07).
 - **La clé de la plateforme n'est pas couverte.** Elle vit dans une variable d'environnement, et la changer retirerait l'ancienne de la JWKS, donc invaliderait tous les maillons qu'elle a signés. La rotation de la clé plateforme reste à concevoir.
 

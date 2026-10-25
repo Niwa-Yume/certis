@@ -94,7 +94,7 @@ Les grandes maisons ont déjà leurs dispositifs (section 3).
 2. **Le parc existant** : sans examen physique, pas de passeport crédible pour une pièce ancienne.
 3. **Le lien entre l'objet et l'enregistrement** : clonage physique (risque résiduel n° 1 du modèle de menace).
 4. **La vie privée face à l'immuabilité** : lignes directrices de l'EDPB [R5], et l'écart propre à Certis (section 9).
-5. **La confiance dans l'opérateur** : garde des clés, ancrage externe reporté (ADR-0003, ADR-0006).
+5. **La confiance dans l'opérateur** : garde des clés (ADR-0003). L'ancrage externe, ajouté depuis (S-04, ADR-0007), empêche l'opérateur de réécrire l'histoire à une date passée.
 6. **La fragmentation des registres de vol**, constatée par The Watch Register elle-même [S10].
 7. **L'adoption réelle** : aucune donnée indépendante trouvée sur l'usage des passeports existants par les clients. Chrono24 rappelle qu'un certificat numérique ne vaut que par son émetteur [S12].
 
@@ -129,7 +129,7 @@ Les certificats des places de marché et des négociants (Chrono24 Certified, pr
 | *(Fait, S-01)* L'identifiant réel de l'acteur (`Event.actorId`) est conservé dans la table append-only : le trigger empêche de l'effacer, contrairement à ce que demande l'EDPB [R5] | Sortir l'identité réelle du journal, dans une table effaçable ; documenter la procédure d'effacement : supprimer le lien entre compte et pseudonyme rend la chaîne anonyme sans la casser. Faire une AIPD avant tout déploiement réel. | **Must** avant toute donnée réelle |
 | *(Fait, S-02, ADR-0011)* Une clé d'émetteur compromise n'a pas de date de révocation, seulement une date de retrait | Ajouter une révocation datée : les signatures postérieures à cette date sont refusées | Should |
 | Garde des clés par Certis | Laisser l'émetteur fournir sa clé publique, sa clé privée restant chez lui | Should, scénario B |
-| Ancrage externe reporté | ADR-0007 : horodatage RFC 3161 de la tête de chaîne | Should |
+| *(Fait, S-04, ADR-0007)* Ancrage externe reporté | ADR-0007 : horodatage RFC 3161 de la tête de chaîne | Should |
 | Anti-blanchiment en juillet 2027 | API de vérification pour les négociants, avec export de la preuve | Could, signal du scénario B |
 | Registres de vol fragmentés | Étudier une interconnexion avec les bases existantes (aucune API publique trouvée) | Recherche |
 

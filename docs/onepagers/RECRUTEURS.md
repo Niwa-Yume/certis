@@ -31,7 +31,6 @@ Travail de bachelor (CREA, 2026), repris après le jury pour en corriger les fai
 
 ## Ce que je n'ai pas fait, et pourquoi
 - **Blockchain publique, NFT, Verifiable Credentials** : aucun bénéfice visible pour l'acheteur ici. Le format reste compatible, s'il le faut un jour.
-- **Ancrage externe** : reporté, parce que l'interface n'en montre rien. Le vérificateur affiche en attendant la tête de chaîne à conserver.
 - **Lien physique (NFC)** : documenté, pas construit.
 
 **Stack** : TypeScript · NestJS 11 · Prisma 7 · PostgreSQL 16 · Expo 54 · React Native · Jest et Supertest · Playwright · GitHub Actions · Render et Neon.
