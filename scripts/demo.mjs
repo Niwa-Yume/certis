@@ -188,6 +188,15 @@ const STEPS = [
     title: 'Preuve indépendante',
     pitch: 'Un expert revérifie tout sans Certis : la clé publique, le fichier de preuve et un outil libre suffisent.',
     async run(s) {
+      // En local, on ancre tout de suite au lieu d'attendre le passage des 10 minutes (ADR-0007).
+      if (new URL(API).hostname === 'localhost') {
+        try {
+          const anchored = execFileSync('npm', ['--prefix', join(import.meta.dirname, '..', 'backend'), 'run', '-s', 'registry:anchor'], { encoding: 'utf8', stdio: 'pipe' });
+          fact('Ancrage', anchored.trim());
+        } catch {
+          fact('Ancrage', 'autorité d’horodatage injoignable : l’API réessaiera dans 10 minutes');
+        }
+      }
       const dir = tmpdir();
       const proof = join(dir, `certis-preuve-${s.id}.json`);
       writeFileSync(proof, JSON.stringify(await must('GET', `/assets/${s.id}/history`, { token: s.collectionB.token })));

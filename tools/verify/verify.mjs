@@ -212,13 +212,14 @@ const subject = payload.credentialSubject;
 console.log(`OK : ${subject.brand} ${subject.name} (${subject.reference}), émise par ${payload.issuer.name}.`);
 console.log(`     ${events.length} événement(s) chaînés et signés : ${events.map((e) => e.type).join(' → ')}.`);
 if (stolen) console.log('     ATTENTION : la pièce est déclarée volée.');
+const links = (from, to) => (from === to ? `maillon ${from}` : `maillons ${from} à ${to}`);
 for (const s of stamps) {
-  console.log(`     Ancrée : seq 0 à ${s.seq} prouvés au plus tard le ${new Date(s.at).toISOString()} (${s.tsa}, RFC 3161).`);
+  console.log(`     Ancrée : ${links(0, s.seq)} attestés au plus tard le ${new Date(s.at).toISOString()} (horodatage RFC 3161, ${s.tsa}).`);
 }
 const anchored = Math.max(-1, ...stamps.map((s) => s.seq));
 if (anchored < events.length - 1) {
-  console.log(`     Pas encore ancrée : seq ${anchored + 1} à ${events.length - 1} (l'ancrage passe toutes les 10 minutes).`);
+  console.log(`     Pas encore ancrée : ${links(anchored + 1, events.length - 1)} (l'ancrage passe toutes les 10 minutes).`);
 }
 if (earlierStamps.length) console.log(`     Concorde avec ${earlierStamps.length} ancrage(s) des preuves antérieures.`);
 console.log(`     Tête de chaîne : ${prevHash}`);
-console.log('     Gardez cette valeur : toute réécriture ultérieure de la chaîne la changera.');
+console.log('     Gardez ce fichier : redonné à une vérification future, après la JWKS, ses ancrages trahiront toute réécriture.');
