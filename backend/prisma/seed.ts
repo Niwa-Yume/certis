@@ -11,7 +11,14 @@ import { RegistryService } from '../src/registry/registry.service';
 // Comptes de démo. Les pièces passent par les vrais services : passeport signé par l'émetteur,
 // chaîne d'événements, empreinte du numéro de série. Rien n'est écrit « à la main ».
 // En production, seule la maison de démonstration est créée, avec DEMO_ISSUER_PASSWORD (ADR-0012).
-const production = process.env.NODE_ENV === 'production';
+// Une base distante compte comme la production, même sans NODE_ENV : on ne crée pas de comptes
+// à mot de passe public sur une base qu'on ne voit pas.
+const databaseHost = new URL(
+  process.env.DATABASE_URL ?? 'postgresql://localhost',
+).hostname;
+const production =
+  process.env.NODE_ENV === 'production' ||
+  !['localhost', '127.0.0.1', '[::1]'].includes(databaseHost);
 const ISSUER = {
   // Fictif, et affiché comme tel : aucune maison réelle n'est présentée comme signataire (ADR-0003).
   name: 'Atelier de démonstration',
@@ -128,8 +135,8 @@ async function main() {
       );
       return;
     }
-    // En développement, on repart de zéro. TRUNCATE : le journal refuse DELETE (ADR-0006).
-    if (!production) {
+    // Seulement sur demande explicite. TRUNCATE : le journal refuse DELETE (ADR-0006).
+    if (reset) {
       await prisma.$executeRawUnsafe(
         'TRUNCATE "AnchorLeaf", "Anchor", "Event", "AuthNonce", "Asset", "IssuerKey", "User", "Issuer" CASCADE',
       );
