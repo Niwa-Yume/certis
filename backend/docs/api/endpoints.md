@@ -10,6 +10,7 @@ Toutes les routes valident leur corps (champs inconnus refusés, 400). Les route
 | `POST /auth/register` | `{ email, password }` (8 à 72 caractères) | 201 `{ accessToken, user: { id, email } }` |
 | `POST /auth/login` (10/min) | `{ email, password }` | 201 `{ accessToken }`, 401 sinon |
 | 🔒 `GET /auth/me` | — | `{ id, email, role: OWNER \| ISSUER, issuer: { id, name } \| null }` |
+| 🔒 `DELETE /auth/me` (10/min) | `{ password }` | 204 : compte et e-mail effacés, pseudonymes devenus non rattachables. 403 si le mot de passe est faux (la session reste valide). 409 tant que le compte détient des pièces. |
 
 ## Clés publiques
 

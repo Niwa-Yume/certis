@@ -303,7 +303,7 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 
 | ID | Item | MoSCoW | Origine |
 |---|---|---|---|
-| S-01 | Sortir l'identité réelle (`actorId`) du journal append-only, dans une table effaçable ; documenter la procédure d'effacement (supprimer le lien entre compte et pseudonyme) ; faire une AIPD avant toute donnée réelle | Must avant tout déploiement avec de vrais utilisateurs | Vision marché, section 9 ; EDPB 02/2025 |
+| S-01 | Sortir l'identité réelle (`actorId`) du journal append-only, dans une table effaçable ; documenter la procédure d'effacement (supprimer le lien entre compte et pseudonyme) ; faire une AIPD avant toute donnée réelle | **Fait** (2026-10-24, branche `s-01/gdpr-erasure`) : rouge `4af2a2a`, puis `f58a8f2`, `de0342f`, `373cc9f` ; [AIPD](security/AIPD.md) en brouillon, à valider par un juriste | Vision marché, section 9 ; EDPB 02/2025 |
 | S-02 | Révocation datée d'une clé d'émetteur compromise (distincte du retrait) | Should | Vision marché, section 9 |
 | S-03 | Clé fournie par l'émetteur : il garde sa clé privée, Certis n'enregistre que la publique | Should | ADR-0003, scénario B |
 | S-04 | Ancrage externe RFC 3161 de la tête de chaîne (ADR-0007) | Should | P3-09 reporté |
@@ -388,3 +388,16 @@ Aujourd'hui, `backend/package.json:7` indique `UNLICENSED` et il n'y a pas de fi
 - **Apache-2.0** (mon conseil) : licence permissive, avec une **concession explicite de brevets** et une clause de résiliation en cas de litige sur les brevets. Dans une industrie qui dépose beaucoup de brevets, c'est ce qui rassure une maison ou une fondation qui voudrait réutiliser le modèle de données ou le vérificateur.
 - **MIT** : plus courte et plus connue, mais sans clause de brevets.
 - **Pas de licence pour l'instant** : se défend si tu veux garder la main avant de parler à la Fondation, mais cela affaiblit le discours « vérificateur ouvert ».
+
+### Bilan S-01 (2026-10-24)
+
+- **Rouge** : `4af2a2a`, 3 tests en échec. Le journal contient l'identifiant réel ; la suppression de compte n'existe pas (404).
+- **Correctif** :
+  - `actorId` supprimé, sans perte : il n'était lu nulle part ;
+  - `DELETE /auth/me`, avec le mot de passe exigé ;
+  - effacement refusé tant que le compte détient des pièces ;
+  - « Supprimer mon compte » dans l'interface.
+- **Vert** : 42 tests e2e sur 42, et le parcours a été rejoué dans le navigateur.
+- **Imprévu** : le test dans le navigateur a révélé qu'un mauvais mot de passe renvoyait 401, et que l'app effaçait alors la session ; le second essai échouait toujours. La réponse est désormais 403 (`de0342f`).
+- **Reste, consigné dans l'AIPD** : validation juridique, purge des QR expirés, rectification de l'e-mail, consigne sur les notes de révision.
+

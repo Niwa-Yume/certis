@@ -24,7 +24,9 @@ Le « registre » promis n'a jamais été chaîné : l'ancienne table `Event` ne
 | `STOLEN_REPORTED` | la plateforme | déclarant |
 | `RECOVERED` | la plateforme | déclarant |
 
-**Les propriétaires apparaissent sous pseudonyme** : `HMAC(clé dérivée, assetId:userId)`. Le pseudonyme est stable sur une même pièce (on voit qu'elle est revenue au même propriétaire) mais différent d'une pièce à l'autre (on ne peut pas reconstituer une collection). L'identifiant réel est conservé à part, hors du hash, pour les contrôles de droits.
+**Les propriétaires apparaissent sous pseudonyme** : `HMAC(clé dérivée, assetId:userId)`. Le pseudonyme est stable sur une même pièce (on voit qu'elle est revenue au même propriétaire) mais différent d'une pièce à l'autre (on ne peut pas reconstituer une collection). **Le journal ne contient aucune identité réelle** : les contrôles de droits passent par le propriétaire en titre de la pièce (`Asset.ownerId`), effaçable.
+
+**Effacement (révision S-01, 2026-10-24).** La première version gardait l'identifiant réel de l'acteur dans le journal, que le trigger rend ineffaçable : c'est contraire aux lignes directrices 02/2025 de l'EDPB. Cette colonne est supprimée. Supprimer un compte (`DELETE /auth/me`, mot de passe exigé) efface l'e-mail et l'identifiant. Les pseudonymes restent dans la chaîne, qui vérifie toujours, mais plus rien ne permet de les rattacher à une personne. Un propriétaire doit d'abord céder ses pièces : le registre ne laisse pas une montre sans propriétaire.
 
 **Garanties portées par la base, pas par la discipline du code :**
 - un trigger refuse tout `UPDATE` et tout `DELETE` sur `Event` ;

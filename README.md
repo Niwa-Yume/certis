@@ -100,7 +100,7 @@ Le détail, preuve par preuve : [`docs/JURY_FEEDBACK_MAP.md`](docs/JURY_FEEDBACK
 
 - **Cession** : nonce lié à la pièce, à une finalité et, au choix, à un destinataire. Consommation atomique (ADR-0002), pièce verrouillée si déclarée volée.
 - **Authenticité** : seule une maison inscrit. Son passeport est une JWS ES256 sur du JSON canonique (RFC 8785), vérifiable avec la JWKS publique (ADR-0003, ADR-0004).
-- **Provenance** : chaîne par pièce. Base append-only (trigger), sans fourche possible (`UNIQUE`), propriétaires sous pseudonyme (ADR-0006).
+- **Provenance** : chaîne par pièce. Base append-only (trigger), sans fourche possible (`UNIQUE`). Aucune identité réelle dans la chaîne, seulement des pseudonymes ; un compte supprimé n'y est plus rattachable (ADR-0006, RGPD).
 - **Numéro de série** : jamais stocké. Seule une empreinte HMAC l'est, et la comparaison est limitée à 5 essais (ADR-0005).
 - **Limites assumées** : Certis garde les clés des maisons pour la démo, un QR prouve l'enregistrement et non l'objet, l'ancrage est reporté. Détail : [modèle de menace](docs/security/THREAT_MODEL.md).
 

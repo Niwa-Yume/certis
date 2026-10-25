@@ -41,6 +41,7 @@ Version : 2026-10-24, fin de Phase 3 (branche `phase-3/domain-registry`). Périm
 | **I**nformation disclosure | Lire la montre ou l'historique d'autrui (IDOR) | 404 si l'appelant n'est pas propriétaire | Test F (×3) |
 | I | Nonce dans les logs d'accès de l'API | Nonce dans le corps des `POST`, plus jamais en query string | Test K |
 | I | Identité des propriétaires dans la provenance publique | Pseudonyme par pièce (HMAC), aucun identifiant ni e-mail dans les réponses | P3-07 |
+| I | Identité réelle gravée dans le journal immuable | Aucune : le journal ne porte que des pseudonymes. Le compte s'efface (mot de passe exigé) et rend ses pseudonymes non rattachables. | S-01 (×4, `privacy.e2e-spec.ts`) |
 | I | Numéro de série lisible ou devinable | Empreinte HMAC à secret d'émetteur ; contrôle limité à 5 essais en 10 min après une vérification | S10 (×2) |
 | I | Clés privées des émetteurs dans une sauvegarde | Chiffrées (AES-256-GCM) par une clé maîtresse hors de la base | `crypto.service.ts` |
 | **D**enial of service | Spam de nonces ou de vérifications | 30 par minute et par IP (100 par minute en général) | Configuration (`@Throttle`) |
@@ -67,3 +68,5 @@ Version : 2026-10-24, fin de Phase 3 (branche `phase-3/domain-registry`). Périm
 9. **Rotation de la clé maîtresse.** Elle chiffre les clés des émetteurs et dérive les secrets HMAC (pseudonymes, numéros de série). La changer exige de rechiffrer les clés et de recalculer ces empreintes : non outillé.
 10. **Contrôle du numéro de série en ligne.** Il exige le secret de l'émetteur, donc le serveur : il n'est pas vérifiable hors ligne. C'est le prix de la résistance à la force brute (ADR-0005).
 11. **Vérification d'une pièce volée.** Elle reste possible et affiche l'alerte. Un voleur qui a aussi le compte du propriétaire peut déclarer la pièce retrouvée : la restitution n'exige pas de preuve. C'est une limite de la démo ; en réel, la restitution passerait par l'émetteur ou une autorité.
+12. **Notes de révision en texte libre.** Elles sont signées et ineffaçables. Un émetteur qui y écrirait une donnée personnelle (un nom de client) la graverait dans la chaîne. Règle à donner aux émetteurs : décrire l'intervention, jamais la personne.
+13. **Effacement conditionné.** Un propriétaire qui détient encore des pièces doit les céder avant de supprimer son compte. Le cas d'un propriétaire qui ne peut plus céder (décès, perte d'accès) n'est pas traité : il relèverait d'une procédure manuelle, à définir.
