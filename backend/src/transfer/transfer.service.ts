@@ -1,3 +1,4 @@
+import { pieceNotFound } from '../common/errors';
 import {
   ConflictException,
   HttpException,
@@ -12,7 +13,7 @@ import { RegistryService } from '../registry/registry.service';
 // Tant qu'une pièce est déclarée volée, elle ne change pas de mains (ADR-0006).
 const stolen = () =>
   new HttpException(
-    'Cette montre est déclarée volée : elle ne peut pas changer de propriétaire.',
+    'Cette montre est déclarée volée : elle ne peut pas changer de propriétaire. Si elle a été retrouvée, son propriétaire peut lever l’alerte.',
     HttpStatus.LOCKED,
   );
 
@@ -36,7 +37,11 @@ export class TransferService {
       const recipient = await this.prisma.user.findUnique({
         where: { email: recipientEmail },
       });
-      if (!recipient) throw new NotFoundException('Destinataire introuvable');
+      if (!recipient) {
+        throw new NotFoundException(
+          'Aucun compte Certis n’utilise cet e-mail : vérifiez-le, ou demandez à l’acheteur de créer son compte d’abord.',
+        );
+      }
       recipientId = recipient.id;
     }
     return this.nonce.issue(assetId, ownerId, 'TRANSFER', recipientId);
@@ -46,11 +51,11 @@ export class TransferService {
   async claim(assetId: string, nonceValue: string, newOwnerId: string) {
     return this.prisma.$transaction(async (tx) => {
       const asset = await tx.asset.findUnique({ where: { id: assetId } });
-      if (!asset) throw new NotFoundException(`Asset ${assetId} introuvable`);
+      if (!asset) throw pieceNotFound();
       if (asset.status === 'STOLEN') throw stolen();
       if (asset.ownerId === newOwnerId) {
         throw new ConflictException(
-          'Vous êtes déjà propriétaire de cette montre',
+          'Vous êtes déjà propriétaire de cette montre : ce QR sert à la céder à quelqu’un d’autre.',
         );
       }
 
@@ -69,7 +74,7 @@ export class TransferService {
       });
       if (moved.count !== 1) {
         throw new ConflictException(
-          "La montre a changé de propriétaire depuis l'émission du QR",
+          'La montre a changé de propriétaire depuis la création de ce QR : il ne vaut plus. Demandez-en un nouveau au propriétaire actuel.',
         );
       }
 

@@ -72,7 +72,7 @@ export class CreateAssetDto {
   @IsOptional()
   @Transform(cleanText)
   @Matches(/^(https?:\/\/\S+|\/public\/[\w./-]+)$/, {
-    message: 'imageUrl doit être une URL http(s) ou un chemin /public/…',
+    message: 'une adresse qui commence par https://, ou un chemin /public/…',
   })
   @MaxLength(2048)
   imageUrl?: string;

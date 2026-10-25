@@ -76,7 +76,8 @@ describe('Transfer attack chains (e2e)', () => {
       .get(PrismaService)
       .event.count({ where: { assetId: watch.id, type: 'TRANSFER' } });
     expect(transfers).toBe(1);
-  });
+    // 20 inscriptions, chacune avec sa pièce d'essai signée (phase 7) : plus que les 5 s par défaut.
+  }, 15_000);
 
   it('E (S6): a passport cannot be transplanted between identical watches', async () => {
     const twin = { brand: 'Rolex', model: 'Submariner', reference: '126610LN' };

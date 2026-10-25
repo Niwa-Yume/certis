@@ -6,14 +6,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Asset, Event } from '@prisma/client';
-import { randomUUID, timingSafeEqual } from 'crypto';
+import { Asset, Event, Issuer } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import { randomBytes, randomUUID, timingSafeEqual } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { decodeJws, sha256, signJws } from '../crypto/crypto.service';
 import { IssuerService } from '../issuer/issuer.service';
 import { NonceService } from '../nonce/nonce.service';
 import { PassportPayload, RegistryService } from '../registry/registry.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
+import { pieceNotFound } from '../common/errors';
+import { TRIAL_ACCOUNT, TRIAL_ISSUER, TRIAL_PIECE } from './trial';
 
 // Le contrôle du numéro de série suit une vérification réussie, et reste borné (ADR-0005).
 const SERIAL_CHECKS = 5;
@@ -50,7 +53,11 @@ export class AssetService {
       const owner = await this.prisma.user.findUnique({
         where: { email: dto.ownerEmail },
       });
-      if (!owner) throw new NotFoundException('Destinataire introuvable');
+      if (!owner) {
+        throw new NotFoundException(
+          'Aucun compte Certis n’utilise l’e-mail du premier propriétaire : vérifiez-le, ou laissez-le vide pour garder la pièce en stock.',
+        );
+      }
       ownerId = owner.id;
     }
 
@@ -115,13 +122,81 @@ export class AssetService {
         },
         at,
       );
-      return this.summary(asset);
+      return this.summary({ ...asset, issuer });
     });
+  }
+
+  /** Création en cours du compte d'essai : des inscriptions simultanées l'attendent au lieu de la refaire. */
+  private creatingTrialAccount?: Promise<{ id: string; issuerId: string }>;
+
+  /** Le compte système et l'émetteur des pièces d'essai, créés au premier besoin (ADR-0012). */
+  private async trialAccount() {
+    const found = await this.prisma.user.findUnique({
+      where: { email: TRIAL_ACCOUNT },
+    });
+    if (found?.issuerId) return { id: found.id, issuerId: found.issuerId };
+    this.creatingTrialAccount ??= this.createTrialAccount().finally(() => {
+      this.creatingTrialAccount = undefined;
+    });
+    return this.creatingTrialAccount;
+  }
+
+  private async createTrialAccount() {
+    const issuer = await this.issuers.create(TRIAL_ISSUER, true);
+    const user = await this.prisma.user.create({
+      data: {
+        email: TRIAL_ACCOUNT,
+        // Un mot de passe que personne ne connaît : on ne se connecte pas à ce compte.
+        passwordHash: await bcrypt.hash(randomBytes(32).toString('hex'), 10),
+        role: 'ISSUER',
+        issuerId: issuer.id,
+      },
+    });
+    return { id: user.id, issuerId: issuer.id };
+  }
+
+  /** La pièce d'essai d'un nouveau compte : pour tout essayer sans attendre qu'une maison inscrive une montre. */
+  async giveTrialPiece(email: string) {
+    const account = await this.trialAccount();
+    return this.mint(
+      { ...TRIAL_PIECE, ownerEmail: email },
+      account.id,
+      account.issuerId,
+    );
+  }
+
+  /**
+   * Avant l'effacement d'un compte qui ne détient que des pièces d'essai : elles reviennent à Certis,
+   * par une cession inscrite dans leur chaîne. S'il détient une vraie pièce, rien ne bouge, et
+   * l'effacement sera refusé (S-01).
+   */
+  async reclaimTrialPieces(userId: string) {
+    const owned = await this.prisma.asset.findMany({
+      where: { ownerId: userId },
+      include: { issuer: true },
+    });
+    if (owned.length === 0 || owned.some((asset) => !asset.issuer.trial)) {
+      return;
+    }
+    const account = await this.trialAccount();
+    for (const asset of owned) {
+      await this.prisma.$transaction(async (tx) => {
+        await this.registry.append(tx, asset, 'TRANSFER', {
+          from: this.registry.actorRef(asset.id, userId),
+          to: this.registry.actorRef(asset.id, account.id),
+        });
+        await tx.asset.update({
+          where: { id: asset.id },
+          data: { ownerId: account.id },
+        });
+      });
+    }
   }
 
   async findAll(ownerId: string) {
     const assets = await this.prisma.asset.findMany({
       where: { ownerId },
+      include: { issuer: true },
       orderBy: { createdAt: 'asc' },
     });
     return assets.map((asset) => this.summary(asset));
@@ -139,7 +214,7 @@ export class AssetService {
     ]);
     const me = this.registry.actorRef(id, userId);
     return {
-      ...this.summary(asset),
+      ...this.summary({ ...asset, issuer }),
       issuer: { id: issuer.id, name: issuer.name },
       provenance: events.map((e) => ({
         ...this.provenance(e),
@@ -175,12 +250,12 @@ export class AssetService {
       const asset = await tx.asset.findFirst({
         where: { id, ownerId: userId },
       });
-      if (!asset) throw new NotFoundException(`Asset ${id} introuvable`);
+      if (!asset) throw pieceNotFound();
       if ((asset.status === 'STOLEN') === stolen) {
         throw new ConflictException(
           stolen
-            ? 'Cette montre est déjà déclarée volée'
-            : "Cette montre n'est pas déclarée volée",
+            ? 'Cette montre est déjà déclarée volée : l’alerte est en place, rien d’autre à faire.'
+            : 'Cette montre n’est pas déclarée volée : il n’y a pas d’alerte à lever.',
         );
       }
       await this.registry.append(tx, asset, type, {
@@ -197,10 +272,14 @@ export class AssetService {
   /** Révision enregistrée et signée par l'émetteur de la pièce, et par lui seul. */
   async recordService(id: string, issuerId: string, note: string) {
     const asset = await this.prisma.asset.findUnique({ where: { id } });
-    if (!asset) throw new NotFoundException(`Asset ${id} introuvable`);
+    if (!asset) {
+      throw new NotFoundException(
+        'Cette pièce est introuvable : vérifiez son lien ou son numéro de registre.',
+      );
+    }
     if (asset.issuerId !== issuerId) {
       throw new ForbiddenException(
-        "Seul l'émetteur de cette pièce peut y enregistrer une révision",
+        'Seul l’émetteur de cette pièce peut y enregistrer une révision : elle a été inscrite par une autre maison.',
       );
     }
     await this.prisma.$transaction((tx) =>
@@ -216,7 +295,10 @@ export class AssetService {
    */
   async authenticate(id: string, nonceValue: string) {
     await this.nonce.consume(nonceValue, id, 'VERIFY');
-    const asset = await this.prisma.asset.findUniqueOrThrow({ where: { id } });
+    const asset = await this.prisma.asset.findUniqueOrThrow({
+      where: { id },
+      include: { issuer: true },
+    });
     const verifiedAt = new Date().toISOString();
     const result = await this.registry.verify(asset);
     if (result.problem) {
@@ -226,6 +308,8 @@ export class AssetService {
       valid: true,
       verifiedAt,
       status: result.stolen ? 'STOLEN' : 'ACTIVE',
+      // Pièce d'essai (ADR-0012) : l'interface le dit avant tout le reste.
+      trial: asset.issuer.trial,
       passport: result.payload,
       // Indication d'affichage (photo détourée), hors du passeport signé.
       imageCutout: asset.imageCutout,
@@ -261,7 +345,7 @@ export class AssetService {
       !fresh
     ) {
       throw new ForbiddenException(
-        'Vérifiez la pièce avant de contrôler son numéro de série',
+        'Vérifiez d’abord la pièce avec le QR du vendeur : le contrôle du numéro de série n’est ouvert que dans les 10 minutes qui suivent.',
       );
     }
     const { count } = await this.prisma.authNonce.updateMany({
@@ -289,13 +373,14 @@ export class AssetService {
   /** Réservé au propriétaire : 404 plutôt que 403, pour ne pas confirmer l'existence d'une montre d'autrui (AUDIT S8). */
   private async owned(id: string, ownerId: string) {
     const asset = await this.prisma.asset.findFirst({ where: { id, ownerId } });
-    if (!asset) throw new NotFoundException(`Asset ${id} introuvable`);
+    if (!asset) throw pieceNotFound();
     return asset;
   }
 
-  private summary(asset: Asset) {
+  private summary(asset: Asset & { issuer: Issuer }) {
     return {
       id: asset.id,
+      trial: asset.issuer.trial,
       name: asset.name,
       brand: asset.brand,
       model: asset.model,

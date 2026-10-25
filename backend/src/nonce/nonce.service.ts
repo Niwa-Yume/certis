@@ -1,9 +1,5 @@
-import {
-  ForbiddenException,
-  GoneException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { pieceNotFound } from '../common/errors';
+import { ForbiddenException, GoneException, Injectable } from '@nestjs/common';
 import { NoncePurpose, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
@@ -25,9 +21,11 @@ export class NonceService {
     const asset = await this.prisma.asset.findUnique({
       where: { id: assetId },
     });
-    if (!asset) throw new NotFoundException(`Asset ${assetId} introuvable`);
+    if (!asset) throw pieceNotFound();
     if (asset.ownerId !== issuerId) {
-      throw new ForbiddenException('Seul le propriétaire peut générer ce QR');
+      throw new ForbiddenException(
+        'Seul le propriétaire de cette pièce peut créer ce QR : connectez-vous avec le compte qui la détient.',
+      );
     }
 
     const nonce = await this.prisma.authNonce.create({
@@ -57,11 +55,13 @@ export class NonceService {
   ) {
     const nonce = await client.authNonce.findUnique({ where: { nonceValue } });
     if (!nonce || nonce.assetId !== assetId || nonce.purpose !== purpose) {
-      throw new ForbiddenException('QR invalide pour cette montre');
+      throw new ForbiddenException(
+        'Ce QR ne correspond pas à cette pièce, ou à une autre action : demandez au propriétaire d’en créer un nouveau.',
+      );
     }
     if (nonce.recipientId && nonce.recipientId !== consumerId) {
       throw new ForbiddenException(
-        'Cette offre est réservée à un autre destinataire',
+        'Cette cession est réservée à un autre compte : connectez-vous avec l’e-mail indiqué par le vendeur, ou demandez-lui un nouveau QR.',
       );
     }
 
@@ -73,7 +73,11 @@ export class NonceService {
     if (count !== 1) {
       // Encore valide à la lecture mais refusé à l'écriture : quelqu'un l'a consommé entre-temps.
       const expired = !nonce.used && nonce.expiresAt <= now;
-      throw new GoneException(expired ? 'Nonce expiré' : 'Nonce déjà utilisé');
+      throw new GoneException(
+        expired
+          ? 'Ce QR a expiré : il ne vaut que quelques minutes. Demandez-en un nouveau au propriétaire.'
+          : 'Ce QR a déjà servi : il ne vaut qu’une fois. Demandez-en un nouveau au propriétaire.',
+      );
     }
     return nonce;
   }

@@ -47,7 +47,7 @@ describe('Verification and transfer flows (e2e)', () => {
       .expect(({ body }) => expect(body.valid).toBe(true));
     await authenticate(app, watch.id, nonce, owner)
       .expect(410)
-      .expect(({ body }) => expect(body.message).toBe('Nonce déjà utilisé'));
+      .expect(({ body }) => expect(body.message).toMatch(/déjà servi/));
   });
 
   it('rejects an expired nonce', async () => {
@@ -59,7 +59,7 @@ describe('Verification and transfer flows (e2e)', () => {
 
     await authenticate(app, watch.id, nonce, owner)
       .expect(410)
-      .expect(({ body }) => expect(body.message).toBe('Nonce expiré'));
+      .expect(({ body }) => expect(body.message).toMatch(/expiré/));
   });
 
   it('transfers a watch when the recipient claims the offer', async () => {

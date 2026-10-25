@@ -27,7 +27,7 @@ export class IssuerGuard implements CanActivate {
     });
     if (user?.role !== 'ISSUER' || !user.issuerId) {
       throw new ForbiddenException(
-        'Seul un émetteur peut inscrire une pièce ou enregistrer une révision',
+        'Seul un compte émetteur (une maison, ou un expert) peut inscrire une pièce ou enregistrer une révision : votre compte est un compte de propriétaire.',
       );
     }
     request.user.issuerId = user.issuerId;

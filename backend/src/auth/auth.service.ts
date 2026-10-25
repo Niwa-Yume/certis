@@ -2,26 +2,42 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { AssetService } from '../asset/asset.service';
 import { UserService } from '../user/user.service';
+
+const WRONG_CREDENTIALS =
+  'E-mail ou mot de passe incorrect : vérifiez la saisie, ou créez un compte si vous n’en avez pas.';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly assets: AssetService,
   ) {}
 
   async register(email: string, password: string) {
     const existingUser = await this.userService.findByEmail(email);
     if (existingUser) {
-      throw new ConflictException('Un compte existe deja avec cet email');
+      throw new ConflictException(
+        'Un compte existe déjà avec cet e-mail : connectez-vous, ou utilisez une autre adresse.',
+      );
     }
 
     const user = await this.userService.create(email, password);
+    // Sans pièce d'essai, le compte reste utilisable : elle n'est qu'une aide pour découvrir l'app.
+    await this.assets
+      .giveTrialPiece(user.email)
+      .catch((error: Error) =>
+        this.logger.warn(`Pièce d’essai non donnée : ${error.message}`),
+      );
     const accessToken = await this.signToken(user.id, user.email);
 
     return {
@@ -36,12 +52,12 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Identifiants invalides');
+      throw new UnauthorizedException(WRONG_CREDENTIALS);
     }
 
     const passwordMatches = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatches) {
-      throw new UnauthorizedException('Identifiants invalides');
+      throw new UnauthorizedException(WRONG_CREDENTIALS);
     }
 
     const accessToken = await this.signToken(user.id, user.email);
@@ -59,8 +75,11 @@ export class AuthService {
   async erase(userId: string, password: string) {
     const user = await this.userService.findWithIssuer(userId);
     if (!(await bcrypt.compare(password, user.passwordHash))) {
-      throw new ForbiddenException('Mot de passe incorrect');
+      throw new ForbiddenException(
+        'Mot de passe incorrect : votre compte n’a pas été supprimé. Saisissez le mot de passe de ce compte.',
+      );
     }
+    await this.assets.reclaimTrialPieces(userId);
     await this.userService.erase(userId);
   }
 

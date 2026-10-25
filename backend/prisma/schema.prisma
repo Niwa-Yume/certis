@@ -62,6 +62,8 @@ enum Role {
 model Issuer {
   id        String   @id @default(uuid())
   name      String
+  // Émetteur des pièces d'essai données à chaque compte (ADR-0012) : elles ne valent pour aucune montre réelle.
+  trial     Boolean  @default(false)
   createdAt DateTime @default(now())
 
   keys   IssuerKey[]

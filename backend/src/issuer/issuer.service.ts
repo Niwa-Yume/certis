@@ -41,8 +41,8 @@ export class IssuerService {
     private readonly crypto: CryptoService,
   ) {}
 
-  async create(name: string) {
-    const issuer = await this.prisma.issuer.create({ data: { name } });
+  async create(name: string, trial = false) {
+    const issuer = await this.prisma.issuer.create({ data: { name, trial } });
     await this.rotateKey(issuer.id);
     return issuer;
   }

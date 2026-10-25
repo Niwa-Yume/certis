@@ -12,11 +12,16 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { IssuerModule } from './issuer/issuer.module';
 import { RegistryModule } from './registry/registry.module';
+import { validationError } from './common/validation';
 
 @Module({
   imports: [
     // Plafond par IP pour toute l'API ; les routes sensibles ont leur propre limite (@Throttle).
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60_000, limit: 100 }],
+      errorMessage:
+        'Trop de demandes en peu de temps : patientez une minute, puis réessayez.',
+    }),
     PrismaModule,
     UserModule,
     AuthModule,
@@ -38,6 +43,7 @@ import { RegistryModule } from './registry/registry.module';
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
+        exceptionFactory: validationError,
       }),
     },
     { provide: APP_GUARD, useClass: ThrottlerGuard },

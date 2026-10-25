@@ -5,9 +5,11 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { readEnv } from '../config/env';
+import { AssetModule } from '../asset/asset.module';
 
 @Module({
   imports: [
+    AssetModule,
     PassportModule,
     // registerAsync : le secret est lu à l'initialisation de l'app, pas à l'import du module.
     JwtModule.registerAsync({
