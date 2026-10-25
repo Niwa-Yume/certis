@@ -43,6 +43,7 @@ describe('readEnv', () => {
       /DATABASE_URL/,
     ],
     ['negative TRUST_PROXY_HOPS', { TRUST_PROXY_HOPS: '-1' }, /TRUST_PROXY/],
+    ['TSA_URL without a scheme', { TSA_URL: 'freetsa.org/tsr' }, /TSA_URL/],
     [
       'missing KEY_ENCRYPTION_KEY',
       { KEY_ENCRYPTION_KEY: undefined },
@@ -65,5 +66,10 @@ describe('readEnv', () => {
         CORS_ORIGINS: 'https://a.example, https://b.example',
       }).corsOrigins,
     ).toEqual(['https://a.example', 'https://b.example']);
+  });
+
+  it('anchors by default, unless TSA_URL is empty (ADR-0007)', () => {
+    expect(readEnv(valid).tsaUrl).toBe('https://freetsa.org/tsr');
+    expect(readEnv({ ...valid, TSA_URL: '' }).tsaUrl).toBeNull();
   });
 });

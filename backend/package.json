@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
     "db:reset": "prisma db seed -- --reset",
     "issuer:grant": "ts-node scripts/grant-issuer.ts",
-    "issuer:revoke": "ts-node scripts/revoke-key.ts"
+    "issuer:revoke": "ts-node scripts/revoke-key.ts",
+    "registry:anchor": "ts-node scripts/anchor.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

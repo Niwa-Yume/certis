@@ -29,6 +29,9 @@ export default async function globalSetup() {
   process.env.DATABASE_URL = url.href;
   execSync('npx prisma migrate deploy', { stdio: 'ignore', env: process.env });
 
+  // Pas d'appel réseau : la suite d'ancrage sert sa propre autorité d'horodatage.
+  process.env.TSA_URL = '';
+
   // Secrets jetables : l'app n'a plus de fallback, elle exige une config complète.
   process.env.JWT_SECRET = randomBytes(32).toString('hex');
   process.env.KEY_ENCRYPTION_KEY = randomBytes(32).toString('base64');

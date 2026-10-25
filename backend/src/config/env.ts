@@ -8,7 +8,12 @@ export type Env = {
   masterKey: Buffer;
   corsOrigins: string[];
   trustProxyHops: number;
+  /** Autorité d'horodatage RFC 3161 des ancrages (ADR-0007) ; `null` : ancrage désactivé. */
+  tsaUrl: string | null;
 };
+
+// Gratuite, sans compte ; son certificat de signature court jusqu'en 2040 (ADR-0007).
+const DEFAULT_TSA_URL = 'https://freetsa.org/tsr';
 
 // Non secret : défaut sûr (fermé). Hors de ces origines, un navigateur ne peut pas appeler l'API.
 const DEV_CORS_ORIGINS = 'http://localhost:8090,http://localhost:8081';
@@ -63,6 +68,12 @@ export function readEnv(env: NodeJS.ProcessEnv = process.env): Env {
     errors.push('TRUST_PROXY_HOPS doit être un entier positif ou nul');
   }
 
+  // Vide : pas d'ancrage (tests, ou instance sans accès sortant).
+  const tsaUrl = (env.TSA_URL ?? DEFAULT_TSA_URL).trim() || null;
+  if (tsaUrl && !/^https?:\/\//.test(tsaUrl)) {
+    errors.push('TSA_URL doit être une URL http(s), ou vide');
+  }
+
   if (errors.length > 0 || !signingKey) {
     throw new Error(`Configuration invalide :\n- ${errors.join('\n- ')}`);
   }
@@ -74,5 +85,6 @@ export function readEnv(env: NodeJS.ProcessEnv = process.env): Env {
     masterKey,
     corsOrigins,
     trustProxyHops,
+    tsaUrl,
   };
 }

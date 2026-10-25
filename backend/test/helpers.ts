@@ -24,7 +24,7 @@ export async function resetDatabase(app: INestApplication) {
   await app
     .get(PrismaService)
     .$executeRawUnsafe(
-      'TRUNCATE "Event", "AuthNonce", "Asset", "IssuerKey", "User", "Issuer" CASCADE',
+      'TRUNCATE "AnchorLeaf", "Anchor", "Event", "AuthNonce", "Asset", "IssuerKey", "User", "Issuer" CASCADE',
     );
 }
 

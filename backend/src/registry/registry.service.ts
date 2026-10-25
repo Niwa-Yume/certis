@@ -15,6 +15,7 @@ import {
   PLATFORM,
   VerificationKey,
 } from '../issuer/issuer.service';
+import { AnchorService } from './anchor.service';
 
 export type PassportPayload = {
   v: 2;
@@ -160,6 +161,7 @@ export class RegistryService {
     private readonly prisma: PrismaService,
     private readonly crypto: CryptoService,
     private readonly issuers: IssuerService,
+    private readonly anchors: AnchorService,
   ) {}
 
   /** Pseudonyme d'un compte sur une pièce : stable sur cette pièce, sans lien d'une pièce à l'autre. */
@@ -219,13 +221,17 @@ export class RegistryService {
     }
   }
 
-  /** Passeport et chaîne : exactement l'entrée du vérificateur indépendant. */
+  /** Passeport, chaîne et ancrages : exactement l'entrée du vérificateur indépendant. */
   async export(asset: Pick<Asset, 'id' | 'passport'>) {
     const events = await this.prisma.event.findMany({
       where: { assetId: asset.id },
       orderBy: { seq: 'asc' },
     });
-    return { passport: asset.passport, events: events.map(toChainEvent) };
+    return {
+      passport: asset.passport,
+      events: events.map(toChainEvent),
+      anchors: await this.anchors.proofs(asset.id),
+    };
   }
 
   /**
@@ -233,7 +239,7 @@ export class RegistryService {
    * Le propriétaire et le statut en base ne sont que des copies : ils doivent concorder.
    */
   async verify(asset: Asset) {
-    const { events } = await this.export(asset);
+    const { events, anchors } = await this.export(asset);
     const result = checkChain(
       asset.id,
       asset.passport,
@@ -250,6 +256,7 @@ export class RegistryService {
     return {
       problem: null,
       events,
+      anchors,
       payload: result.payload,
       stolen: result.stolen,
     };

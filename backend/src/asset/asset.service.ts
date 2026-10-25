@@ -237,6 +237,7 @@ export class AssetService {
       proof: {
         passport: asset.passport,
         events: result.events,
+        anchors: result.anchors,
         keys: '/.well-known/certis-keys',
       },
     };

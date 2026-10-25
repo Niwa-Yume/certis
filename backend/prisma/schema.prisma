@@ -124,6 +124,32 @@ model Event {
   @@unique([assetId, seq])
 }
 
+// Ancrage externe (ADR-0007) : les têtes de chaîne nouvelles depuis le dernier ancrage forment un
+// arbre de Merkle, dont la racine est horodatée par une autorité tierce (RFC 3161). Append-only.
+model Anchor {
+  id        String   @id @default(uuid())
+  root      String // racine de l'arbre, base64url
+  token     String // TimeStampToken (CMS, DER) de l'autorité, base64
+  at        DateTime // date attestée par l'autorité (genTime)
+  createdAt DateTime @default(now())
+
+  leaves AnchorLeaf[]
+}
+
+// Une tête de chaîne ancrée : elle couvre aussi tous les maillons qui la précèdent (prevHash).
+model AnchorLeaf {
+  anchorId String
+  index    Int // position dans l'arbre
+  assetId  String
+  seq      Int
+  hash     String
+
+  anchor Anchor @relation(fields: [anchorId], references: [id])
+
+  @@id([anchorId, index])
+  @@unique([assetId, seq]) // une tête n'est ancrée qu'une fois
+}
+
 enum EventType {
   MINT
   TRANSFER

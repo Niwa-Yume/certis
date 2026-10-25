@@ -122,7 +122,7 @@ async function main() {
     }
     // TRUNCATE : le journal est append-only et refuse DELETE (ADR-0006).
     await prisma.$executeRawUnsafe(
-      'TRUNCATE "Event", "AuthNonce", "Asset", "IssuerKey", "User", "Issuer" CASCADE',
+      'TRUNCATE "AnchorLeaf", "Anchor", "Event", "AuthNonce", "Asset", "IssuerKey", "User", "Issuer" CASCADE',
     );
 
     const users = new Map<string, string>();

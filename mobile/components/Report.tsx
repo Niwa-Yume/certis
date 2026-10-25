@@ -28,7 +28,7 @@ export type Verification = {
         };
     };
     provenance: { type: EventType; at: string; note?: string }[];
-    proof: { passport: string; events: { seq: number; hash: string }[]; keys: string };
+    proof: { passport: string; events: { seq: number; hash: string }[]; anchors: unknown[]; keys: string };
 };
 
 const CHECKS = (reference: string) => [
@@ -488,7 +488,7 @@ function Proof({ result }: { result: Verification }) {
                                 <TextLink
                                     label="Télécharger la preuve (JSON)"
                                     tone={color.gold}
-                                    onPress={() => downloadJson(`certis-preuve-${registryNumber(result.passport.credentialSubject.id).replace(/·/g, '-')}.json`, { passport: proof.passport, events: proof.events })}
+                                    onPress={() => downloadJson(`certis-preuve-${registryNumber(result.passport.credentialSubject.id).replace(/·/g, '-')}.json`, { passport: proof.passport, events: proof.events, anchors: proof.anchors })}
                                 />
                             ) : null}
                         </View>
