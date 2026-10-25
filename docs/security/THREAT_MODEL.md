@@ -1,6 +1,6 @@
 # Modèle de menace (STRIDE allégé)
 
-Version : 2026-10-25, après S-04 (base : fin de Phase 3, branche `phase-3/domain-registry`). Périmètre : API NestJS, base PostgreSQL, app Expo (mobile et web), vérificateur `tools/verify`. Les tests cités se trouvent dans `backend/test/transfer-attacks.e2e-spec.ts` (lettres A à N), `backend/test/security-critical.e2e-spec.ts` et `backend/test/registry.e2e-spec.ts` (identifiants P3-xx, N3, N4, S9, S10).
+Version : 2026-10-25, après la Phase 7 (base : fin de Phase 3, branche `phase-3/domain-registry`). Périmètre : API NestJS, base PostgreSQL, app Expo (mobile et web), vérificateur `tools/verify`. Les tests cités se trouvent dans `backend/test/transfer-attacks.e2e-spec.ts` (lettres A à N), `backend/test/security-critical.e2e-spec.ts` et `backend/test/registry.e2e-spec.ts` (identifiants P3-xx, N3, N4, S9, S10).
 
 ## Ce qu'on protège
 
@@ -57,6 +57,9 @@ Version : 2026-10-25, après S-04 (base : fin de Phase 3, branche `phase-3/domai
 | E | Céder une montre déclarée volée | Offres et acceptations refusées (423) jusqu'à la restitution | P3-06 |
 | E | Déclarer volée la montre d'autrui | Réservé au propriétaire en titre (404 sinon) | P3-06 « owner of record » |
 | E | Un émetteur enregistre une révision sur la pièce d'un autre | Refusé (403) | « service on its own pieces » |
+| S | Pièce d'essai présentée à un acheteur comme une vraie montre | Marque et référence fictives ; l'API la signale (`trial`), et le rapport dit « Pièce d'essai » puis « FICTIVE », jamais « AUTHENTIQUE » (ADR-0012) | P7 (`try-certis.e2e-spec.ts`) |
+| E | Se connecter au compte système qui reprend les pièces d'essai | Adresse sans domaine de premier niveau, refusée à l'inscription ; mot de passe aléatoire, connu de personne | Conception (ADR-0012) |
+| E | Seed lancé contre la production : comptes à mots de passe publics, base vidée | Toute base distante compte comme la production : maison de démonstration seule, `DEMO_ISSUER_PASSWORD` exigé, aucun effacement sans `--reset` | `cb4a805`, vérifié sur la base de test |
 
 ## Risques résiduels assumés
 
@@ -77,3 +80,4 @@ Version : 2026-10-25, après S-04 (base : fin de Phase 3, branche `phase-3/domai
 15. **Réémission non outillée.** Une révocation antidatée rend « non confirmées » les pièces légitimes inscrites ou révisées pendant la fenêtre de compromission. C'est voulu, mais la maison doit pouvoir les réémettre avec sa nouvelle clé : non implémenté (S-07). `npm run issuer:revoke` en donne le nombre.
 16. **Clé de la plateforme.** Elle signe cessions, vols et restitutions, et vit dans une variable d'environnement. Elle n'a ni révocation ni rotation : la changer la retirerait de la JWKS et invaliderait tous ses maillons.
 17. **Confiance dans l'autorité d'horodatage.** FreeTSA est tenue par une seule personne, sans engagement de disponibilité. Une autorité qui antidaterait ruinerait l'ancrage ; une autorité injoignable retarde seulement l'ancrage suivant. Cible : une autorité qualifiée eIDAS, ou deux autorités indépendantes (ADR-0007).
+18. **Coût d'une inscription.** Chaque compte créé reçoit une pièce d'essai signée : une signature et un maillon. Seule la limite générale (100 requêtes par minute et par IP) le borne. Une limite propre à l'inscription reste à poser (ADR-0012).

@@ -58,6 +58,8 @@ Cette commande :
 
 Elle affiche aussi l'adresse à ouvrir depuis un téléphone du même réseau. `Ctrl+C` arrête tout.
 
+Pour savoir quoi essayer, voir le [guide d'essai](docs/GUIDE_ESSAI.md). Chaque nouveau compte reçoit une pièce d'essai, et la maison de démonstration a 18 pièces en stock, tirées d'un catalogue de références réelles.
+
 | Commande | Effet |
 |---|---|
 | `npm run demo` | Le cycle de vie complet d'une pièce, en 8 étapes ([déroulé de la démo](docs/DEMO_SCRIPT.md)) |
@@ -73,7 +75,7 @@ Comptes de démo, en dev uniquement (mots de passe dans `backend/prisma/seed.ts`
 
 | Compte | Rôle |
 |---|---|
-| `atelier@certis.demo` | Émetteur fictif « Atelier de démonstration » |
+| `atelier@certis.demo` | Émetteur fictif « Atelier de démonstration », 18 pièces en stock |
 | `certis@pro.com` | Propriétaire : Submariner Date, Royal Oak Extra-Plat |
 | `julien.castro@certis.local` | Propriétaire : Carrera Calibre S, reçue par cession |
 
@@ -81,7 +83,7 @@ Comptes de démo, en dev uniquement (mots de passe dans `backend/prisma/seed.ts`
 
 | Travail de bachelor (CREA, avril à août 2026) | Repris après le jury (octobre 2026) | Hors périmètre |
 |---|---|---|
-| App Expo et API NestJS, comptes, inscription d'une montre par son propriétaire, QR de vérification et de cession, signature ECDSA par la plateforme, historique des cessions. État exact : `main` @ `9de1082`, audité dans [`docs/AUDIT.md`](docs/AUDIT.md). | Audit et backlog. Failles de cession corrigées, tests rouges d'abord. Modèle émetteur, passeport signé, chaîne d'événements, vol, numéro de série. Vérificateur indépendant. Ancrage chez un tiers horodateur. Interface refaite (desktop, accessibilité). Démo rejouable. | Blockchain, intégration Aura ou Arianee, paiements, publication sur les stores, puce NFC, Verifiable Credentials W3C. |
+| App Expo et API NestJS, comptes, inscription d'une montre par son propriétaire, QR de vérification et de cession, signature ECDSA par la plateforme, historique des cessions. État exact : `main` @ `9de1082`, audité dans [`docs/AUDIT.md`](docs/AUDIT.md). | Audit et backlog. Failles de cession corrigées, tests rouges d'abord. Modèle émetteur, passeport signé, chaîne d'événements, vol, numéro de série. Vérificateur indépendant. Ancrage chez un tiers horodateur. Interface refaite (desktop, accessibilité). Démo rejouable. Pièce d'essai, catalogue, refus expliqués. | Blockchain, intégration Aura ou Arianee, paiements, publication sur les stores, puce NFC, Verifiable Credentials W3C. |
 
 Projet personnel, sans affiliation avec aucune maison horlogère. Il ne contient aucun code, document ni information issus de mes stages, et n'engage aucune entreprise. Les marques et références des données de démonstration appartiennent à leurs propriétaires ; l'émetteur de démonstration est fictif.
 
@@ -122,6 +124,7 @@ Expo 54, React Native, Expo Router (mobile et web) · NestJS 11, Prisma 7, Postg
    `TRUST_PROXY_HOPS` vaut 1 par hypothèse, à vérifier au premier déploiement ([modèle de menace](docs/security/THREAT_MODEL.md)).
 4. Une fois l'API en ligne, renseigner `EXPO_PUBLIC_API_URL` pour `certis-web` et relancer le site.
 5. Créer un compte dans l'app, puis le faire émetteur : `npm --prefix backend run issuer:grant -- <e-mail> "<maison>"`, avec les variables de production.
+6. Facultatif : la maison de démonstration et son stock, avec `cd backend && npx prisma db seed`. Lancez-le avec les variables de production, plus `DEMO_ISSUER_PASSWORD`, un mot de passe à vous. Sur une base distante, le seed ne crée que cette maison, n'efface rien, et refuse de tourner sans ce mot de passe.
 
 L'API refuse de démarrer si une variable manque ou est trop faible : le message liste chaque problème.
 

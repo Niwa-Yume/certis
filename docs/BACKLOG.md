@@ -370,6 +370,8 @@ Les *Should* représentent environ 14 h. Ce sont les premiers à sauter si l'éc
 | 0009 | Direction visuelle (ton choix) | 4 |
 | 0010 | Licence | 1 |
 | 0011 | Révocation datée des clés d'émetteur | S-02 |
+| 0012 | Essayer Certis : pièce d'essai, maison de démonstration, catalogue | 7 |
+| 0013 | Messages de refus : ce qui s'est passé, puis comment corriger | 7 |
 
 ## Choix techniques vérifiés (registre npm et nodejs.org, 2026-10-23)
 
@@ -427,3 +429,29 @@ Aujourd'hui, `backend/package.json:7` indique `UNLICENSED` et il n'y a pas de fi
 - **Vert** : 51 tests e2e sur 51, 14 tests unitaires. Le vérificateur a aussi été essayé sur de vrais jetons FreeTSA (ECDSA P-384) et DigiCert (RSA, avec intermédiaire).
 - **Imprévu** : en avançant `main` ce matin, Git a supprimé `backend/.env`, qui n'est plus suivi depuis `22412d8`. Le passage par l'ancien `main`, où il l'était encore, l'a d'abord écrasé, puis l'avance l'a retiré. `npm run dev` l'a recréé avec des secrets neufs, et la base de démo a été réinitialisée ; elle ne contenait que le seed et une pièce de démo.
 - **Reste, consigné dans l'ADR-0007 et le modèle de menace (n° 3, 14, 17)** : confiance dans une autorité unique et gratuite ; fenêtre non ancrée ; historique importé attesté seulement depuis son premier ancrage ; rien dans l'interface.
+
+## Phase 7 — Essayer Certis · branche `phase-7/try-certis`
+
+Demande du 2026-10-25. Un compte neuf ne pouvait rien essayer ; la maison de démonstration n'avait ni stock ni catalogue ; les refus ne disaient pas comment corriger. Choix du propriétaire : une maison **fictive** signe les certificats de démonstration, jamais une vraie.
+
+| ID | Item | Critères d'acceptation |
+|---|---|---|
+| P7-01 | Pièce d'essai pour chaque nouveau compte | Visible dans la collection, marquée ; vérifiable publiquement et signalée comme telle ; cessible ; n'empêche pas l'effacement (test). |
+| P7-02 | Catalogue de références réelles | `GET /catalog`, sources datées ; plusieurs variantes de Royal Oak (test) ; la recherche du formulaire remplit la fiche. |
+| P7-03 | Maison de démonstration avec stock | Une pièce par référence du catalogue ; possible en production sans comptes à mot de passe public ni effacement. |
+| P7-04 | Refus explicites | Chaque refus : un message en français, ce qui s'est passé puis comment corriger (test) ; un composant unique dans l'app. |
+| P7-05 | Guide d'essai | [`docs/GUIDE_ESSAI.md`](GUIDE_ESSAI.md) : parcours propriétaire, maison, refus à essayer, mise en ligne. |
+
+### Bilan Phase 7 (2026-10-25)
+
+| ID | Statut | Preuve | Écart par rapport aux critères |
+|---|---|---|---|
+| P7-01 | Fait | Rouge `ded93d3`, puis `be03fbc`, `2027d19` ; ADR-0012. Parcours rejoué dans le navigateur : inscription, pièce marquée, rapport « FICTIVE », effacement. | Aucune limite propre à l'inscription, qui coûte désormais une signature (risque résiduel n° 18). |
+| P7-02 | Fait | `be03fbc` : 18 références relevées le 2026-10-25 sur les sites d'Audemars Piguet (9 Royal Oak), Rolex, Patek Philippe, Vacheron Constantin et Omega ; TAG Heuer et la 15202ST reprises de WatchBase (2026-10-24). | « La plupart des modèles vendus » : non, 18 références choisies. WatchBase a fini par opposer une vérification anti-robot ; elle n'a pas été contournée, et les sites des marques ont pris le relais. Trois références seulement ont une photo vérifiée. |
+| P7-03 | Fait | `dcff509`, puis `cb4a805`. Règles de production vérifiées sur la base de test. | **Imprévu** : lancé depuis un poste contre la production sans `NODE_ENV`, l'ancien seed pouvait vider la base et créer des comptes à mot de passe public. Corrigé avant d'être documenté. |
+| P7-04 | Fait | `be03fbc`, `2027d19` ; ADR-0013. | La vérification publique garde ses propres écrans d'état, qui disaient déjà quoi faire. Les captures de référence (`docs/screenshots`) ne sont pas régénérées. |
+| P7-05 | Fait | [`docs/GUIDE_ESSAI.md`](GUIDE_ESSAI.md), README | — |
+
+- **Vert** : 56 tests e2e sur 56, trois exécutions de suite.
+- **Imprévu de test** : le test D crée 20 comptes en parallèle, et chacun signe désormais sa pièce d'essai. Il dépassait les 5 s par défaut ; il a 15 s. La création concurrente de l'émetteur d'essai est partagée, au lieu d'être refaite par chaque inscription.
+

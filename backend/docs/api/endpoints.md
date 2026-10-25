@@ -3,14 +3,20 @@
 Base URL locale : `http://localhost:3001` (`npm run dev` à la racine).
 Toutes les routes valident leur corps (champs inconnus refusés, 400). Les routes marquées 🔒 exigent `Authorization: Bearer <accessToken>`.
 
+Chaque refus répond `{ statusCode, message }`, avec un seul message en français : ce qui s'est passé, puis comment corriger, séparés par « : » (ADR-0013). Exemple : `Ce QR a expiré : il ne vaut que quelques minutes. Demandez-en un nouveau au propriétaire.`
+
 ## Comptes
 
 | Route | Corps | Réponse |
 |---|---|---|
-| `POST /auth/register` | `{ email, password }` (8 à 72 caractères) | 201 `{ accessToken, user: { id, email } }` |
+| `POST /auth/register` | `{ email, password }` (8 à 72 caractères) | 201 `{ accessToken, user: { id, email } }`. Le compte reçoit sa pièce d'essai (ADR-0012). |
 | `POST /auth/login` (10/min) | `{ email, password }` | 201 `{ accessToken }`, 401 sinon |
 | 🔒 `GET /auth/me` | — | `{ id, email, role: OWNER \| ISSUER, issuer: { id, name } \| null }` |
-| 🔒 `DELETE /auth/me` (10/min) | `{ password }` | 204 : compte et e-mail effacés, pseudonymes devenus non rattachables. 403 si le mot de passe est faux (la session reste valide). 409 tant que le compte détient des pièces. |
+| 🔒 `DELETE /auth/me` (10/min) | `{ password }` | 204 : compte et e-mail effacés, pseudonymes devenus non rattachables. 403 si le mot de passe est faux (la session reste valide). 409 tant que le compte détient de vraies pièces ; ses pièces d'essai reviennent à Certis par une cession. |
+
+## Catalogue
+
+`GET /catalog` : sans compte. 18 références réelles, sourcées sur le site de chaque marque (`source`), avec `brand`, `model`, `name`, `reference`, `movement`, `case`, `dial`, `bracelet` et, quand elle est vérifiée, `photo: { imageUrl, imageCutout }`. Le formulaire d'inscription s'en sert pour remplir la fiche.
 
 ## Clés publiques
 
@@ -31,7 +37,7 @@ Un utilisateur ne voit que ses pièces : la pièce d'autrui répond 404, comme u
 
 | Route | Rôle |
 |---|---|
-| `GET /assets` | Ses pièces : identité, statut, photo, caractéristiques. |
+| `GET /assets` | Ses pièces : identité, statut, photo, caractéristiques ; `trial: true` pour une pièce d'essai. |
 | `GET /assets/:id` | Détail, émetteur et provenance ; `you: true` sur la cession qu'il a reçue. |
 | `GET /assets/:id/history` | `{ passport, events, anchors }` : l'entrée du vérificateur indépendant (`tools/verify`). Chaque ancrage (ADR-0007) donne la tête ancrée (`seq`, `hash`), son chemin d'audit Merkle (`path`), la racine horodatée (`root`) et le jeton RFC 3161 (`token`, DER en base64). |
 | `GET /assets/:id/verify` | `{ valid, problem? }` : passeport, chaîne et base concordent-ils ? |
@@ -50,6 +56,7 @@ Réponse 200 quand tout concorde :
   "valid": true,
   "verifiedAt": "2026-10-24T08:42:00.000Z",
   "status": "ACTIVE",
+  "trial": false,
   "imageCutout": true,
   "passport": {
     "v": 2, "type": "CertisPassport",
@@ -71,6 +78,7 @@ Réponse 200 quand tout concorde :
 ```
 
 - `status: STOLEN` : le certificat est authentique, mais la pièce est déclarée volée.
+- `trial: true` : une pièce d'essai, fictive (ADR-0012). L'app le dit avant tout le reste.
 - Sinon : `{ "valid": false, "problem": "passport" | "chain" | "registry", "verifiedAt": "…" }`, sans aucune donnée de la pièce.
 - Aucune identité : la chaîne ne porte que des pseudonymes par pièce.
 - Erreurs : 403 si le QR appartient à une autre pièce ou sert à autre chose, 410 s'il a expiré ou déjà servi, 429 au-delà du quota.
