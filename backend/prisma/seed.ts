@@ -3,17 +3,20 @@ import { NestFactory } from '@nestjs/core';
 import * as bcrypt from 'bcrypt';
 import { AppModule } from '../src/app.module';
 import { AssetService } from '../src/asset/asset.service';
+import { CATALOG } from '../src/catalog/catalog';
 import { IssuerService } from '../src/issuer/issuer.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { RegistryService } from '../src/registry/registry.service';
 
-// Comptes de démo (dev uniquement). Les pièces passent par les vrais services : passeport signé
-// par l'émetteur, chaîne d'événements, empreinte du numéro de série. Rien n'est écrit « à la main ».
+// Comptes de démo. Les pièces passent par les vrais services : passeport signé par l'émetteur,
+// chaîne d'événements, empreinte du numéro de série. Rien n'est écrit « à la main ».
+// En production, seule la maison de démonstration est créée, avec DEMO_ISSUER_PASSWORD (ADR-0012).
+const production = process.env.NODE_ENV === 'production';
 const ISSUER = {
   // Fictif, et affiché comme tel : aucune maison réelle n'est présentée comme signataire (ADR-0003).
   name: 'Atelier de démonstration',
   email: 'atelier@certis.demo',
-  password: 'Atelier2026!',
+  password: process.env.DEMO_ISSUER_PASSWORD ?? 'Atelier2026!',
 };
 
 const owners = [
@@ -95,9 +98,15 @@ const watches = [
 ] as const;
 
 async function main() {
-  if (process.env.NODE_ENV === 'production') {
+  const reset = process.argv.includes('--reset');
+  if (production && reset) {
     throw new Error(
-      'Seed refusé en production : il efface toutes les données.',
+      'Remise à zéro refusée en production : elle efface toutes les données.',
+    );
+  }
+  if (production && !process.env.DEMO_ISSUER_PASSWORD) {
+    throw new Error(
+      'En production, la maison de démonstration exige DEMO_ISSUER_PASSWORD : le mot de passe par défaut est public.',
     );
   }
   const app = await NestFactory.createApplicationContext(AppModule, {
@@ -109,24 +118,27 @@ async function main() {
   const registry = app.get(RegistryService);
 
   try {
-    // Idempotent : ne touche pas une base qui a déjà son émetteur, sauf `--reset`.
-    // Une base sans émetteur (venue d'avant la Phase 3) est reprise de zéro.
+    // Idempotent : ne touche pas une base qui a déjà sa maison de démonstration, sauf `--reset`.
     if (
-      !process.argv.includes('--reset') &&
-      (await prisma.issuer.count()) > 0
+      !reset &&
+      (await prisma.user.findUnique({ where: { email: ISSUER.email } }))
     ) {
       console.log(
         'Base déjà seedée, rien à faire (npm run db:reset pour repartir de zéro).',
       );
       return;
     }
-    // TRUNCATE : le journal est append-only et refuse DELETE (ADR-0006).
-    await prisma.$executeRawUnsafe(
-      'TRUNCATE "AnchorLeaf", "Anchor", "Event", "AuthNonce", "Asset", "IssuerKey", "User", "Issuer" CASCADE',
-    );
+    // En développement, on repart de zéro. TRUNCATE : le journal refuse DELETE (ADR-0006).
+    if (!production) {
+      await prisma.$executeRawUnsafe(
+        'TRUNCATE "AnchorLeaf", "Anchor", "Event", "AuthNonce", "Asset", "IssuerKey", "User", "Issuer" CASCADE',
+      );
+    }
 
     const users = new Map<string, string>();
-    for (const { email, password } of [...owners, ISSUER]) {
+    for (const { email, password } of production
+      ? [ISSUER]
+      : [...owners, ISSUER]) {
       const user = await prisma.user.create({
         data: { email, passwordHash: await bcrypt.hash(password, 10) },
       });
@@ -136,7 +148,18 @@ async function main() {
     const issuer = await issuers.create(ISSUER.name);
     await issuers.grant(issuerUserId, issuer.id);
 
-    for (const { dto, photo, story } of watches) {
+    // Le stock de la maison : une pièce par référence du catalogue, prête à être cédée à un client.
+    // `source` part avec : mint() ne retient que les champs de la pièce.
+    for (const [i, { photo, ...entry }] of CATALOG.entries()) {
+      await assets.mint(
+        { ...entry, serial: `DEMO-STOCK-${String(i + 1).padStart(2, '0')}` },
+        issuerUserId,
+        issuer.id,
+        photo,
+      );
+    }
+
+    for (const { dto, photo, story } of production ? [] : watches) {
       const [mint, ...events] = story;
       const firstOwner = 'owner' in mint ? mint.owner : undefined;
       const { id } = await assets.mint(
@@ -177,7 +200,7 @@ async function main() {
       }
     }
 
-    for (const { email } of [...owners, ISSUER]) {
+    for (const { email } of production ? [ISSUER] : [...owners, ISSUER]) {
       const count = await prisma.asset.count({
         where: { ownerId: users.get(email) },
       });
