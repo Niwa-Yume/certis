@@ -127,7 +127,7 @@ Les certificats des places de marché et des négociants (Chrono24 Certified, pr
 | Constat | Action | Priorité |
 |---|---|---|
 | *(Fait, S-01)* L'identifiant réel de l'acteur (`Event.actorId`) est conservé dans la table append-only : le trigger empêche de l'effacer, contrairement à ce que demande l'EDPB [R5] | Sortir l'identité réelle du journal, dans une table effaçable ; documenter la procédure d'effacement : supprimer le lien entre compte et pseudonyme rend la chaîne anonyme sans la casser. Faire une AIPD avant tout déploiement réel. | **Must** avant toute donnée réelle |
-| Une clé d'émetteur compromise n'a pas de date de révocation, seulement une date de retrait | Ajouter une révocation datée : les signatures postérieures à cette date sont refusées | Should |
+| *(Fait, S-02, ADR-0011)* Une clé d'émetteur compromise n'a pas de date de révocation, seulement une date de retrait | Ajouter une révocation datée : les signatures postérieures à cette date sont refusées | Should |
 | Garde des clés par Certis | Laisser l'émetteur fournir sa clé publique, sa clé privée restant chez lui | Should, scénario B |
 | Ancrage externe reporté | ADR-0007 : horodatage RFC 3161 de la tête de chaîne | Should |
 | Anti-blanchiment en juillet 2027 | API de vérification pour les négociants, avec export de la preuve | Could, signal du scénario B |

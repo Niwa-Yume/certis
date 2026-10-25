@@ -1,6 +1,6 @@
 # Modèle de menace (STRIDE allégé)
 
-Version : 2026-10-24, fin de Phase 3 (branche `phase-3/domain-registry`). Périmètre : API NestJS, base PostgreSQL, app Expo (mobile et web), vérificateur `tools/verify`. Les tests cités se trouvent dans `backend/test/transfer-attacks.e2e-spec.ts` (lettres A à N), `backend/test/security-critical.e2e-spec.ts` et `backend/test/registry.e2e-spec.ts` (identifiants P3-xx, N3, N4, S9, S10).
+Version : 2026-10-25, après S-02 (base : fin de Phase 3, branche `phase-3/domain-registry`). Périmètre : API NestJS, base PostgreSQL, app Expo (mobile et web), vérificateur `tools/verify`. Les tests cités se trouvent dans `backend/test/transfer-attacks.e2e-spec.ts` (lettres A à N), `backend/test/security-critical.e2e-spec.ts` et `backend/test/registry.e2e-spec.ts` (identifiants P3-xx, N3, N4, S9, S10).
 
 ## Ce qu'on protège
 
@@ -31,6 +31,7 @@ Version : 2026-10-24, fin de Phase 3 (branche `phase-3/domain-registry`). Périm
 | **T**ampering | Signature transplantée d'une montre identique | Payload v1 avec `assetId`, JCS (RFC 8785) | Test E, `canonical-json.spec.ts` |
 | T | Le client fixe `id` ou `status` | Liste blanche des champs, 400 sur un champ inconnu | Test I |
 | S | Un compte quelconque inscrit une « Nautilus » et obtient « authentique » | Inscription réservée aux émetteurs, contrôlée avant la validation du corps (ADR-0003) | N3 |
+| S | Clé d'émetteur volée : faux passeport ou fausse révision au nom de la maison | Révocation datée, publiée dans la JWKS : ce qui est signé à partir de cette date est refusé, par le serveur comme par `tools/verify`, et la maison reçoit une nouvelle clé (ADR-0011) | S-02 (×4, `revocation.e2e-spec.ts`) |
 | T | Passeport transplanté d'une montre identique | Le passeport porte l'identifiant de la pièce, et l'inscription l'empreinte du passeport | Test E, « passport does not match » |
 | T | `UPDATE` ou `DELETE` direct sur un événement | Refusé par un trigger de la base | S9 « refuses to rewrite » |
 | T | Propriétaire ou statut modifié en base | La vérification les recalcule depuis la chaîne : « registre incohérent » | P3-07 « disagrees with its chain » |
@@ -70,3 +71,6 @@ Version : 2026-10-24, fin de Phase 3 (branche `phase-3/domain-registry`). Périm
 11. **Vérification d'une pièce volée.** Elle reste possible et affiche l'alerte. Un voleur qui a aussi le compte du propriétaire peut déclarer la pièce retrouvée : la restitution n'exige pas de preuve. C'est une limite de la démo ; en réel, la restitution passerait par l'émetteur ou une autorité.
 12. **Notes de révision en texte libre.** Elles sont signées et ineffaçables. Un émetteur qui y écrirait une donnée personnelle (un nom de client) la graverait dans la chaîne. Règle à donner aux émetteurs : décrire l'intervention, jamais la personne.
 13. **Effacement conditionné.** Un propriétaire qui détient encore des pièces doit les céder avant de supprimer son compte. Le cas d'un propriétaire qui ne peut plus céder (décès, perte d'accès) n'est pas traité : il relèverait d'une procédure manuelle, à définir.
+14. **Antidatage hors du registre.** Avec une clé volée, on peut fabriquer un fichier de preuve daté d'avant la révocation : `tools/verify` l'accepte, car la date est déclarée par le signataire. Dans le registre, les dates sont posées par le serveur et la clé révoquée ne signe plus. L'ancrage chez un tiers horodateur (S-04, ADR-0007) fermera ce cas.
+15. **Réémission non outillée.** Une révocation antidatée rend « non confirmées » les pièces légitimes inscrites ou révisées pendant la fenêtre de compromission. C'est voulu, mais la maison doit pouvoir les réémettre avec sa nouvelle clé : non implémenté (S-07). `npm run issuer:revoke` en donne le nombre.
+16. **Clé de la plateforme.** Elle signe cessions, vols et restitutions, et vit dans une variable d'environnement. Elle n'a ni révocation ni rotation : la changer la retirerait de la JWKS et invaliderait tous ses maillons.

@@ -66,6 +66,7 @@ Elle affiche aussi l'adresse à ouvrir depuis un téléphone du même réseau. `
 | `npm --prefix backend run db:reset` | Repartir d'une base de démo propre |
 | `npm --prefix backend run test:e2e` | Tests e2e (base isolée `certis_test`) |
 | `npm --prefix backend run issuer:grant -- <e-mail> "<maison>"` | Faire d'un compte l'émetteur d'une maison |
+| `npm --prefix backend run issuer:revoke -- <kid> [date ISO]` | Révoquer une clé d'émetteur compromise (ADR-0011) |
 
 Comptes de démo, en dev uniquement (mots de passe dans `backend/prisma/seed.ts`) :
 

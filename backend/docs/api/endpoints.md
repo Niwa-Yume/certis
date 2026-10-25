@@ -14,7 +14,7 @@ Toutes les routes valident leur corps (champs inconnus refusés, 400). Les route
 
 ## Clés publiques
 
-`GET /.well-known/certis-keys` : JWKS (RFC 7517), sans compte. Chaque clé porte `kid` (empreinte RFC 7638), `alg: ES256` et `issuer` (identifiant de l'émetteur, ou `certis` pour la plateforme). Les clés retirées restent publiées.
+`GET /.well-known/certis-keys` : JWKS (RFC 7517), sans compte. Chaque clé porte `kid` (empreinte RFC 7638), `alg: ES256` et `issuer` (identifiant de l'émetteur, ou `certis` pour la plateforme). Les clés retirées restent publiées. Une clé révoquée (ADR-0011) porte en plus `revokedAt` (date ISO) : toute signature datée de ce moment ou après est refusée.
 
 ## Émetteur 🔒
 

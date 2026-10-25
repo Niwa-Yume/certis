@@ -304,11 +304,12 @@ Résumé : **la direction est la bonne, le volume ne l'est pas.** La section 4 p
 | ID | Item | MoSCoW | Origine |
 |---|---|---|---|
 | S-01 | Sortir l'identité réelle (`actorId`) du journal append-only, dans une table effaçable ; documenter la procédure d'effacement (supprimer le lien entre compte et pseudonyme) ; faire une AIPD avant toute donnée réelle | **Fait** (2026-10-24, branche `s-01/gdpr-erasure`) : rouge `4af2a2a`, puis `f58a8f2`, `de0342f`, `373cc9f` ; [AIPD](security/AIPD.md) en brouillon, à valider par un juriste | Vision marché, section 9 ; EDPB 02/2025 |
-| S-02 | Révocation datée d'une clé d'émetteur compromise (distincte du retrait) | Should | Vision marché, section 9 |
+| S-02 | Révocation datée d'une clé d'émetteur compromise (distincte du retrait) | **Fait** (2026-10-25, branche `s-02/key-revocation`) : rouge `f05265b`, puis `4581ac7`, `5be7e17` ; ADR-0011 | Vision marché, section 9 |
 | S-03 | Clé fournie par l'émetteur : il garde sa clé privée, Certis n'enregistre que la publique | Should | ADR-0003, scénario B |
 | S-04 | Ancrage externe RFC 3161 de la tête de chaîne (ADR-0007) | Should | P3-09 reporté |
 | S-05 | Emballage `vc+jwt` du passeport et API de vérification pour les négociants assujettis | Could | Scénario B, anti-blanchiment 2027 |
 | S-06 | Licence du dépôt (Apache-2.0 conseillé dès la Phase 0) | Décision du propriétaire | One-pager de la Fondation |
+| S-07 | Réémission par la maison, avec sa nouvelle clé, des pièces légitimes signées pendant une fenêtre de compromission | Should | ADR-0011, apparu avec S-02 |
 
 ## Won't (cette itération)
 
@@ -368,6 +369,7 @@ Les *Should* représentent environ 14 h. Ce sont les premiers à sauter si l'éc
 | 0008 | Hébergement durable à coût minimal | 1 |
 | 0009 | Direction visuelle (ton choix) | 4 |
 | 0010 | Licence | 1 |
+| 0011 | Révocation datée des clés d'émetteur | S-02 |
 
 ## Choix techniques vérifiés (registre npm et nodejs.org, 2026-10-23)
 
@@ -400,4 +402,15 @@ Aujourd'hui, `backend/package.json:7` indique `UNLICENSED` et il n'y a pas de fi
 - **Vert** : 42 tests e2e sur 42, et le parcours a été rejoué dans le navigateur.
 - **Imprévu** : le test dans le navigateur a révélé qu'un mauvais mot de passe renvoyait 401, et que l'app effaçait alors la session ; le second essai échouait toujours. La réponse est désormais 403 (`de0342f`).
 - **Reste, consigné dans l'AIPD** : validation juridique, purge des QR expirés, rectification de l'e-mail, consigne sur les notes de révision.
+
+### Bilan S-02 (2026-10-25)
+
+- **Rouge** : `f05265b`, 4 tests en échec. Seul le retrait existait : une clé volée restait valide pour tout ce qu'elle signait.
+- **Correctif** (`4581ac7`) :
+  - date de révocation par clé, publiée dans la JWKS (`revokedAt`) ;
+  - signature datée de cette date ou après refusée, par le serveur comme par `tools/verify` ;
+  - date passée acceptée, la clé active est remplacée aussitôt.
+- **Commande** (`5be7e17`) : `npm run issuer:revoke -- <kid> [date]` affiche ce qui devient invalide. Essayée sur les données de démo : une révocation de la clé de l'atelier au 2025-01-01 refuse 2 révisions, et la Royal Oak passe en « chaîne cassée ».
+- **Vert** : 46 tests e2e sur 46.
+- **Limites, consignées dans l'ADR-0011 et le modèle de menace (n° 14 à 16)** : antidatage possible hors du registre jusqu'à l'ancrage (S-04) ; réémission non outillée (S-07) ; clé de la plateforme ni révocable ni renouvelable.
 
