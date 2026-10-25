@@ -73,4 +73,15 @@ api.interceptors.response.use(
     },
 );
 
+/**
+ * Ce qu'il faut dire après un échec. L'API répond en français, par ce qui s'est passé puis comment
+ * corriger : on reprend son message ; à défaut, un repli propre à l'écran.
+ */
+export function explain(error: unknown, fallback: string): string {
+    if (!axios.isAxiosError(error)) return fallback;
+    if (!error.response) return 'Serveur injoignable : vérifiez votre connexion, puis réessayez.';
+    const message = (error.response.data as { message?: unknown } | undefined)?.message;
+    return typeof message === 'string' ? message : fallback;
+}
+
 export default api;

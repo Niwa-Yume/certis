@@ -1,28 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
-import api from '../../lib/api';
+import api, { explain } from '../../lib/api';
 import { splitName } from '../../lib/format';
-import { Button, Container, Glow, Icon, PieceName, Seal, TextField, t, useLayout, web } from '../../components/ui';
+import { Button, Container, Glow, Icon, Notice, PieceName, Seal, TextField, t, transition, useLayout, web } from '../../components/ui';
 import { color, space } from '../../theme/tokens';
 
 const FIELDS = ['brand', 'model', 'reference', 'name', 'serial', 'movement', 'case', 'dial', 'bracelet', 'imageUrl', 'ownerEmail'] as const;
 type Form = Record<(typeof FIELDS)[number], string>;
 const EMPTY = Object.fromEntries(FIELDS.map((field) => [field, ''])) as Form;
 
+/** Une référence du catalogue (GET /catalog) : sourcée sur le site de la marque. */
+type Entry = {
+    brand: string; model: string; name: string; reference: string;
+    movement: string; case: string; dial: string; bracelet: string; source: string;
+    photo?: { imageUrl: string; imageCutout: boolean };
+};
+
+const matches = (entry: Entry, query: string) =>
+    query.split(/\s+/).every((word) => `${entry.brand} ${entry.model} ${entry.name} ${entry.reference} ${entry.dial}`.toLowerCase().includes(word));
+
 // Les copier-coller depuis un site marchand embarquent souvent des espaces invisibles.
 const clean = (value: string) => value.replace(/[\u200B-\u200D\u2060\uFEFF\u00A0]/g, ' ').trim();
-
-function reasonFrom(error: unknown): string {
-    if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        if (status === 403) return 'Seul un compte émetteur peut inscrire une pièce.';
-        if (status === 404) return 'Aucun compte Certis n’utilise l’e-mail du premier propriétaire.';
-        if (status === 400) return 'Un champ n’est pas valide. Vérifiez les longueurs, l’e-mail et l’adresse de la photo.';
-    }
-    return 'Inscription impossible pour le moment. Vérifiez votre connexion.';
-}
 
 /** Réservé aux émetteurs (ADR-0003) : ils signent le passeport de la pièce qu'ils ont examinée. */
 export default function NewWatchScreen() {
@@ -32,30 +32,57 @@ export default function NewWatchScreen() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [handedTo, setHandedTo] = useState<string | null>(null);
+    const [catalog, setCatalog] = useState<Entry[]>([]);
+    const [query, setQuery] = useState('');
+    const [picked, setPicked] = useState<Entry | null>(null);
     const set = (field: keyof Form) => (value: string) => setForm((f) => ({ ...f, [field]: value }));
+
+    // Sans catalogue (réseau), le formulaire reste utilisable à la main.
+    useEffect(() => { api.get('/catalog').then((res) => setCatalog(res.data), () => undefined); }, []);
+    const results = useMemo(() => {
+        const q = clean(query).toLowerCase();
+        return q.length < 2 ? [] : catalog.filter((entry) => matches(entry, q)).slice(0, 10);
+    }, [catalog, query]);
+
+    const pick = (entry: Entry) => {
+        setForm((f) => ({
+            ...f,
+            brand: entry.brand, model: entry.model, name: entry.name, reference: entry.reference,
+            movement: entry.movement, case: entry.case, dial: entry.dial, bracelet: entry.bracelet,
+            imageUrl: entry.photo?.imageUrl ?? '',
+        }));
+        setPicked(entry);
+        setQuery('');
+        setError(null);
+    };
 
     const back = () => (router.canGoBack() ? router.back() : router.replace('/dashboard'));
 
     const submit = async () => {
         const data = Object.fromEntries(FIELDS.map((k) => [k, clean(form[k])]).filter(([, v]) => v)) as Partial<Form>;
         if (!data.brand || !data.model || !data.reference || !data.name || !data.serial) {
-            return setError('Marque, modèle, référence, nom et numéro de série sont obligatoires.');
+            return setError('Champs obligatoires manquants : renseignez la marque, le modèle, la référence, le nom et le numéro de série.');
         }
-        if (data.imageUrl && !/^https?:\/\//.test(data.imageUrl)) return setError('L’adresse de la photo doit commencer par https://');
+        if (data.imageUrl && !/^(https?:\/\/|\/public\/)/.test(data.imageUrl)) {
+            return setError('Adresse de photo refusée : elle doit commencer par https://');
+        }
         setLoading(true);
         setError(null);
         try {
-            const res = await api.post('/assets', data);
+            // Une photo reprise du catalogue est détourée ou non : on garde cette indication.
+            const cutout = picked?.photo && data.imageUrl === picked.photo.imageUrl ? { imageCutout: picked.photo.imageCutout } : {};
+            const res = await api.post('/assets', { ...data, ...cutout });
             // Remise à son acheteur : la pièce quitte le stock de l'émetteur.
             if (data.ownerEmail) {
                 setHandedTo(data.ownerEmail);
                 setForm(EMPTY);
+                setPicked(null);
             } else {
                 router.replace(`/watch/${res.data.id}`);
             }
         } catch (e) {
             if (axios.isAxiosError(e) && e.response?.status === 401) return router.replace('/login');
-            setError(reasonFrom(e));
+            setError(explain(e, 'Inscription impossible pour le moment : réessayez dans un instant.'));
         } finally {
             setLoading(false);
         }
@@ -80,10 +107,41 @@ export default function NewWatchScreen() {
                         </View>
 
                         {handedTo ? (
-                            <View accessibilityLiveRegion="polite" style={styles.done}>
-                                <Text style={[t.body, t.strong]}>Pièce inscrite et remise à {handedTo}.</Text>
-                                <Text style={t.small}>Elle apparaît dans sa collection, avec son passeport et sa provenance.</Text>
+                            <Notice tone="verified" message={`Pièce inscrite et remise à ${handedTo} : elle apparaît dans sa collection, avec son passeport et sa provenance.`} />
+                        ) : null}
+
+                        <Text style={[t.label, t.strong, styles.group]}>DEPUIS LE CATALOGUE</Text>
+                        <TextField
+                            label="Rechercher une référence"
+                            value={query}
+                            onChangeText={setQuery}
+                            placeholder="ex. Royal Oak noir, 126610LN, Nautilus"
+                            autoCapitalize="none"
+                            hint={catalog.length ? `${catalog.length} références relevées sur le site des marques. Elles remplissent la fiche ; il ne reste que le numéro de série.` : undefined}
+                        />
+                        {results.length ? (
+                            <View accessibilityRole="list" style={styles.results}>
+                                {results.map((entry) => (
+                                    <Pressable
+                                        key={entry.reference}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`Reprendre ${entry.brand} ${entry.name}, référence ${entry.reference}`}
+                                        onPress={() => pick(entry)}
+                                        style={(state) => [styles.result, (state as { hovered?: boolean }).hovered && styles.resultHover, transition('background-color')]}
+                                    >
+                                        <Text style={[t.body, t.strong]}>{entry.brand} · {entry.name}</Text>
+                                        <Text style={t.small}>{entry.reference} · {entry.dial}</Text>
+                                    </Pressable>
+                                ))}
                             </View>
+                        ) : clean(query).length >= 2 && catalog.length ? (
+                            <Notice tone="info" message="Aucune référence ne correspond : essayez la marque, le modèle ou la référence seule, ou remplissez la fiche à la main." />
+                        ) : null}
+                        {picked ? (
+                            <Notice
+                                tone="info"
+                                message={`Fiche reprise du catalogue : vérifiez chaque champ sur la pièce et ses papiers, puis saisissez son numéro de série. Source : ${new URL(picked.source).hostname.replace(/^www\./, '')}.`}
+                            />
                         ) : null}
 
                         <Text style={[t.label, t.strong, styles.group]}>LA PIÈCE</Text>
@@ -113,9 +171,9 @@ export default function NewWatchScreen() {
                             onChangeText={set('ownerEmail')}
                             autoCapitalize="none"
                             keyboardType="email-address"
-                            hint="À la vente : la pièce est inscrite directement à son nom. Sinon, elle reste dans votre stock."
-                            error={error}
+                            hint="À la vente : la pièce est inscrite directement à son nom. Sinon, elle reste dans votre stock, et vous la cédez plus tard avec un QR."
                         />
+                        {error ? <Notice message={error} /> : null}
                         <Button label="Signer et inscrire" arrow loading={loading} onPress={submit} />
                     </View>
 
@@ -141,6 +199,8 @@ const styles = StyleSheet.create({
     form: { flex: 1, width: '100%', maxWidth: 520, gap: space.lg },
     back: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, alignSelf: 'flex-start' },
     group: { letterSpacing: 1.6, marginTop: space.sm, color: color.slate },
-    done: { gap: 4, padding: space.md, borderWidth: 1, borderColor: color.verified, backgroundColor: color.card },
+    results: { borderWidth: 1, borderColor: color.hairline, backgroundColor: color.card },
+    result: { gap: 2, paddingVertical: 10, paddingHorizontal: space.md, borderBottomWidth: 1, borderColor: color.hairline, minHeight: 44 },
+    resultHover: { backgroundColor: color.hover },
     preview: { flex: 1, width: '100%', maxWidth: 480, minHeight: 300, padding: space.lg, gap: 10, backgroundColor: color.seal, overflow: 'hidden', marginTop: 92 },
 });

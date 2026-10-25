@@ -20,7 +20,7 @@ export const SHOWCASE: Photo = { source: require('../assets/watch/carrera.webp')
 export function NoPhoto({ tone = color.mist }: { tone?: string }) {
     return (
         <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
-            <Text style={[t.mono, { color: tone }]}>Photographie à venir</Text>
+            <Text style={[t.mono, { color: tone }]}>Sans photographie</Text>
         </View>
     );
 }

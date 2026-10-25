@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import axios from 'axios';
-import api from '../lib/api';
+import api, { explain } from '../lib/api';
 import { ACCESS_TOKEN_KEY, safeNext } from '../lib/auth';
 import { setItemAsync } from '../lib/storage';
 import { SHOWCASE } from './WatchPhoto';
 import { color, space } from '../theme/tokens';
-import { Button, Glow, Icon, PieceName, Rise, TextField, TextLink, Wordmark, t, useLayout, web } from './ui';
+import { Button, Glow, Icon, Notice, PieceName, Rise, TextField, TextLink, Wordmark, t, useLayout, web } from './ui';
 
 const COPY = {
     login: {
@@ -28,18 +27,6 @@ const COPY = {
     },
 } as const;
 
-function reasonFrom(error: unknown, mode: 'login' | 'register'): string {
-    if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        if (!error.response) return 'Serveur injoignable. Vérifiez votre connexion.';
-        if (status === 401) return 'E-mail ou mot de passe incorrect.';
-        if (status === 409) return 'Un compte existe déjà avec cet e-mail. Connectez-vous.';
-        if (status === 429) return 'Trop de tentatives. Patientez une minute, puis réessayez.';
-        if (status === 400) return mode === 'register' ? 'Vérifiez l’e-mail, et un mot de passe de 8 caractères minimum.' : 'Vérifiez l’e-mail saisi.';
-    }
-    return 'Une erreur inattendue est survenue. Réessayez.';
-}
-
 /** Connexion et inscription : même écran, même logique ; l'inscription connecte directement. */
 export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
     const router = useRouter();
@@ -52,7 +39,7 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
     const copy = COPY[mode];
 
     const submit = async () => {
-        if (!email.trim() || !password) return setError('Saisissez votre e-mail et votre mot de passe.');
+        if (!email.trim() || !password) return setError('Champs vides : saisissez votre e-mail et votre mot de passe.');
         setLoading(true);
         setError(null);
         try {
@@ -60,7 +47,7 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
             await setItemAsync(ACCESS_TOKEN_KEY, res.data.accessToken);
             router.replace(safeNext(next) as never);
         } catch (e) {
-            setError(reasonFrom(e, mode));
+            setError(explain(e, 'Une erreur inattendue est survenue : réessayez dans un instant.'));
         } finally {
             setLoading(false);
         }
@@ -96,8 +83,8 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
                 textContentType={mode === 'login' ? 'password' : 'newPassword'}
                 hint={mode === 'register' ? '8 caractères minimum.' : undefined}
                 onSubmitEditing={submit}
-                error={error}
             />
+            {error ? <Notice message={error} /> : null}
             <Button label={copy.submit} arrow loading={loading} onPress={submit} />
             <View style={styles.switch}>
                 <Text style={[t.body, { color: color.slate }]}>{copy.switchText}</Text>

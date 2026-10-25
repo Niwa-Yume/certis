@@ -17,7 +17,7 @@ import {
     useWindowDimensions,
 } from 'react-native';
 import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop, Text as SvgText, TextPath } from 'react-native-svg';
-import { breakpoint, color, font, maxContent, motion } from '../theme/tokens';
+import { breakpoint, color, font, maxContent, motion, space } from '../theme/tokens';
 
 // ── Mise en page ────────────────────────────────────────────────────────
 
@@ -285,11 +285,41 @@ export function TextField({ label, error, hint, ...input }: TextInputProps & { l
 
 // ── Signes ──────────────────────────────────────────────────────────────
 
-export function Badge({ label, tone = 'verified' }: { label: string; tone?: 'verified' | 'refused' }) {
+// ink : texte posé sur l'accent. L'information est claire sur fond sombre comme sur le papier.
+const TONES = {
+    verified: { accent: color.verified, ink: color.white, icon: 'check' },
+    refused: { accent: color.refused, ink: color.white, icon: 'alert' },
+    info: { accent: color.seal, ink: color.seal, icon: 'loupe' },
+} as const;
+
+export function Badge({ label, tone = 'verified' }: { label: string; tone?: keyof typeof TONES }) {
     return (
-        <View style={[styles.badge, { backgroundColor: tone === 'verified' ? color.verified : color.refused }]}>
-            <Icon name={tone === 'verified' ? 'check' : 'alert'} size={14} tone={color.white} weight={2.5} />
-            <Text style={[t.label, t.medium, { color: color.white }]}>{label}</Text>
+        <View style={[styles.badge, tone === 'info' ? styles.badgeInfo : { backgroundColor: TONES[tone].accent }]}>
+            <Icon name={TONES[tone].icon} size={14} tone={TONES[tone].ink} weight={2.5} />
+            <Text style={[t.label, t.medium, { color: TONES[tone].ink }]}>{label}</Text>
+        </View>
+    );
+}
+
+/**
+ * Le retour d'une action : ce qui s'est passé, en titre, puis comment corriger, ou la suite.
+ * Les messages de l'API suivent la forme « ce qui s'est passé : comment corriger » ; on la découpe.
+ */
+export function Notice({ message, tone = 'refused' }: { message: string; tone?: keyof typeof TONES }) {
+    const [title, ...rest] = message.split(' : ');
+    const detail = rest.join(' : ');
+    const { accent, icon } = TONES[tone];
+    return (
+        <View
+            accessibilityRole={tone === 'refused' ? 'alert' : undefined}
+            accessibilityLiveRegion={tone === 'refused' ? 'assertive' : 'polite'}
+            style={[styles.notice, { borderLeftColor: accent }]}
+        >
+            <Icon name={icon} size={18} tone={accent} weight={2} />
+            <View style={{ flex: 1, gap: 2 }}>
+                <Text style={[t.body, t.strong, { color: color.ink }]}>{title}</Text>
+                {detail ? <Text style={[t.small, { color: color.ink }]}>{detail.charAt(0).toUpperCase() + detail.slice(1)}</Text> : null}
+            </View>
         </View>
     );
 }
@@ -366,4 +396,6 @@ const styles = StyleSheet.create({
         color: color.ink,
     },
     badge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 9, paddingVertical: 5, alignSelf: 'flex-start' },
+    badgeInfo: { backgroundColor: color.paper, borderWidth: 1, borderColor: color.seal },
+    notice: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, padding: space.md, backgroundColor: color.card, borderWidth: 1, borderColor: color.hairline, borderLeftWidth: 3 },
 });

@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
-import axios from 'axios';
 import QRCode from 'react-native-qrcode-svg';
-import api from '../lib/api';
+import api, { explain } from '../lib/api';
 import { color, space } from '../theme/tokens';
-import { Button, IconButton, TextField, t, useLayout } from './ui';
+import { Button, IconButton, Notice, TextField, t, useLayout } from './ui';
 
 type Kind = 'verify' | 'transfer';
 type Offer = { nonce: string; expiresAt: number; ttl: number };
@@ -24,17 +23,6 @@ const COPY = {
         route: '/claim',
     },
 } as const;
-
-function reasonFrom(error: unknown): string {
-    if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        if (!error.response) return 'Serveur injoignable. Vérifiez votre connexion.';
-        if (status === 404) return 'Aucun compte Certis n’utilise cet e-mail.';
-        if (status === 400) return 'Cet e-mail n’est pas valide.';
-        if (status === 429) return 'Trop de demandes. Réessayez dans une minute.';
-    }
-    return 'Impossible de générer le QR pour le moment.';
-}
 
 /**
  * QR à usage unique, lié à cette montre : 60 s pour une vérification, 5 min pour une cession.
@@ -58,7 +46,7 @@ export default function NonceSheet({ kind, assetId, onClose }: { kind: Kind | nu
             const expiresAt = new Date(res.data.expiresAt).getTime();
             setOffer({ nonce: res.data.nonce, expiresAt, ttl: Math.max(1, Math.round((expiresAt - Date.now()) / 1000)) });
         } catch (e) {
-            setError(reasonFrom(e));
+            setError(explain(e, 'QR impossible à créer : réessayez dans un instant.'));
         } finally {
             setLoading(false);
         }
@@ -114,8 +102,8 @@ export default function NonceSheet({ kind, assetId, onClose }: { kind: Kind | nu
                                 autoCapitalize="none"
                                 autoComplete="email"
                                 keyboardType="email-address"
-                                error={error}
                             />
+                            {error ? <Notice message={error} /> : null}
                             <Button label="Générer le QR de cession" arrow loading={loading} onPress={() => issue('transfer', email.trim() || undefined)} />
                         </>
                     ) : null}
@@ -146,7 +134,7 @@ export default function NonceSheet({ kind, assetId, onClose }: { kind: Kind | nu
 
                     {error && kind === 'verify' ? (
                         <View style={{ gap: space.md }}>
-                            <Text style={[t.body, { color: color.refused }]}>{error}</Text>
+                            <Notice message={error} />
                             <Button label="Réessayer" variant="secondary" onPress={() => issue('verify')} />
                         </View>
                     ) : null}

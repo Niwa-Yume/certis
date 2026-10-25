@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
-import api from '../lib/api';
+import api, { explain } from '../lib/api';
 import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import { getItemAsync } from '../lib/storage';
 import { registryNumber } from '../lib/format';
-import { Button, Seal, Stamp, Wordmark, t } from '../components/ui';
+import { Button, Notice, Seal, Stamp, Wordmark, t } from '../components/ui';
 import { color, space } from '../theme/tokens';
 
 /** Le destinataire d'une cession accepte la pièce : elle rejoint sa collection et est signée à nouveau. */
@@ -31,9 +31,8 @@ export default function ClaimScreen() {
             setClaimed(true);
         } catch (e) {
             if (axios.isAxiosError(e) && e.response?.status === 401) return setSignedIn(false);
-            // Le serveur dit pourquoi (offre réservée, déjà propriétaire, QR expiré…) : on l'affiche.
-            const message = axios.isAxiosError(e) ? e.response?.data?.message : undefined;
-            setError(typeof message === 'string' ? message : 'Cession impossible pour le moment. Vérifiez votre connexion.');
+            // Le serveur dit pourquoi (offre réservée, déjà propriétaire, QR expiré…) et quoi faire.
+            setError(explain(e, 'Cession impossible pour le moment : réessayez dans un instant.'));
         } finally {
             setLoading(false);
         }
@@ -76,7 +75,7 @@ export default function ClaimScreen() {
                             </>
                         ) : (
                             <>
-                                {error ? <Text accessibilityLiveRegion="polite" style={[t.body, { color: color.refused }]}>{error}</Text> : null}
+                                {error ? <Notice message={error} /> : null}
                                 <Button label="Accepter la pièce" arrow loading={loading} disabled={signedIn === null} onPress={accept} />
                                 <Button label="Refuser" variant="secondary" onPress={() => router.replace('/dashboard')} />
                             </>

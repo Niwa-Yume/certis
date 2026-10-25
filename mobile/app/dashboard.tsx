@@ -2,17 +2,19 @@ import { useCallback, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect, useRouter } from 'expo-router';
-import api from '../lib/api';
+import api, { explain } from '../lib/api';
 import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import { registryNumber, splitName } from '../lib/format';
 import { deleteItemAsync } from '../lib/storage';
 import { NoPhoto, usePhoto } from '../components/WatchPhoto';
-import { Badge, Button, Container, Glow, PieceName, Rise, Spinner, TextField, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
+import { Badge, Button, Container, Glow, Notice, PieceName, Rise, Spinner, TextField, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
 import { color, space } from '../theme/tokens';
 
 type Asset = {
     id: string; name: string; brand: string; model: string; reference: string;
     status: string; imageUrl: string | null; imageCutout: boolean;
+    // Pièce d'essai donnée à l'inscription (ADR-0012) : elle ne vaut pour aucune montre réelle.
+    trial: boolean;
 };
 type Me = { role: 'OWNER' | 'ISSUER'; issuer: { name: string } | null };
 
@@ -21,11 +23,11 @@ export default function DashboardScreen() {
     const { size, compact } = useLayout();
     const [assets, setAssets] = useState<Asset[] | null>(null);
     const [me, setMe] = useState<Me | null>(null);
-    const [error, setError] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const load = useCallback(() => {
         let cancelled = false;
-        setError(false);
+        setError(null);
         // Le rôle décide de l'écran : seul un émetteur inscrit des pièces (ADR-0003).
         api.get('/auth/me').then((res) => !cancelled && setMe(res.data), () => undefined);
         api.get('/assets')
@@ -33,7 +35,7 @@ export default function DashboardScreen() {
             .catch((e) => {
                 if (cancelled) return;
                 if (axios.isAxiosError(e) && e.response?.status === 401) return router.replace('/');
-                setError(true);
+                setError(explain(e, 'Collection indisponible : réessayez dans un instant.'));
             });
         return () => { cancelled = true; };
     }, [router]);
@@ -75,7 +77,7 @@ export default function DashboardScreen() {
             <Container>
                 {error ? (
                     <View style={styles.message}>
-                        <Text style={t.lead}>Impossible de charger votre collection. Vérifiez votre connexion.</Text>
+                        <Notice message={error} />
                         <Button label="Réessayer" variant="secondary" onPress={load} style={{ alignSelf: 'flex-start' }} />
                     </View>
                 ) : !assets ? (
@@ -126,13 +128,7 @@ function EraseAccount({ onErased }: { onErased: () => void }) {
             await api.delete('/auth/me', { data: { password } });
             onErased();
         } catch (e) {
-            const status = axios.isAxiosError(e) ? e.response?.status : undefined;
-            const message = axios.isAxiosError(e) ? e.response?.data?.message : undefined;
-            setError(status === 409 && typeof message === 'string'
-                ? message
-                : status === 403 || status === 400
-                    ? 'Mot de passe incorrect.'
-                    : 'Suppression impossible pour le moment. Réessayez.');
+            setError(explain(e, 'Suppression impossible pour le moment : réessayez dans un instant.'));
         } finally {
             setBusy(false);
         }
@@ -145,7 +141,8 @@ function EraseAccount({ onErased }: { onErased: () => void }) {
             <Text style={t.body}>
                 Votre compte et votre e-mail sont effacés. L’historique des pièces que vous avez possédées reste vérifiable, mais plus rien ne permet de le rattacher à vous.
             </Text>
-            <TextField label="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" error={error} />
+            <TextField label="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" />
+            {error ? <Notice message={error} /> : null}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
                 <Button label="Supprimer définitivement" loading={busy} disabled={!password} onPress={erase} />
                 <Button label="Annuler" variant="secondary" onPress={() => { setOpen(false); setPassword(''); setError(null); }} />
@@ -187,9 +184,10 @@ function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
                 ) : (
                     <NoPhoto />
                 )}
-                {asset.status === 'STOLEN' ? (
-                    <View style={{ position: 'absolute', top: 12, left: 12 }}>
-                        <Badge label="Déclarée volée" tone="refused" />
+                {asset.status === 'STOLEN' || asset.trial ? (
+                    <View style={{ position: 'absolute', top: 12, left: 12, gap: 6 }}>
+                        {asset.status === 'STOLEN' ? <Badge label="Déclarée volée" tone="refused" /> : null}
+                        {asset.trial ? <Badge label="Pièce d’essai" tone="info" /> : null}
                     </View>
                 ) : null}
             </View>

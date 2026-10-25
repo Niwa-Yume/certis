@@ -8,7 +8,7 @@ import { type EventType, SPEC_LABELS, type Specs, describeEvent, downloadJson } 
 import { color, font, motion, space } from '../theme/tokens';
 import { WatchVisual, usePhoto } from './WatchPhoto';
 import {
-    Badge, Button, Container, CopyButton, Glow, Icon, PieceName, Rise, Seal, Stamp, TextField, TextLink, TrackIn, Wordmark,
+    Badge, Button, Container, CopyButton, Glow, Icon, Notice, PieceName, Rise, Seal, Stamp, TextField, TextLink, TrackIn, Wordmark,
     fluid, t, transition, useEntrance, useLayout, useReducedMotion, web,
 } from './ui';
 
@@ -17,6 +17,8 @@ export type Verification = {
     valid: true;
     verifiedAt: string;
     status: 'ACTIVE' | 'STOLEN';
+    // Pièce d'essai (ADR-0012) : à dire avant tout, pour qu'aucun acheteur ne s'y trompe.
+    trial: boolean;
     imageCutout: boolean;
     // Tout ce que voit l'acheteur vient du passeport signé par l'émetteur (ADR-0004).
     passport: {
@@ -65,6 +67,14 @@ export default function Report({ result, nonce }: { result: Verification; nonce:
             scrollEventThrottle={16}
             onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: motion.native })}
         >
+            {result.trial ? (
+                <Container style={{ paddingTop: space.md }}>
+                    <Notice
+                        tone="info"
+                        message="Pièce d’essai : ce certificat a été émis par Certis pour découvrir l’application. Il ne correspond à aucune montre réelle : ne l’acceptez jamais comme preuve d’authenticité."
+                    />
+                </Container>
+            ) : null}
             {layout.wide ? (
                 <WideHero result={result} number={number} />
             ) : (
@@ -173,7 +183,7 @@ function CompactHero({ result, number, onReport }: { result: Verification; numbe
                     <Text style={[t.serif, t.italic, { color: color.paper, fontSize: 30, lineHeight: 30 }]}>Cette pièce est</Text>
                 </Rise>
                 <TrackIn size={Math.min(34, (width - 44) / (11 * 0.8))} delay={1300} from={0.3} to={0.03} style={[t.wide, { color: color.gold }]}>
-                    AUTHENTIQUE
+                    {result.trial ? 'FICTIVE' : 'AUTHENTIQUE'}
                 </TrackIn>
                 <Rise delay={1500} distance={14}>
                     <Text style={[t.body, { color: color.mist, marginTop: 6 }]}>
@@ -219,7 +229,7 @@ function WideHero({ result, number }: { result: Verification; number: string }) 
                         </Text>
                     </Rise>
                 </Container>
-                <TrackIn size={word} delay={100} from={0.3} style={[t.wide, { color: color.paper, textAlign: 'center' }]}>AUTHENTIQUE</TrackIn>
+                <TrackIn size={word} delay={100} from={0.3} style={[t.wide, { color: color.paper, textAlign: 'center' }]}>{result.trial ? 'FICTIVE' : 'AUTHENTIQUE'}</TrackIn>
             </View>
             <Rise delay={350} distance={60} duration={1100} style={[styles.widePiece, { left: width / 2 - boxW / 2 }]}>
                 <Piece result={result} number={number} width={boxW} height={boxH} lens={170} zoom={2.4} pinned={pinned} seal={96} />

@@ -2,20 +2,20 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { Animated, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
-import api from '../../lib/api';
+import api, { explain } from '../../lib/api';
 import { registryNumber, shortDate, splitName } from '../../lib/format';
 import { type EventType, SPEC_LABELS, type Specs, describeEvent, downloadJson } from '../../lib/registry';
 import { type Photo, WatchVisual, usePhoto } from '../../components/WatchPhoto';
 import NonceSheet from '../../components/NonceSheet';
 import {
-    Badge, Button, CopyButton, Glow, Icon, IconButton, PieceName, Rise, Spinner, TextLink, TrackIn, Wordmark,
+    Badge, Button, CopyButton, Glow, Icon, IconButton, Notice, PieceName, Rise, Spinner, TextLink, TrackIn, Wordmark,
     t, transition, useLayout, useReducedMotion,
 } from '../../components/ui';
 import { color, motion, space } from '../../theme/tokens';
 
 type Watch = {
     id: string; name: string; brand: string; model: string; reference: string; status: string;
-    imageUrl: string | null; imageCutout: boolean; specs: Specs; issuer: { id: string; name: string };
+    imageUrl: string | null; imageCutout: boolean; specs: Specs; issuer: { id: string; name: string }; trial: boolean;
     provenance: { seq: number; type: EventType; at: string; note?: string; you: boolean }[];
 };
 // valid : passeport, chaîne et base concordent (null si la vérification n'a pas pu tourner).
@@ -47,9 +47,7 @@ export default function WatchScreen() {
             setData({ watch: watch.data, valid });
         } catch (e) {
             if (axios.isAxiosError(e) && e.response?.status === 401) return router.replace('/login');
-            setError(axios.isAxiosError(e) && e.response?.status === 404
-                ? 'Cette pièce ne figure pas dans votre collection.'
-                : 'Serveur injoignable. Vérifiez votre connexion.');
+            setError(explain(e, 'Pièce indisponible : réessayez dans un instant.'));
         }
     }, [id, router]);
 
@@ -63,7 +61,7 @@ export default function WatchScreen() {
             <View style={styles.center}>
                 {error ? (
                     <View style={{ gap: space.md, maxWidth: 420, padding: space.lg }}>
-                        <Text style={t.lead}>{error}</Text>
+                        <Notice message={error} />
                         <Button label="Réessayer" onPress={load} />
                         <Button label="Retour à la collection" variant="secondary" onPress={() => router.replace('/dashboard')} />
                     </View>
@@ -179,12 +177,20 @@ function Details({ data, tab, onTab, big, onChange }: { data: Loaded; tab: Tab; 
                 <Text style={t.caps}>{watch.brand.toUpperCase()}</Text>
                 <PieceName parts={splitName(watch.name)} size={big ? 72 : 46} />
                 <View style={styles.badgeRow}>
+                    {watch.trial ? <Badge label="Pièce d’essai" tone="info" /> : null}
                     {watch.status === 'STOLEN' ? <Badge label="Déclarée volée" tone="refused" /> : null}
                     {valid === true ? <Badge label="Certificat intact" /> : null}
                     {valid === false ? <Badge label="Certificat altéré" tone="refused" /> : null}
                     <Text selectable style={[t.mono, { fontSize: 14 }]}>N° {registryNumber(watch.id)}</Text>
                 </View>
             </View>
+
+            {watch.trial ? (
+                <Notice
+                    tone="info"
+                    message="Pièce d’essai : elle ne vaut pour aucune montre réelle, essayez tout sans risque. Présentez-la pour vérification et ouvrez le lien comme un acheteur ; cédez-la à un autre compte ; déclarez-la volée, puis retrouvée. Son numéro gravé, pour le contrôle de l’acheteur : ESSAI-0001."
+                />
+            ) : null}
 
             <Tabs value={tab} onChange={onTab} />
 
@@ -231,8 +237,8 @@ function Theft({ watch, onChange }: { watch: Watch; onChange: () => void }) {
             await api.post(`/assets/${watch.id}/${stolen ? 'recovered' : 'stolen'}`);
             setConfirming(false);
             onChange();
-        } catch {
-            setError('Déclaration impossible pour le moment. Réessayez.');
+        } catch (e) {
+            setError(explain(e, 'Déclaration impossible pour le moment : réessayez dans un instant.'));
         } finally {
             setBusy(false);
         }
@@ -245,7 +251,7 @@ function Theft({ watch, onChange }: { watch: Watch; onChange: () => void }) {
                 <Text style={[t.body, t.strong, { color: color.refused }]}>Déclarée volée{since ? ` le ${shortDate(since)}` : ''}</Text>
                 <Text style={t.body}>Elle ne peut pas changer de propriétaire, et toute vérification affiche l’alerte à l’acheteur.</Text>
                 <Button label="Déclarer retrouvée" variant="secondary" loading={busy} onPress={declare} />
-                {error ? <Text style={[t.small, { color: color.refused }]}>{error}</Text> : null}
+                {error ? <Notice message={error} /> : null}
             </View>
         );
     }
@@ -256,7 +262,7 @@ function Theft({ watch, onChange }: { watch: Watch; onChange: () => void }) {
                 <Button label="Confirmer : déclarer volée" loading={busy} onPress={declare} />
                 <Button label="Annuler" variant="secondary" onPress={() => setConfirming(false)} />
             </View>
-            {error ? <Text style={[t.small, { color: color.refused }]}>{error}</Text> : null}
+            {error ? <Notice message={error} /> : null}
         </View>
     ) : (
         <TextLink label="Pièce perdue ou volée ? La déclarer" tone={color.refused} onPress={() => setConfirming(true)} />
