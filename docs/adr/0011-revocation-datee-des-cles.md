@@ -3,7 +3,7 @@
 - Statut : accepté
 - Date : 2026-10-25
 - Suite liée : S-02 (vision marché, section 9) ; complète l'ADR-0003
-- Commits : `f05265b` (tests rouges), `4581ac7` (correctif)
+- Commits : `f05265b` (tests rouges), `4581ac7` (correctif), `5be7e17` (commande `issuer:revoke`)
 
 ## Contexte
 
