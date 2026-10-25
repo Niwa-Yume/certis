@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { Asset, Event, EventType, Prisma } from '@prisma/client';
-import { createHmac, KeyObject } from 'crypto';
+import { createHmac } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { canonicalJson } from '../crypto/canonical-json';
 import {
@@ -10,7 +10,11 @@ import {
   sign,
   verifySignature,
 } from '../crypto/crypto.service';
-import { IssuerService, PLATFORM } from '../issuer/issuer.service';
+import {
+  IssuerService,
+  PLATFORM,
+  VerificationKey,
+} from '../issuer/issuer.service';
 
 export type PassportPayload = {
   v: 2;
@@ -43,7 +47,15 @@ export type ChainEvent = {
 
 export type Problem = 'passport' | 'chain' | 'registry';
 
-type Keys = Map<string, { key: KeyObject; issuer: string }>;
+type Keys = Map<string, VerificationKey>;
+
+/**
+ * Signé par une clé révoquée, à sa date de révocation ou après (ADR-0011). Une date illisible
+ * compte comme postérieure. La date est celle que déclare le signataire : hors du registre,
+ * seul un ancrage horodaté empêcherait de l'antidater.
+ */
+const signedAfterRevocation = (key: VerificationKey, date: string) =>
+  key.revokedAt !== undefined && !(Date.parse(date) < key.revokedAt);
 
 // La plateforme signe ce qu'elle constate ; l'émetteur signe ce qu'il atteste (ADR-0003).
 const SIGNED_BY_PLATFORM = new Set<EventType>([
@@ -103,6 +115,7 @@ export function checkChain(
     jws.header.alg !== 'ES256' ||
     !verifySignature(jws.signingInput, jws.signature, passportKey.key) ||
     passportKey.issuer !== jws.payload.issuer.id ||
+    signedAfterRevocation(passportKey, jws.payload.validFrom) ||
     jws.payload.credentialSubject.id !== assetId
   ) {
     return { problem: 'passport' };
@@ -123,6 +136,7 @@ export function checkChain(
       (i === 0) !== (e.type === 'MINT') ||
       sha256(bytes) !== e.hash ||
       key?.issuer !== signer ||
+      signedAfterRevocation(key, e.at) ||
       !verifySignature(bytes, e.signature, key.key)
     ) {
       return { problem: 'chain', seq: e.seq };

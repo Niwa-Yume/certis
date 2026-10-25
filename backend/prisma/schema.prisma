@@ -75,7 +75,8 @@ model IssuerKey {
   publicJwk  Json
   privateKey String // PKCS#8 chiffrée par la clé maîtresse (AES-256-GCM)
   createdAt  DateTime  @default(now())
-  retiredAt  DateTime?
+  retiredAt  DateTime? // remplacée par une nouvelle clé ; ce qu'elle a signé reste valide
+  revokedAt  DateTime? // réputée compromise à cette date : ce qu'elle a signé depuis est refusé (ADR-0011)
 
   issuer Issuer @relation(fields: [issuerId], references: [id])
 }

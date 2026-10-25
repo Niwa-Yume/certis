@@ -20,6 +20,15 @@ export type PublishedKey = PublicJwk & {
   alg: 'ES256';
   /** Identifiant de l'émetteur, ou `certis` pour la plateforme : qui a le droit de signer quoi. */
   issuer: string;
+  /** Clé réputée compromise depuis cette date : toute signature datée de ce moment ou après est refusée. */
+  revokedAt?: string;
+};
+
+/** Clé publique prête à vérifier ; `revokedAt` en millisecondes. */
+export type VerificationKey = {
+  key: KeyObject;
+  issuer: string;
+  revokedAt?: number;
 };
 
 /** Le `issuer` de la plateforme dans la JWKS. */
@@ -69,6 +78,23 @@ export class IssuerService {
     return kid;
   }
 
+  /**
+   * Révocation datée (S-02, ADR-0011). À `at`, la clé est réputée compromise : ce qu'elle a signé
+   * avant reste valide, ce qui est daté de `at` ou après est refusé. `at` peut être passé, car une
+   * compromission se découvre souvent après coup. Si c'était la clé active, l'émetteur en reçoit
+   * une nouvelle.
+   */
+  async revokeKey(kid: string, at = new Date()) {
+    const key = await this.prisma.issuerKey.findUniqueOrThrow({
+      where: { kid },
+    });
+    await this.prisma.issuerKey.update({
+      where: { kid },
+      data: { revokedAt: at },
+    });
+    if (!key.retiredAt) await this.rotateKey(key.issuerId);
+  }
+
   async signingKey(issuerId: string): Promise<{ kid: string; key: KeyObject }> {
     const { kid, privateKey } = await this.prisma.issuerKey.findFirstOrThrow({
       where: { issuerId, retiredAt: null },
@@ -81,32 +107,39 @@ export class IssuerService {
     const keys = await this.prisma.issuerKey.findMany({
       orderBy: { createdAt: 'asc' },
     });
-    const published = (jwk: PublicJwk, kid: string, issuer: string) => ({
+    const published = (
+      jwk: PublicJwk,
+      kid: string,
+      issuer: string,
+      revokedAt?: Date | null,
+    ) => ({
       ...jwk,
       kid,
       use: 'sig' as const,
       alg: 'ES256' as const,
       issuer,
+      ...(revokedAt ? { revokedAt: revokedAt.toISOString() } : {}),
     });
     return {
       keys: [
         published(this.crypto.platformJwk, this.crypto.platformKid, PLATFORM),
         ...keys.map((k) =>
-          published(k.publicJwk as PublicJwk, k.kid, k.issuerId),
+          published(k.publicJwk as PublicJwk, k.kid, k.issuerId, k.revokedAt),
         ),
       ],
     };
   }
 
   /** Les clés publiques par `kid`, pour vérifier passeports et événements. */
-  async publicKeys(): Promise<Map<string, { key: KeyObject; issuer: string }>> {
+  async publicKeys(): Promise<Map<string, VerificationKey>> {
     const { keys } = await this.jwks();
     return new Map(
-      keys.map(({ kid, issuer, kty, crv, x, y }) => [
+      keys.map(({ kid, issuer, revokedAt, kty, crv, x, y }) => [
         kid,
         {
           key: createPublicKey({ key: { kty, crv, x, y }, format: 'jwk' }),
           issuer,
+          ...(revokedAt ? { revokedAt: Date.parse(revokedAt) } : {}),
         },
       ]),
     );

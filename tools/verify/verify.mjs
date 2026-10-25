@@ -40,11 +40,15 @@ const fail = (message) => {
 };
 
 const keys = new Map(
-  jwks.keys.map(({ kid, issuer, kty, crv, x, y }) => [
+  jwks.keys.map(({ kid, issuer, revokedAt, kty, crv, x, y }) => [
     kid,
-    { issuer, key: createPublicKey({ key: { kty, crv, x, y }, format: 'jwk' }) },
+    { issuer, revokedAt, key: createPublicKey({ key: { kty, crv, x, y }, format: 'jwk' }) },
   ]),
 );
+
+// Une clé révoquée (ADR-0011) ne vaut que pour ce qu'elle a signé avant sa date de révocation.
+// La date est celle que déclare le signataire : seul un ancrage horodaté empêcherait de l'antidater.
+const revokedFor = (key, date) => key.revokedAt !== undefined && !(Date.parse(date) < Date.parse(key.revokedAt));
 
 // 1. Le passeport : signé par une clé publiée, qui appartient à l'émetteur qu'il désigne.
 const [h, p, s] = passport.split('.');
@@ -56,6 +60,9 @@ if (header.alg !== 'ES256' || !passportKey || !signed(`${h}.${p}`, s, passportKe
 }
 if (passportKey.issuer !== payload.issuer.id) {
   fail("passeport — signé par une clé qui n'appartient pas à son émetteur");
+}
+if (revokedFor(passportKey, payload.validFrom)) {
+  fail(`passeport — signé par une clé révoquée depuis le ${passportKey.revokedAt}`);
 }
 const assetId = payload.credentialSubject.id;
 
@@ -74,6 +81,7 @@ for (const [i, e] of events.entries()) {
   const key = keys.get(e.kid);
   const expected = SIGNED_BY_PLATFORM.has(e.type) ? 'certis' : payload.issuer.id;
   if (!key || key.issuer !== expected) fail(`${where} — signé par une clé qui n'a pas le droit de signer ce type`);
+  if (revokedFor(key, e.at)) fail(`${where} — signé par une clé révoquée depuis le ${key.revokedAt}`);
   if (!signed(bytes, e.signature, key.key)) fail(`${where} — signature invalide`);
   if (e.type === 'MINT' && e.data.passport !== sha256(passport)) fail(`${where} — l'inscription ne porte pas ce passeport`);
   if (e.type === 'STOLEN_REPORTED') stolen = true;

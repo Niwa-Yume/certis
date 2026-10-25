@@ -33,15 +33,8 @@ describe('Issuer key revocation (e2e)', () => {
   let owner: User;
   let watch: { id: string };
 
-  // Appelée par son nom : tant que la révocation n'existe pas, l'échec est explicite.
-  // Le cast disparaît avec le correctif, qui type la méthode.
   const revoke = (kid: string, at?: Date) =>
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    (
-      app.get(IssuerService) as unknown as {
-        revokeKey(kid: string, at?: Date): Promise<unknown>;
-      }
-    ).revokeKey(kid, at);
+    app.get(IssuerService).revokeKey(kid, at);
   const activeKid = async () =>
     (
       await prisma.issuerKey.findFirstOrThrow({
