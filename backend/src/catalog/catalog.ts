@@ -4,6 +4,8 @@
  * sans logo). Aucune maison réelle n'apparaît dans la démo (ADR-0003, ADR-0012, ADR-0015).
  * `source` pointe sur un domaine réservé (RFC 2606) : il n'existe aucune page à consulter.
  */
+import { existsSync, readFileSync } from 'node:fs';
+
 export type CatalogEntry = {
   brand: string;
   model: string;
@@ -37,7 +39,7 @@ const meridienne = (
   photo: { imageUrl: `/public/watches/${photo}.webp`, imageCutout: false },
 });
 
-export const CATALOG: CatalogEntry[] = [
+const ORVENE: CatalogEntry[] = [
   meridienne('OR-1201', 'Ardoise soleillé', 'orvene-meridienne-ardoise'),
   meridienne('OR-1202', 'Vert forêt soleillé', 'orvene-meridienne-foret'),
   {
@@ -56,3 +58,31 @@ export const CATALOG: CatalogEntry[] = [
     },
   },
 ];
+
+/** Une pièce de client du seed, et son histoire (dates ISO, comptes de démo par e-mail). */
+export type DemoWatch = {
+  reference: string;
+  serial: string;
+  story: (
+    | { type: 'MINT'; at: string; owner?: string }
+    | { type: 'SERVICE'; at: string; note: string }
+    | { type: 'TRANSFER'; at: string; owner: string }
+  )[];
+};
+
+// Démo aux couleurs d'une autre maison : DEMO_HOUSE_FILE (dans backend/.env) désigne un fichier
+// JSON local { house, catalog, watches? } qui remplace la maison fictive. Il reste hors dépôt
+// (*.local.json) : les visuels d'une marque réelle n'ont rien à faire dans un dépôt public.
+const file = process.env.DEMO_HOUSE_FILE;
+const local =
+  file && existsSync(file)
+    ? (JSON.parse(readFileSync(file, 'utf8')) as {
+        house: string;
+        catalog: CatalogEntry[];
+        watches?: DemoWatch[];
+      })
+    : null;
+
+export const DEMO_HOUSE = local?.house ?? HOUSE;
+export const CATALOG = local?.catalog ?? ORVENE;
+export const DEMO_WATCHES = local?.watches;

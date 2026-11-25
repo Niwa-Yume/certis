@@ -3,7 +3,12 @@ import { NestFactory } from '@nestjs/core';
 import * as bcrypt from 'bcrypt';
 import { AppModule } from '../src/app.module';
 import { AssetService } from '../src/asset/asset.service';
-import { CATALOG } from '../src/catalog/catalog';
+import {
+  CATALOG,
+  DEMO_HOUSE,
+  DEMO_WATCHES,
+  type DemoWatch,
+} from '../src/catalog/catalog';
 import { IssuerService } from '../src/issuer/issuer.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { RegistryService } from '../src/registry/registry.service';
@@ -20,8 +25,8 @@ const production =
   process.env.NODE_ENV === 'production' ||
   !['localhost', '127.0.0.1', '[::1]'].includes(databaseHost);
 const ISSUER = {
-  // Fictive, et présentée comme telle : aucune maison réelle n'est signataire (ADR-0003, ADR-0015).
-  name: 'Maison Orvène',
+  // Fictive par défaut, et présentée comme telle (ADR-0003, ADR-0015) ; DEMO_HOUSE_FILE la remplace.
+  name: DEMO_HOUSE,
   email: 'atelier@certis.demo',
   password: process.env.DEMO_ISSUER_PASSWORD ?? 'Atelier2026!',
 };
@@ -31,17 +36,12 @@ const owners = [
   { email: 'julien.castro@certis.local', password: 'ChangeMe123!' },
 ];
 
-// Les pièces des clients de la maison, tirées de son catalogue (fictif, comme la maison).
-// Numéros de série et dates : fictifs, pour la démo. Une seule histoire est suivie par la démo :
-// la Méridienne ardoise, remise, révisée, puis cédée (DEMO.md).
-const piece = (reference: string, serial: string) => {
-  // `source` part avec : mint() ne retient que les champs de la pièce.
-  const { photo, ...entry } = CATALOG.find((e) => e.reference === reference)!;
-  return { dto: { ...entry, serial }, photo: photo! };
-};
-const watches = [
+// Les pièces des clients de la maison, tirées de son catalogue. Numéros de série et dates :
+// fictifs. Une seule histoire est suivie par la démo : remise, révisée, puis cédée (DEMO.md).
+const ORVENE_WATCHES: DemoWatch[] = [
   {
-    ...piece('OR-1201', 'DEMO-OR-1201-0417'),
+    reference: 'OR-1201',
+    serial: 'DEMO-OR-1201-0417',
     story: [
       { type: 'MINT', at: '2024-03-12', owner: 'certis@pro.com' },
       {
@@ -57,7 +57,8 @@ const watches = [
     ],
   },
   {
-    ...piece('OR-3101', 'DEMO-OR-3101-0088'),
+    reference: 'OR-3101',
+    serial: 'DEMO-OR-3101-0088',
     story: [
       { type: 'MINT', at: '2023-11-20', owner: 'certis@pro.com' },
       {
@@ -67,7 +68,14 @@ const watches = [
       },
     ],
   },
-] as const;
+];
+const watches = (DEMO_WATCHES ?? ORVENE_WATCHES).map(
+  ({ reference, serial, story }) => {
+    // `source` part avec : mint() ne retient que les champs de la pièce.
+    const { photo, ...entry } = CATALOG.find((e) => e.reference === reference)!;
+    return { dto: { ...entry, serial }, photo: photo ?? {}, story };
+  },
+);
 
 async function main() {
   const reset = process.argv.includes('--reset');
@@ -142,6 +150,7 @@ async function main() {
       );
       let ownerId = firstOwner ? users.get(firstOwner)! : issuerUserId;
       for (const event of events) {
+        if (event.type === 'MINT') continue; // une seule inscription, en tête
         await prisma.$transaction(async (tx) => {
           const asset = { id, issuerId: issuer.id };
           const at = new Date(event.at);
