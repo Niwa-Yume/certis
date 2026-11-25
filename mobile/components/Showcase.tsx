@@ -31,10 +31,11 @@ export default function Showcase({ imageUrl, cutout, label, children }: {
     return wide ? (
         <View style={[styles.screen, { flexDirection: 'row' }]}>
             {hero}
-            <ScrollView style={{ flex: 1 }}>{content}</ScrollView>
+            {/* Atteignable au clavier, même quand rien n'y est focalisable (axe : scrollable-region-focusable). */}
+            <ScrollView style={{ flex: 1 }} tabIndex={0}>{content}</ScrollView>
         </View>
     ) : (
-        <ScrollView style={styles.screen}>
+        <ScrollView style={styles.screen} tabIndex={0}>
             {hero}
             {content}
         </ScrollView>

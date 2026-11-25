@@ -10,6 +10,8 @@ import { NoPhoto, usePhoto } from '../../components/WatchPhoto';
 import NonceSheet from '../../components/NonceSheet';
 import FaceLine, { type Face } from '../../components/Face';
 import Handover from '../../components/Handover';
+import Service, { type ServiceState } from '../../components/Service';
+import Share, { type ShareItem } from '../../components/Share';
 import { Button, CopyButton, Icon, IconButton, Notice, PieceName, State, TextLink, t, transition, useLayout } from '../../components/ui';
 import { color, space, typeScale } from '../../theme/tokens';
 
@@ -20,6 +22,7 @@ type Watch = {
     issuedBy: Face | null; story: string | null; links: { label: string; url: string }[];
     // pending : promise à ce compte, encore à la maison ; cardId : la carte, pour son détenteur.
     pending: boolean; cardId: string | null;
+    service: ServiceState; shares: ShareItem[];
 };
 // valid : passeport, chaîne et base concordent (null si la vérification n'a pas pu tourner).
 type Loaded = { watch: Watch; valid: boolean | null; house: boolean };
@@ -196,11 +199,19 @@ function Life({ data, title, onChange }: { data: Loaded; title: number; onChange
                 </Section>
             ) : null}
 
-            {next && !stolen ? (
-                <Section title={tr.piece.nextService}>
-                    <Text style={t.body}>{tr.piece.nextServiceBody(monthYear(next))}</Text>
+            {/* Écran 5 : la révision, pour le propriétaire (pas pour la maison qui a la pièce en stock). */}
+            {!stolen && !watch.pending && !data.house ? (
+                <Section title={tr.service.section}>
+                    <Service assetId={watch.id} service={watch.service} nextService={next ? monthYear(next) : null} onChange={onChange} />
                 </Section>
             ) : null}
+
+            {/* Écran 6 : rien n'est public sans lui. */}
+            {watch.pending ? null : (
+                <Section title={tr.share.section}>
+                    <Share assetId={watch.id} shares={watch.shares} onChange={onChange} />
+                </Section>
+            )}
 
             {watch.links.length ? (
                 <Section title={tr.piece.house}>
