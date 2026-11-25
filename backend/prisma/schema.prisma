@@ -27,6 +27,8 @@ model Asset {
   issuerId        String
   // La personne de la maison qui a inscrit la pièce : son visage sur la fiche, hors du passeport signé.
   issuedById      String?
+  // La carte remise avec la pièce : son QR mène à /cards/:cardId, qui ne dit que l'état du passeport.
+  cardId          String?     @unique
   // Passeport JWS signé par l'émetteur (ADR-0004) ; le numéro de série n'y figure qu'en empreinte (ADR-0005).
   passport        String
   serialHash      String
@@ -35,11 +37,12 @@ model Asset {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  owner    User        @relation(fields: [ownerId], references: [id])
-  issuer   Issuer      @relation(fields: [issuerId], references: [id])
-  issuedBy User?       @relation("IssuedBy", fields: [issuedById], references: [id], onDelete: SetNull)
-  nonces   AuthNonce[]
-  events   Event[]
+  owner       User         @relation(fields: [ownerId], references: [id])
+  issuer      Issuer       @relation(fields: [issuerId], references: [id])
+  issuedBy    User?        @relation("IssuedBy", fields: [issuedById], references: [id], onDelete: SetNull)
+  nonces      AuthNonce[]
+  events      Event[]
+  invitations Invitation[]
 }
 
 model User {
@@ -173,4 +176,20 @@ enum AssetStatus {
   INACTIVE
   TRANSFERRED
   STOLEN
+}
+
+// La maison invite un client : la pièce l'attend dans sa collection jusqu'à la remise (ADR-0017).
+// Le jeton n'est montré qu'une fois, à la maison ; seule son empreinte est gardée. Supprimée à la remise.
+model Invitation {
+  id          String   @id @default(uuid())
+  tokenHash   String   @unique
+  assetId     String
+  email       String
+  createdById String // le compte de la maison qui détient la pièce
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([email])
 }
