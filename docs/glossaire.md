@@ -14,6 +14,8 @@ Un mot, un sens, partout : dans l'interface, le code et la base. Quand l'interfa
 | Propriétaire | Owner | `Asset.ownerId`, rôle `OWNER` | Le compte qui détient la pièce. |
 | Collection | Collection | `GET /assets` | Les pièces d'un propriétaire. Pour une maison : son stock. |
 | Fiche de vie | Life record | `GET /assets/:id` | Le récit d'une pièce : remise, révisions, cessions. Les preuves sont dans un volet dépliable. |
+| Visage | Face | `User.displayName`, `title`, `photoUrl`, `Asset.issuedById` | La personne de la maison qui a émis le passeport : nom, rôle, photo. Hors du passeport signé (ADR-0016). |
+| Prochaine révision | Next service | (calculée) | Conseillée cinq ans après la dernière intervention de la maison. |
 | Maillon | Link | `Event` | Une entrée de la chaîne d'une pièce, signée, qui pointe vers la précédente (ADR-0006). |
 | Inscription | Registration | `MINT` | Le premier maillon : la maison inscrit la pièce. |
 | Remise | Handover | (lot 4) | Le moment où la maison remet la pièce à son premier propriétaire et où le passeport devient actif. |
