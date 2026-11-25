@@ -58,7 +58,7 @@ Cette commande :
 
 Elle affiche aussi l'adresse à ouvrir depuis un téléphone du même réseau. `Ctrl+C` arrête tout.
 
-Pour savoir quoi essayer, voir le [guide d'essai](docs/GUIDE_ESSAI.md). Chaque nouveau compte reçoit une pièce d'essai, et la maison de démonstration a 18 pièces en stock, tirées d'un catalogue de références réelles.
+Pour savoir quoi essayer, voir le [guide d'essai](docs/GUIDE_ESSAI.md). Chaque nouveau compte reçoit une pièce d'essai, et la maison de démonstration, fictive, a 3 pièces en stock, tirées de son catalogue.
 
 | Commande | Effet |
 |---|---|
@@ -75,9 +75,9 @@ Comptes de démo, en dev uniquement (mots de passe dans `backend/prisma/seed.ts`
 
 | Compte | Rôle |
 |---|---|
-| `atelier@certis.demo` | Émetteur fictif « Atelier de démonstration », 18 pièces en stock |
-| `certis@pro.com` | Propriétaire : Submariner Date, Royal Oak Extra-Plat |
-| `julien.castro@certis.local` | Propriétaire : Carrera Calibre S, reçue par cession |
+| `atelier@certis.demo` | Maison fictive « Maison Orvène », 3 pièces en stock |
+| `certis@pro.com` | Propriétaire : Équinoxe Phase de Lune |
+| `julien.castro@certis.local` | Propriétaire : Méridienne Petite Seconde, reçue par cession |
 
 ## Périmètre
 

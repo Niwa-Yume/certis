@@ -1,5 +1,7 @@
 # API Certis
 
+Les refus sont en français, sous la forme « ce qui s'est passé : comment corriger » (ADR-0013). Avec `Accept-Language: en…`, ils arrivent en anglais, sous la même forme (ADR-0015).
+
 Base URL locale : `http://localhost:3001` (`npm run dev` à la racine).
 Toutes les routes valident leur corps (champs inconnus refusés, 400). Les routes marquées 🔒 exigent `Authorization: Bearer <accessToken>`.
 
@@ -16,7 +18,7 @@ Chaque refus répond `{ statusCode, message }`, avec un seul message en françai
 
 ## Catalogue
 
-`GET /catalog` : sans compte. 18 références réelles, sourcées sur le site de chaque marque (`source`), avec `brand`, `model`, `name`, `reference`, `movement`, `case`, `dial`, `bracelet` et, quand elle est vérifiée, `photo: { imageUrl, imageCutout }`. Le formulaire d'inscription s'en sert pour remplir la fiche.
+`GET /catalog` : sans compte. Les références de la maison de démonstration, fictive (ADR-0015) ; `source` pointe sur un domaine réservé, avec `brand`, `model`, `name`, `reference`, `movement`, `case`, `dial`, `bracelet` et `photo: { imageUrl, imageCutout }`. Le formulaire d'inscription s'en sert pour remplir la fiche.
 
 ## Clés publiques
 
@@ -60,11 +62,11 @@ Réponse 200 quand tout concorde :
   "imageCutout": true,
   "passport": {
     "v": 2, "type": "CertisPassport",
-    "issuer": { "id": "…", "name": "Atelier de démonstration" },
+    "issuer": { "id": "…", "name": "Maison Orvène" },
     "validFrom": "2024-03-12T00:00:00.000Z",
     "credentialSubject": {
-      "id": "…", "brand": "TAG Heuer", "model": "Carrera", "name": "Carrera Calibre S", "reference": "CV7A12.BA0795",
-      "specs": { "movement": "TAG Heuer Calibre S", "case": "Acier, 43 mm, lunette tachymètre", "dial": "Noir", "bracelet": "Acier" },
+      "id": "…", "brand": "Maison Orvène", "model": "Méridienne", "name": "Méridienne Petite Seconde", "reference": "OR-1201",
+      "specs": { "movement": "Calibre OR-21, remontage automatique", "case": "Acier poli et satiné, 39 mm", "dial": "Ardoise soleillé", "bracelet": "Cuir d’alligator brun, boucle ardillon" },
       "serialHash": "…", "image": "/public/watches/carrera.webp"
     }
   },

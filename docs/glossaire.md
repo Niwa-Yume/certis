@@ -4,7 +4,7 @@ Un mot, un sens, partout : dans l'interface, le code et la base. Quand l'interfa
 
 | Terme | Anglais | Code et base | Sens |
 |---|---|---|---|
-| Maison | House | `Issuer` | L'entreprise horlogère qui inscrit ses pièces et signe leur passeport. La seule à pouvoir inscrire une pièce (ADR-0003). |
+| Maison | House | `Issuer` | La Maison Orvène dans la démo (fictive). L'entreprise horlogère qui inscrit ses pièces et signe leur passeport. La seule à pouvoir inscrire une pièce (ADR-0003). |
 | Émetteur | Issuer | `Issuer`, rôle `ISSUER` | Une maison, vue comme signataire. À l'écran, on écrit « la maison » ; « émetteur » ne sert que dans les écrans métier. |
 | Pièce | Piece, watch | `Asset` | Une montre précise, inscrite au registre. Jamais « actif » à l'écran. |
 | Référence | Reference | `Asset.reference` | Le modèle tel que la maison le catalogue (une référence, plusieurs pièces). |
