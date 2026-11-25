@@ -93,7 +93,8 @@ Chaque nouveau compte créé hors invitation reçoit une pièce d'essai, fictive
 
 Le dépôt montre une maison fictive. Pour une démo aux couleurs d'une vraie maison, avec son accord, un fichier local remplace la maison, son catalogue, ses textes, ses liens et le visage de son conseiller :
 - `DEMO_HOUSE_FILE=demo-house.local.json` dans `backend/.env` ;
-- les photos dans `backend/public/watches/local/`.
+- les photos dans `backend/public/watches/local/` ;
+- la montre de l'accueil et de la connexion : `EXPO_PUBLIC_SHOWCASE_URL` (chemin d'une de ces photos, servie par l'API) et `EXPO_PUBLIC_SHOWCASE_LABEL` (son nom, lu par les lecteurs d'écran) dans `mobile/.env.local`. Sans elles, l'accueil montre la photo embarquée. Une photo non détourée se fond dans le fond sombre, sans cadre ; elle doit donc avoir un fond sombre.
 
 Git ignore ces fichiers : le nom et les visuels d'une marque réelle n'entrent jamais dans ce dépôt public (ADR-0015). Les couleurs passent par des tokens : `EXPO_PUBLIC_THEME=neutral` donne la version Certis, sans maison (ADR-0014).
 

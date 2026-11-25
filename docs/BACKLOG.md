@@ -498,7 +498,7 @@ Le brief : faire de Certis une démo de 3 minutes au niveau d'une grande maison 
 | S-08 | Vérification de l'e-mail à l'inscription (fournisseur d'envoi) : seule réponse au tiers qui bloque la création de compte à une adresse | Must avant toute donnée réelle | ADR-0019, risque résiduel 5 du modèle de menace |
 | S-09 | Purges planifiées : partages expirés, demandes de révision rendues, invitations expirées, QR expirés | Should | AIPD |
 | S-10 | LCP sous 2,5 s en « Slow 4G » : rendu serveur avec les données, ou premier écran sans react-native-web | Could | Rapport du lot 6 |
-| S-11 | Visuels de la Maison Orvène (export depuis Canva) ; retirer les photos de marques réelles qui restent dans le dépôt (`backend/public/watches`, `mobile/assets/watch/carrera.webp`, utilisée par l'accueil et la connexion) | Must pour la version publique | Lot 2 |
+| S-11 | Visuels de la Maison Orvène (export depuis Canva) ; retirer les photos de marques réelles qui restent dans le dépôt (`backend/public/watches`, `mobile/assets/watch/carrera.webp`, utilisée par l'accueil et la connexion ; une démo locale la remplace déjà par `EXPO_PUBLIC_SHOWCASE_URL`, `6877aa1`) | Must pour la version publique | Lot 2 |
 | S-12 | Durcissements relevés par l'audit (pas des constats) | Should | Audit run 1 |
 | S-13 | Nouveau run d'audit sur les corrections de la PR #9 et sur les écrans hors des sept (accueil, connexion, inscription d'une pièce) | Should | Audit run 1 |
 | S-14 | Accueil et connexion : encore dans la direction de la phase 4, hors des sept écrans | Should | Lot 1 |
