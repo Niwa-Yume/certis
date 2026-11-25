@@ -2,6 +2,8 @@
 
 La maison qui vend une montre lui remet un passeport qu'elle signe, et reste présente dans sa vie : remise, révisions, revente. Le propriétaire décide de ce qu'il montre. N'importe quel acheteur vérifie le passeport sans compte, et un expert peut refaire la vérification **sans faire confiance à Certis**.
 
+![Accueil de Certis : la Royal Oak Quantième Perpétuel « Cactus Jack » d'Audemars Piguet](docs/screenshots/accueil-ap-cactus-jack.jpg)
+
 **La démo de 3 minutes** : [`DEMO.md`](DEMO.md), une seule montre, de la remise à la revente, jouée de bout en bout par un [test automatique](e2e/demo.spec.ts).
 
 ## En 60 secondes
