@@ -140,3 +140,4 @@ vite.config.ts.timestamp-*
 
 # Données de démo locales (maison réelle, visuels sous droits) : jamais dans le dépôt.
 *.local.json
+backend/public/watches/local/
