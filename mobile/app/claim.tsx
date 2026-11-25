@@ -6,16 +6,18 @@ import api, { explain } from '../lib/api';
 import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import { tr } from '../lib/i18n';
 import { getItemAsync } from '../lib/storage';
+import Activation from '../components/Activation';
 import { Button, Icon, Notice, Wordmark, t } from '../components/ui';
 import { color, space, typeScale } from '../theme/tokens';
 
 /** Écran 7, fin de la cession : l'acheteur accepte la pièce, puis retrouve sa collection (écran 3). */
+// L'id vient du lien : encodé, il ne peut pas viser une autre route avec la session (audit run 1).
 export default function ClaimScreen() {
     const { id, nonce } = useLocalSearchParams<{ id: string; nonce: string }>();
     const router = useRouter();
     const [signedIn, setSignedIn] = useState<boolean | null>(null);
     const [loading, setLoading] = useState(false);
-    const [claimed, setClaimed] = useState(false);
+    const [claimed, setClaimed] = useState<false | { handover: boolean; name: string; house: string }>(false);
     const [error, setError] = useState<string | null>(null);
     const here = `/claim?id=${encodeURIComponent(id ?? '')}&nonce=${encodeURIComponent(nonce ?? '')}`;
 
@@ -27,8 +29,10 @@ export default function ClaimScreen() {
         setLoading(true);
         setError(null);
         try {
-            await api.post(`/assets/${id}/claim`, { nonce });
-            setClaimed(true);
+            const { data } = await api.post(`/assets/${encodeURIComponent(id)}/claim`, { nonce });
+            // La pièce est maintenant à ce compte : on lit son nom et sa maison pour l'activation.
+            const piece = await api.get(`/assets/${encodeURIComponent(id)}`).then((r) => r.data, () => null);
+            setClaimed({ handover: Boolean(data.handover), name: piece?.name ?? '', house: piece?.issuer.name ?? '' });
         } catch (e) {
             if (axios.isAxiosError(e) && e.response?.status === 401) return setSignedIn(false);
             // Le serveur dit pourquoi (offre réservée, déjà propriétaire, QR expiré…) et quoi faire.
@@ -50,6 +54,14 @@ export default function ClaimScreen() {
                     <View style={styles.block}>
                         {title(tr.claim.title)}
                         <Notice message={tr.claim.incomplete} />
+                    </View>
+                ) : claimed && claimed.handover ? (
+                    // Écran 2, côté client : la remise par la maison, le seul geste animé de l'app.
+                    <View style={styles.block}>
+                        <Activation piece={claimed.name} house={claimed.house} />
+                        {title(tr.activation.title)}
+                        <Text style={t.body}>{tr.activation.body(claimed.name, claimed.house)}</Text>
+                        <Button label={tr.activation.open} arrow onPress={() => router.replace('/dashboard')} />
                     </View>
                 ) : claimed ? (
                     <View style={styles.block}>

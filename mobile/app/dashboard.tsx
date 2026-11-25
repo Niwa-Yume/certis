@@ -8,20 +8,23 @@ import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import { registryNumber, splitName } from '../lib/format';
 import { deleteItemAsync } from '../lib/storage';
 import { NoPhoto, usePhoto } from '../components/WatchPhoto';
+import ServiceQueue from '../components/ServiceQueue';
 import { Badge, Button, Container, Glow, Notice, PieceName, Rise, State, TextField, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
-import { color, space } from '../theme/tokens';
+import { color, space, typeScale } from '../theme/tokens';
 
 type Asset = {
     id: string; name: string; brand: string; model: string; reference: string;
     status: string; imageUrl: string | null; imageCutout: boolean;
     // Pièce d'essai donnée à l'inscription (ADR-0012) : elle ne vaut pour aucune montre réelle.
     trial: boolean;
+    // Promise par une maison, pas encore remise (ADR-0017).
+    pending?: boolean;
 };
 type Me = { role: 'OWNER' | 'ISSUER'; issuer: { name: string } | null };
 
 export default function DashboardScreen() {
     const router = useRouter();
-    const { size, compact } = useLayout();
+    const { size } = useLayout();
     const [assets, setAssets] = useState<Asset[] | null>(null);
     const [me, setMe] = useState<Me | null>(null);
     const [failure, setFailure] = useState<unknown>(null);
@@ -57,35 +60,34 @@ export default function DashboardScreen() {
         <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: 72 }}>
             <Container style={styles.bar}>
                 <Wordmark />
-                <TextLink label="Déconnexion" tone={color.ink} onPress={logout} />
+                <TextLink label={tr.piece.signOut} tone={color.ink} onPress={logout} />
             </Container>
 
             <Container style={styles.head}>
                 <View style={{ gap: 8, flexShrink: 1 }}>
-                    <Text style={t.caps}>{issuer ? `${issuer.toUpperCase()} · ÉMETTEUR` : 'COLLECTION PRIVÉE'}</Text>
-                    <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: compact ? 48 : 72, lineHeight: compact ? 50 : 74 }]}>
-                        Vos <Text style={[t.italic, { color: color.ink }]}>pièces</Text>
-                    </Text>
+                    <Text style={t.caps}>{issuer ? tr.piece.issuerTag(issuer) : tr.piece.private}</Text>
+                    <PieceName parts={tr.piece.title} size={typeScale.display} />
                     {assets ? (
                         <Text style={[t.body, { color: color.slate }]}>
-                            {count === 0 ? 'Aucune pièce inscrite' : `${count} pièce${count > 1 ? 's' : ''} inscrite${count > 1 ? 's' : ''} au registre`}
+                            {count === 0 ? tr.piece.none : tr.piece.count(count)}
                         </Text>
                     ) : null}
                 </View>
-                {issuer ? <Button label="Inscrire une pièce" arrow onPress={() => router.push('/watch/new')} style={{ minWidth: 240 }} /> : null}
+                {issuer ? <Button label={tr.piece.register} arrow onPress={() => router.push('/watch/new')} style={{ minWidth: 240 }} /> : null}
             </Container>
 
             <Container>
+                {issuer ? <ServiceQueue /> : null}
                 {failure ? (
                     <State kind={stateOf(failure)} action={{ label: tr.retry, onPress: load }} />
                 ) : !assets ? (
                     <State kind="loading" />
                 ) : count === 0 ? (
-                    <State kind="empty" {...(issuer ? { title: 'Votre stock est vide', body: 'Inscrivez une pièce que vous avez examinée : vous signez son passeport, puis vous pouvez la remettre à son acheteur.' } : {})} />
+                    <State kind="empty" {...(issuer ? { title: tr.piece.emptyStock, body: tr.piece.emptyStockBody } : {})} />
                 ) : (
                     <View style={styles.grid}>
                         {assets.map((asset, i) => (
-                            <Rise key={asset.id} delay={i * 80} distance={20} style={{ width: `${100 / columns}%`, padding: space.sm }}>
+                            <Rise key={asset.id} delay={i * 80} distance={20} style={{ width: `${100 / columns}%`, padding: space.sm, flexDirection: 'column' }}>
                                 <Card asset={asset} onPress={() => router.push(`/watch/${asset.id}`)} />
                             </Rise>
                         ))}
@@ -142,6 +144,7 @@ function EraseAccount({ onErased }: { onErased: () => void }) {
 
 function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
     const { photo, onError } = usePhoto(asset.imageUrl, asset.imageCutout);
+    const stolen = asset.status === 'STOLEN';
     return (
         <Pressable
             onPress={onPress}
@@ -173,18 +176,17 @@ function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
                 ) : (
                     <NoPhoto />
                 )}
-                {asset.status === 'STOLEN' || asset.trial ? (
-                    <View style={{ position: 'absolute', top: 12, left: 12, gap: 6 }}>
-                        {asset.status === 'STOLEN' ? <Badge label="Déclarée volée" tone="refused" /> : null}
-                        {asset.trial ? <Badge label="Pièce d’essai" tone="info" /> : null}
-                    </View>
-                ) : null}
             </View>
             <View style={styles.cardBody}>
-                <Text style={[t.caps, { fontSize: 12 }]}>{asset.brand.toUpperCase()}</Text>
-                <PieceName parts={splitName(asset.name)} size={30} />
+                <View style={styles.cardTop}>
+                    <Text style={[t.caps, { flexShrink: 1 }]} numberOfLines={1}>{asset.brand}</Text>
+                    {/* Le statut en un mot ; le rouge ne dit que « volée ». */}
+                    <Text style={[t.caps, { color: stolen ? color.refused : color.ink }]}>{asset.pending ? tr.handover.status : tr.piece.status[stolen ? 'STOLEN' : asset.trial ? 'TRIAL' : 'ACTIVE']}</Text>
+                </View>
+                {/* Deux lignes réservées, deux au plus : toutes les cartes d'une rangée ont la même hauteur. */}
+                <PieceName parts={splitName(asset.name, asset.model)} size={typeScale.title} lines={2} style={{ minHeight: typeScale.title * 0.95 * 2 }} />
                 <View style={styles.cardMeta}>
-                    <Text style={[t.ref, { fontSize: 13 }]}>{asset.reference}</Text>
+                    <Text style={[t.ref, { fontSize: typeScale.caption, flexShrink: 1 }]}>{asset.reference}</Text>
                     <Text style={t.mono}>{registryNumber(asset.id)}</Text>
                 </View>
             </View>
@@ -199,9 +201,10 @@ const styles = StyleSheet.create({
     head: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: space.lg, paddingTop: space.xl, paddingBottom: space.lg },
     message: { gap: space.md, paddingVertical: space.xl },
     grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -space.sm },
-    card: { backgroundColor: color.card, borderWidth: 1, borderColor: color.hairline },
+    card: { flex: 1, backgroundColor: color.card, borderWidth: 1, borderColor: color.hairline },
     cardHover: { transform: [{ translateY: -4 }], boxShadow: '0 22px 44px rgba(11,20,48,0.16)' },
     cardPhoto: { height: 320, backgroundColor: color.deep, overflow: 'hidden' },
-    cardBody: { padding: 18, gap: 6 },
-    cardMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderColor: color.hairline },
+    cardTop: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },
+    cardBody: { flex: 1, padding: space.md, gap: space.sm },
+    cardMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginTop: 'auto', paddingTop: 12, borderTopWidth: 1, borderColor: color.hairline },
 });

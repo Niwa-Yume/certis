@@ -6,8 +6,10 @@ export function registryNumber(id: string): string {
     return `CRT·${hex.slice(0, 4)}·${hex.slice(4, 8)}`;
 }
 
-// « Méridienne Petite Seconde » → ['Méridienne', 'Petite Seconde'] : le second membre passe en italique.
-export function splitName(name: string): [string, string] {
+// Le nom en deux membres, le second en italique : « Royal Oak » + « Offshore Chronographe ».
+// Coupé après le modèle quand le nom commence par lui, sinon après le premier mot.
+export function splitName(name: string, model?: string): [string, string] {
+    if (model && name.startsWith(`${model} `)) return [model, name.slice(model.length + 1)];
     const i = name.indexOf(' ');
     return i < 0 ? [name, ''] : [name.slice(0, i), name.slice(i + 1)];
 }
@@ -21,6 +23,9 @@ export const shortDate = (iso: string) =>
 
 /** 12 mars 2026 */
 export const longDate = (iso: string) => date(iso, { day: 'numeric', month: 'long', year: 'numeric' });
+
+/** mars 2031 */
+export const monthYear = (iso: string) => date(iso, { month: 'long', year: 'numeric' });
 
 /** 12 MARS 2026 */
 export const capsDate = (iso: string) =>

@@ -29,13 +29,19 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
             #report { flex: none !important; height: auto !important; }
             #report * { opacity: 1 !important; }
             #scan, #stack, #inspect, #print-hero, #print-proof { display: none !important; }
+            /* La carte de la pièce, imprimée seule par la maison (lot 4). */
+            body:has(#piece-card) * { visibility: hidden; }
+            #piece-card, #piece-card * { visibility: visible; }
+            #piece-card { position: absolute; left: 0; top: 0; }
         }
     `;
     document.head.appendChild(style);
 }
 
 export default function RootLayout() {
-    const [loaded, error] = useFonts({
+    // Web : les polices sont déclarées et préchargées dans public/index.html, sans bloquer le rendu.
+    // Natif : chargées ici, avant le premier rendu.
+    const [loaded, error] = useFonts(Platform.OS === 'web' ? {} : {
         InstrumentSerif_400Regular,
         InstrumentSerif_400Regular_Italic,
         Geist_400Regular,

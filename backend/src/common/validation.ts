@@ -19,6 +19,8 @@ const FIELDS: Record<string, string> = {
   imageCutout: 'Photo détourée',
   note: 'Note de révision',
   nonce: 'QR',
+  hours: 'Durée du partage',
+  history: 'Histoire partagée',
 };
 
 // class-validator met la limite dans son message anglais : on la reprend telle quelle.
@@ -30,6 +32,7 @@ const RULES: Record<string, (message: string) => string> = {
   isNotEmpty: () => 'ce champ est obligatoire',
   isString: () => 'ce champ est obligatoire, sous forme de texte',
   isBoolean: () => 'oui ou non attendu',
+  isIn: () => 'choisissez une des valeurs proposées',
   isUuid: () => 'ce QR ou ce lien est incomplet ; scannez-le à nouveau',
   minLength: (m) => `${limit(m)} caractères au moins`,
   maxLength: (m) => `${limit(m)} caractères au plus`,

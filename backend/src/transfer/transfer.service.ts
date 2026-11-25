@@ -43,6 +43,15 @@ export class TransferService {
         );
       }
       recipientId = recipient.id;
+      // Remise d'une pièce invitée : réservée au compte qui a présenté le jeton, pas à l'e-mail (ADR-0019).
+      const invitation = await this.prisma.invitation.findFirst({
+        where: { assetId, email: recipientEmail },
+      });
+      if (invitation && invitation.acceptedUserId !== recipient.id) {
+        throw new ConflictException(
+          'Le client n’a pas encore accepté l’invitation : il doit l’ouvrir avec le QR remis en boutique avant la remise.',
+        );
+      }
     }
     return this.nonce.issue(assetId, ownerId, 'TRANSFER', recipientId);
   }
@@ -83,7 +92,16 @@ export class TransferService {
         from: this.registry.actorRef(assetId, offer.issuedById),
         to: this.registry.actorRef(assetId, newOwnerId),
       });
-      return { id: assetId, transferred: true };
+      // Remise : la pièce quitte le stock de sa maison. L'e-mail invité ne sert plus, on l'oublie.
+      const from = await tx.user.findUnique({
+        where: { id: offer.issuedById },
+      });
+      await tx.invitation.deleteMany({ where: { assetId } });
+      return {
+        id: assetId,
+        transferred: true,
+        handover: from?.issuerId === asset.issuerId,
+      };
     });
   }
 }

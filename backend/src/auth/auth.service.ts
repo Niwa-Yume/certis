@@ -49,6 +49,26 @@ export class AuthService {
     };
   }
 
+  /**
+   * Le client accepte l'invitation de la maison : un mot de passe, et son compte existe (ADR-0017).
+   * Pas de pièce d'essai : une vraie pièce l'attend déjà dans sa collection.
+   */
+  async acceptInvitation(token: string, password: string) {
+    const { email } = await this.assets.invitation(token);
+    if (await this.userService.findByEmail(email)) {
+      throw new ConflictException(
+        'Un compte existe déjà avec cet e-mail : connectez-vous, puis ouvrez à nouveau l’invitation pour ajouter la pièce à votre collection.',
+      );
+    }
+    const user = await this.userService.create(email, password);
+    // Le jeton présenté lie l'invitation à ce compte : l'e-mail seul ne suffit pas (ADR-0019).
+    await this.assets.bindInvitation(token, user);
+    return {
+      user: { id: user.id, email: user.email },
+      accessToken: await this.signToken(user.id, user.email),
+    };
+  }
+
   async login(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
     if (!user) {
@@ -80,6 +100,7 @@ export class AuthService {
       );
     }
     await this.assets.reclaimTrialPieces(userId);
+    await this.assets.forgetInvitations(userId);
     await this.userService.erase(userId);
   }
 

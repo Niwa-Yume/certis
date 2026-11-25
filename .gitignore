@@ -138,6 +138,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Données de démo locales (maison réelle, visuels sous droits) : jamais dans le dépôt.
+# Données de démo locales : hors dépôt. La version AP (demo-house.ap.json, watches/local/) est versionnée,
+# le dépôt étant privé pour la démo.
 *.local.json
-backend/public/watches/local/
+
+# Captures et rapports Lighthouse du lot 6 : ils montrent les visuels locaux, hors dépôt public.
+docs/lots/lot-6/local/

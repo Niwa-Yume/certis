@@ -4,25 +4,13 @@ import * as Linking from 'expo-linking';
 import QRCode from 'react-native-qrcode-svg';
 import api, { explain } from '../lib/api';
 import { color, palette, space } from '../theme/tokens';
-import { Button, IconButton, Notice, TextField, t, useLayout } from './ui';
+import { tr } from '../lib/i18n';
+import { Button, CopyButton, IconButton, Notice, TextField, t, useLayout } from './ui';
 
 type Kind = 'verify' | 'transfer';
 type Offer = { nonce: string; expiresAt: number; ttl: number };
 
-const COPY = {
-    verify: {
-        kicker: 'VÉRIFICATION',
-        title: 'Présentez ce QR',
-        text: 'L’acheteur le scanne avec l’appareil photo de son téléphone. Aucun compte n’est nécessaire.',
-        route: '/verify',
-    },
-    transfer: {
-        kicker: 'CESSION',
-        title: 'Céder la pièce',
-        text: 'Le nouveau propriétaire scanne ce QR depuis son compte Certis, puis accepte la pièce.',
-        route: '/claim',
-    },
-} as const;
+const ROUTE = { verify: '/verify', transfer: '/claim' } as const;
 
 /**
  * QR à usage unique, lié à cette montre : 60 s pour une vérification, 5 min pour une cession.
@@ -46,7 +34,7 @@ export default function NonceSheet({ kind, assetId, onClose }: { kind: Kind | nu
             const expiresAt = new Date(res.data.expiresAt).getTime();
             setOffer({ nonce: res.data.nonce, expiresAt, ttl: Math.max(1, Math.round((expiresAt - Date.now()) / 1000)) });
         } catch (e) {
-            setError(explain(e, 'QR impossible à créer : réessayez dans un instant.'));
+            setError(explain(e, tr.sheet.failed));
         } finally {
             setLoading(false);
         }
@@ -69,15 +57,15 @@ export default function NonceSheet({ kind, assetId, onClose }: { kind: Kind | nu
     }, [offer]);
 
     if (!kind) return null;
-    const copy = COPY[kind];
+    const copy = tr.sheet[kind];
     const expired = offer !== null && left === 0;
-    const qr = offer && !expired ? Linking.createURL(copy.route, { queryParams: { id: assetId, nonce: offer.nonce } }) : null;
+    const qr = offer && !expired ? Linking.createURL(ROUTE[kind], { queryParams: { id: assetId, nonce: offer.nonce } }) : null;
     const minutes = left >= 60 ? `${Math.floor(left / 60)} min ${String(left % 60).padStart(2, '0')}` : `${left} s`;
 
     return (
         <Modal transparent visible animationType="fade" onRequestClose={onClose}>
             <View style={[styles.backdrop, { justifyContent: compact ? 'flex-end' : 'center' }]}>
-                <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" accessibilityRole="button" />
+                <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={tr.sheet.close} accessibilityRole="button" />
                 <ScrollView
                     style={[styles.sheet, compact ? styles.sheetCompact : styles.sheetWide]}
                     contentContainerStyle={{ padding: space.lg, gap: space.md }}
@@ -86,17 +74,17 @@ export default function NonceSheet({ kind, assetId, onClose }: { kind: Kind | nu
                     <View style={styles.head}>
                         <View style={{ flex: 1, gap: 6 }}>
                             <Text style={t.caps}>{copy.kicker}</Text>
-                            <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: 36, lineHeight: 36 }]}>{copy.title}</Text>
+                            <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: 32, lineHeight: 34 }]}>{copy.title}</Text>
                         </View>
-                        <IconButton icon="close" label="Fermer" onPress={onClose} />
+                        <IconButton icon="close" label={tr.sheet.close} onPress={onClose} />
                     </View>
                     <Text style={t.body}>{copy.text}</Text>
 
                     {kind === 'transfer' && !offer ? (
                         <>
                             <TextField
-                                label="E-mail du destinataire (recommandé)"
-                                hint="Seul ce compte pourra accepter la pièce. Sans e-mail, quiconque scanne le QR peut l’accepter."
+                                label={tr.sheet.recipient}
+                                hint={tr.sheet.recipientHint}
                                 value={email}
                                 onChangeText={setEmail}
                                 autoCapitalize="none"
@@ -104,38 +92,43 @@ export default function NonceSheet({ kind, assetId, onClose }: { kind: Kind | nu
                                 keyboardType="email-address"
                             />
                             {error ? <Notice message={error} /> : null}
-                            <Button label="Générer le QR de cession" arrow loading={loading} onPress={() => issue('transfer', email.trim() || undefined)} />
+                            <Button label={tr.sheet.generate} arrow loading={loading} onPress={() => issue('transfer', email.trim() || undefined)} />
                         </>
                     ) : null}
 
                     {qr ? (
                         <View style={{ alignItems: 'center', gap: space.md }}>
-                            <View style={styles.qr} accessible accessibilityRole="image" accessibilityLabel={`QR de ${kind === 'verify' ? 'vérification' : 'cession'}`}>
+                            <View style={styles.qr} accessible accessibilityRole="image" accessibilityLabel={tr.sheet.qr[kind]}>
                                 <QRCode value={qr} size={220} color={palette.light.ink} backgroundColor={palette.light.card} />
                             </View>
                             <View style={styles.progressTrack}>
                                 <View style={[styles.progress, { width: `${(left / offer!.ttl) * 100}%` }]} />
                             </View>
                             <Text style={[t.mono, { color: color.ink }]} accessibilityLiveRegion="polite">
-                                Valable encore {minutes} · une seule utilisation
+                                {tr.sheet.left(minutes)}
                             </Text>
-                            {email.trim() && kind === 'transfer' ? <Text style={t.small}>Réservé à {email.trim()}</Text> : null}
+                            {/* Le lien, lisible et copiable : sur ordinateur, on ne scanne pas son propre écran. */}
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'stretch' }}>
+                                <Text selectable nativeID="qr-link" numberOfLines={1} style={[t.mono, { flex: 1 }]}>{qr}</Text>
+                                <CopyButton value={qr} what={tr.sheet.link} />
+                            </View>
+                            {email.trim() && kind === 'transfer' ? <Text style={t.small}>{tr.sheet.reserved(email.trim())}</Text> : null}
                         </View>
                     ) : null}
 
-                    {kind === 'verify' && loading ? <Text style={t.small}>Génération du QR…</Text> : null}
+                    {kind === 'verify' && loading ? <Text style={t.small}>{tr.sheet.generating}</Text> : null}
 
                     {expired ? (
                         <View style={{ gap: space.md }}>
-                            <Text style={t.body}>Ce QR a expiré : il ne peut plus servir.</Text>
-                            <Button label="Générer un nouveau QR" arrow loading={loading} onPress={() => issue(kind, email.trim() || undefined)} />
+                            <Text style={t.body}>{tr.sheet.expired}</Text>
+                            <Button label={tr.sheet.again} arrow loading={loading} onPress={() => issue(kind, email.trim() || undefined)} />
                         </View>
                     ) : null}
 
                     {error && kind === 'verify' ? (
                         <View style={{ gap: space.md }}>
                             <Notice message={error} />
-                            <Button label="Réessayer" variant="secondary" onPress={() => issue('verify')} />
+                            <Button label={tr.retry} variant="secondary" onPress={() => issue('verify')} />
                         </View>
                     ) : null}
                 </ScrollView>

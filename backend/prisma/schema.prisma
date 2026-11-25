@@ -25,6 +25,10 @@ model Asset {
   // Copies de la chaîne (propriétaire, statut) : la vérification les recalcule (ADR-0006).
   ownerId         String
   issuerId        String
+  // La personne de la maison qui a inscrit la pièce : son visage sur la fiche, hors du passeport signé.
+  issuedById      String?
+  // La carte remise avec la pièce : son QR mène à /cards/:cardId, qui ne dit que l'état du passeport.
+  cardId          String?     @unique
   // Passeport JWS signé par l'émetteur (ADR-0004) ; le numéro de série n'y figure qu'en empreinte (ADR-0005).
   passport        String
   serialHash      String
@@ -33,10 +37,14 @@ model Asset {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  owner  User        @relation(fields: [ownerId], references: [id])
-  issuer Issuer      @relation(fields: [issuerId], references: [id])
-  nonces AuthNonce[]
-  events Event[]
+  owner       User             @relation(fields: [ownerId], references: [id])
+  issuer      Issuer           @relation(fields: [issuerId], references: [id])
+  issuedBy    User?            @relation("IssuedBy", fields: [issuedById], references: [id], onDelete: SetNull)
+  nonces      AuthNonce[]
+  events      Event[]
+  invitations Invitation[]
+  services    ServiceRequest[]
+  shares      Share[]
 }
 
 model User {
@@ -45,12 +53,19 @@ model User {
   passwordHash String
   role         Role     @default(OWNER)
   issuerId     String?
+  // Pour un compte de maison : le visage que voit le client (nom, rôle, photo). Facultatif.
+  displayName  String?
+  title        String?
+  photoUrl     String?
   createdAt    DateTime @default(now())
 
-  issuer         Issuer?     @relation(fields: [issuerId], references: [id])
+  issuer         Issuer?          @relation(fields: [issuerId], references: [id])
   assets         Asset[]
-  issuedNonces   AuthNonce[] @relation("NonceIssuer")
-  reservedNonces AuthNonce[] @relation("NonceRecipient")
+  issuedAssets   Asset[]          @relation("IssuedBy")
+  services       ServiceRequest[]
+  shares         Share[]
+  issuedNonces   AuthNonce[]      @relation("NonceIssuer")
+  reservedNonces AuthNonce[]      @relation("NonceRecipient")
 }
 
 enum Role {
@@ -84,15 +99,15 @@ model IssuerKey {
 }
 
 model AuthNonce {
-  id         String       @id @default(uuid())
-  nonceValue String       @unique
-  purpose    NoncePurpose
-  expiresAt  DateTime
-  used       Boolean      @default(false)
-  usedAt     DateTime? //horodatage au moment où le nonce a été consommé permet de vérifier que le nonce n'est pas réutilisé après son expiration (en gros traçabilité !!!)
+  id           String       @id @default(uuid())
+  nonceValue   String       @unique
+  purpose      NoncePurpose
+  expiresAt    DateTime
+  used         Boolean      @default(false)
+  usedAt       DateTime? //horodatage au moment où le nonce a été consommé permet de vérifier que le nonce n'est pas réutilisé après son expiration (en gros traçabilité !!!)
   // Contrôles du numéro de série permis après cette vérification (ADR-0005).
-  serialChecks Int        @default(0)
-  createdAt  DateTime     @default(now())
+  serialChecks Int          @default(0)
+  createdAt    DateTime     @default(now())
 
   assetId     String
   asset       Asset   @relation(fields: [assetId], references: [id])
@@ -165,4 +180,62 @@ enum AssetStatus {
   INACTIVE
   TRANSFERRED
   STOLEN
+}
+
+// La maison invite un client : la pièce l'attend dans sa collection jusqu'à la remise (ADR-0017).
+// Le jeton n'est montré qu'une fois, à la maison ; seule son empreinte est gardée. Supprimée à la remise.
+model Invitation {
+  id             String   @id @default(uuid())
+  tokenHash      String   @unique
+  assetId        String
+  email          String
+  createdById    String // le compte de la maison qui détient la pièce
+  // Le compte qui a présenté le jeton (création ou liaison) : seul lui voit la pièce et reçoit la remise.
+  // L'e-mail seul ne prouve rien, l'inscription n'est pas vérifiée (audit run 1, ADR-0019).
+  acceptedUserId String?
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([acceptedUserId])
+}
+
+// La demande de révision d'un propriétaire, suivie en trois étapes par la maison (ADR-0018).
+// Le retour inscrit un maillon SERVICE : la révision entre dans l'histoire de la pièce.
+model ServiceRequest {
+  id          String        @id @default(uuid())
+  assetId     String
+  ownerId     String // la maison voit son e-mail, pour convenir du dépôt
+  status      ServiceStatus @default(REQUESTED)
+  requestedAt DateTime      @default(now())
+  receivedAt  DateTime?
+  returnedAt  DateTime?
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  owner User  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+}
+
+enum ServiceStatus {
+  REQUESTED
+  IN_WORKSHOP
+  RETURNED
+}
+
+// Un partage choisi par le propriétaire : un lien, ou son QR, à durée limitée et révocable.
+// Seule l'empreinte du jeton est gardée. Il ne vaut plus si la pièce change de mains (ADR-0018).
+model Share {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  assetId   String
+  ownerId   String
+  history   Boolean // montrer l'histoire, ou seulement « Passeport vérifié »
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  owner User  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }
