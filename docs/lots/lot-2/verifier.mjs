@@ -29,7 +29,7 @@ const account = async () => {
 const issuer = (await call('POST', '/auth/login', { email: 'atelier@certis.demo', password: process.env.ISSUER_PASSWORD })).accessToken;
 const [catalogue] = await call('GET', '/catalog');
 const mint = async (owner) => {
-    const { source, photo, ...entry } = catalogue;
+    const { source, photo, story, ...entry } = catalogue;
     return (await call('POST', '/assets', { ...entry, ...photo, serial: `VERIF-${randomUUID().slice(0, 8)}`, ownerEmail: owner.email }, issuer)).id;
 };
 

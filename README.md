@@ -63,6 +63,7 @@ Pour savoir quoi essayer, voir le [guide d'essai](docs/GUIDE_ESSAI.md). Chaque n
 | Commande | Effet |
 |---|---|
 | `npm run demo` | Le cycle de vie complet d'une pièce, en 8 étapes ([déroulé de la démo](docs/DEMO_SCRIPT.md)) |
+| `cd e2e && npm ci && WEB_URL=<web> npm run test:10` | La démo de 3 minutes ([DEMO.md](DEMO.md)), écrans 1 à 7, jouée 10 fois de suite sur mobile et sur ordinateur |
 | `npm run demo -- 6` | Rejouer une étape seule, sur une pièce neuve |
 | `node tools/verify/verify.mjs preuve.json jwks.json` | Vérifier un passeport et sa chaîne sans Certis |
 | `npm --prefix backend run db:reset` | Repartir d'une base de démo propre |
