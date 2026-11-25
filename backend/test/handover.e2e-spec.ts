@@ -175,7 +175,7 @@ describe('Invitation, pending piece and handover (e2e)', () => {
     await accept(late.invitation.token).expect(410);
   });
 
-  it('H6: an e-mail that already has an account signs in instead; the piece waits there too', async () => {
+  it('H6: an e-mail that already has an account signs in, then links the invitation with its token', async () => {
     const house = await createIssuer(app);
     const piece = await stock(house);
     const existing = await registerUser(app);
@@ -187,6 +187,14 @@ describe('Invitation, pending piece and handover (e2e)', () => {
 
     const refusal = await accept(body.token).expect(409);
     expect(refusal.body.message).toMatch(/connectez-vous/);
+    // Sans le jeton, l'e-mail seul ne donne rien (audit run 1, ADR-0019).
+    expect(await collection(existing)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: piece.id })]),
+    );
+    await http(app)
+      .post(`/invitations/${body.token}/link`)
+      .set(auth(existing))
+      .expect(201);
     expect(await collection(existing)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: piece.id, pending: true }),
