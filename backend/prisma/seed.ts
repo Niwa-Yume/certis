@@ -5,6 +5,7 @@ import { AppModule } from '../src/app.module';
 import { AssetService } from '../src/asset/asset.service';
 import {
   CATALOG,
+  DEMO_ADVISOR,
   DEMO_HOUSE,
   DEMO_WATCHES,
   type DemoWatch,
@@ -125,6 +126,15 @@ async function main() {
       users.set(email, user.id);
     }
     const issuerUserId = users.get(ISSUER.email)!;
+    // Le visage que voit le client sur chaque pièce inscrite par ce compte.
+    await prisma.user.update({
+      where: { id: issuerUserId },
+      data: {
+        displayName: DEMO_ADVISOR.name,
+        title: DEMO_ADVISOR.title,
+        photoUrl: DEMO_ADVISOR.photoUrl ?? null,
+      },
+    });
     const issuer = await issuers.create(ISSUER.name);
     await issuers.grant(issuerUserId, issuer.id);
 

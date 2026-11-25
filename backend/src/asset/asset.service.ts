@@ -16,6 +16,7 @@ import { NonceService } from '../nonce/nonce.service';
 import { PassportPayload, RegistryService } from '../registry/registry.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
 import { pieceNotFound } from '../common/errors';
+import { CATALOG, DEMO_HOUSE, DEMO_LINKS } from '../catalog/catalog';
 import { TRIAL_ACCOUNT, TRIAL_ISSUER, TRIAL_PIECE } from './trial';
 
 // Le contrôle du numéro de série suit une vérification réussie, et reste borné (ADR-0005).
@@ -105,6 +106,7 @@ export class AssetService {
           status: 'ACTIVE',
           ownerId,
           issuerId,
+          issuedById: issuerUserId,
           passport,
           serialHash,
           imageUrl,
@@ -205,17 +207,20 @@ export class AssetService {
   /** Vue du propriétaire : la pièce, son émetteur et sa provenance, où il se reconnaît. */
   async findOne(id: string, userId: string) {
     const asset = await this.owned(id, userId);
-    const [issuer, events] = await Promise.all([
+    const [issuer, events, issuedBy] = await Promise.all([
       this.prisma.issuer.findUniqueOrThrow({ where: { id: asset.issuerId } }),
       this.prisma.event.findMany({
         where: { assetId: id },
         orderBy: { seq: 'asc' },
       }),
+      this.face(asset.issuedById),
     ]);
     const me = this.registry.actorRef(id, userId);
     return {
       ...this.summary({ ...asset, issuer }),
       issuer: { id: issuer.id, name: issuer.name },
+      issuedBy,
+      ...this.house(asset.reference, issuer.name),
       provenance: events.map((e) => ({
         ...this.provenance(e),
         you: (e.data as Record<string, string>).to === me,
@@ -310,6 +315,8 @@ export class AssetService {
       status: result.stolen ? 'STOLEN' : 'ACTIVE',
       // Pièce d'essai (ADR-0012) : l'interface le dit avant tout le reste.
       trial: asset.issuer.trial,
+      // Le visage de la maison : hors du passeport signé, affiché à côté (principe « un visage »).
+      issuedBy: await this.face(asset.issuedById),
       passport: result.payload,
       // Indication d'affichage (photo détourée), hors du passeport signé.
       imageCutout: asset.imageCutout,
@@ -371,6 +378,24 @@ export class AssetService {
   }
 
   /** Réservé au propriétaire : 404 plutôt que 403, pour ne pas confirmer l'existence d'une montre d'autrui (AUDIT S8). */
+  /** Le visage de la personne qui a inscrit la pièce, si la maison l'a renseigné (hors passeport). */
+  private async face(userId: string | null) {
+    if (!userId) return null;
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    return user?.displayName
+      ? { name: user.displayName, title: user.title, photoUrl: user.photoUrl }
+      : null;
+  }
+
+  /** Ce que la maison raconte : l'histoire de la référence, et ses liens (catalogue de démo). */
+  private house(reference: string, issuerName: string) {
+    const entry = CATALOG.find((e) => e.reference === reference);
+    return {
+      story: entry?.story ?? null,
+      links: issuerName === DEMO_HOUSE ? DEMO_LINKS : [],
+    };
+  }
+
   private async owned(id: string, ownerId: string) {
     const asset = await this.prisma.asset.findFirst({ where: { id, ownerId } });
     if (!asset) throw pieceNotFound();

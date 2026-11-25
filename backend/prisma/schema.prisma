@@ -25,6 +25,8 @@ model Asset {
   // Copies de la chaîne (propriétaire, statut) : la vérification les recalcule (ADR-0006).
   ownerId         String
   issuerId        String
+  // La personne de la maison qui a inscrit la pièce : son visage sur la fiche, hors du passeport signé.
+  issuedById      String?
   // Passeport JWS signé par l'émetteur (ADR-0004) ; le numéro de série n'y figure qu'en empreinte (ADR-0005).
   passport        String
   serialHash      String
@@ -33,10 +35,11 @@ model Asset {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  owner  User        @relation(fields: [ownerId], references: [id])
-  issuer Issuer      @relation(fields: [issuerId], references: [id])
-  nonces AuthNonce[]
-  events Event[]
+  owner    User        @relation(fields: [ownerId], references: [id])
+  issuer   Issuer      @relation(fields: [issuerId], references: [id])
+  issuedBy User?       @relation("IssuedBy", fields: [issuedById], references: [id], onDelete: SetNull)
+  nonces   AuthNonce[]
+  events   Event[]
 }
 
 model User {
@@ -45,10 +48,15 @@ model User {
   passwordHash String
   role         Role     @default(OWNER)
   issuerId     String?
+  // Pour un compte de maison : le visage que voit le client (nom, rôle, photo). Facultatif.
+  displayName  String?
+  title        String?
+  photoUrl     String?
   createdAt    DateTime @default(now())
 
   issuer         Issuer?     @relation(fields: [issuerId], references: [id])
   assets         Asset[]
+  issuedAssets   Asset[]     @relation("IssuedBy")
   issuedNonces   AuthNonce[] @relation("NonceIssuer")
   reservedNonces AuthNonce[] @relation("NonceRecipient")
 }
@@ -84,15 +92,15 @@ model IssuerKey {
 }
 
 model AuthNonce {
-  id         String       @id @default(uuid())
-  nonceValue String       @unique
-  purpose    NoncePurpose
-  expiresAt  DateTime
-  used       Boolean      @default(false)
-  usedAt     DateTime? //horodatage au moment où le nonce a été consommé permet de vérifier que le nonce n'est pas réutilisé après son expiration (en gros traçabilité !!!)
+  id           String       @id @default(uuid())
+  nonceValue   String       @unique
+  purpose      NoncePurpose
+  expiresAt    DateTime
+  used         Boolean      @default(false)
+  usedAt       DateTime? //horodatage au moment où le nonce a été consommé permet de vérifier que le nonce n'est pas réutilisé après son expiration (en gros traçabilité !!!)
   // Contrôles du numéro de série permis après cette vérification (ADR-0005).
-  serialChecks Int        @default(0)
-  createdAt  DateTime     @default(now())
+  serialChecks Int          @default(0)
+  createdAt    DateTime     @default(now())
 
   assetId     String
   asset       Asset   @relation(fields: [assetId], references: [id])
