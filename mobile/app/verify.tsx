@@ -35,7 +35,7 @@ export default function VerifyScreen() {
     const run = useCallback(() => {
         if (!id || !nonce) return setOutcome({ state: 'unverifiable', reason: tr.verify.incomplete, retry: false });
         setOutcome({ state: 'loading' });
-        api.post(`/assets/${id}/authenticate`, { nonce })
+        api.post(`/assets/${encodeURIComponent(id)}/authenticate`, { nonce })
             .then((res) => setOutcome(res.data.valid ? { state: 'verified', result: res.data } : { state: 'not-confirmed' }))
             .catch((error) => setOutcome(unverifiable(error)));
     }, [id, nonce]);
