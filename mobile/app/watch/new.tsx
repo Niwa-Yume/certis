@@ -115,9 +115,9 @@ export default function NewWatchScreen() {
                             label="Rechercher une référence"
                             value={query}
                             onChangeText={setQuery}
-                            placeholder="ex. Royal Oak noir, 126610LN, Nautilus"
+                            placeholder="ex. Méridienne ardoise, OR-1201"
                             autoCapitalize="none"
-                            hint={catalog.length ? `${catalog.length} références relevées sur le site des marques. Elles remplissent la fiche ; il ne reste que le numéro de série.` : undefined}
+                            hint={catalog.length ? `${catalog.length} références au catalogue de la maison. Elles remplissent la fiche ; il ne reste que le numéro de série.` : undefined}
                         />
                         {results.length ? (
                             <View accessibilityRole="list" style={styles.results}>
@@ -140,15 +140,15 @@ export default function NewWatchScreen() {
                         {picked ? (
                             <Notice
                                 tone="info"
-                                message={`Fiche reprise du catalogue : vérifiez chaque champ sur la pièce et ses papiers, puis saisissez son numéro de série. Source : ${new URL(picked.source).hostname.replace(/^www\./, '')}.`}
+                                message={`Fiche reprise du catalogue : vérifiez chaque champ sur la pièce et ses papiers, puis saisissez son numéro de série. `}
                             />
                         ) : null}
 
                         <Text style={[t.label, t.strong, styles.group]}>LA PIÈCE</Text>
-                        <TextField label="Marque" value={form.brand} onChangeText={set('brand')} placeholder="ex. TAG Heuer" />
-                        <TextField label="Modèle" value={form.model} onChangeText={set('model')} placeholder="ex. Carrera" />
+                        <TextField label="Marque" value={form.brand} onChangeText={set('brand')} placeholder="ex. Maison Orvène" />
+                        <TextField label="Modèle" value={form.model} onChangeText={set('model')} placeholder="ex. Méridienne" />
                         <TextField label="Référence" value={form.reference} onChangeText={set('reference')} placeholder="ex. CV7A12.BA0795" autoCapitalize="characters" />
-                        <TextField label="Nom de la pièce" value={form.name} onChangeText={set('name')} placeholder="ex. Carrera Calibre S" hint="Tel qu’il apparaîtra sur le certificat." />
+                        <TextField label="Nom de la pièce" value={form.name} onChangeText={set('name')} placeholder="ex. Méridienne Petite Seconde" hint="Tel qu’il apparaîtra sur le certificat." />
                         <TextField
                             label="Numéro de série"
                             value={form.serial}
@@ -158,7 +158,7 @@ export default function NewWatchScreen() {
                         />
 
                         <Text style={[t.label, t.strong, styles.group]}>CARACTÉRISTIQUES (FACULTATIF)</Text>
-                        <TextField label="Mouvement" value={form.movement} onChangeText={set('movement')} placeholder="ex. TAG Heuer Calibre S" />
+                        <TextField label="Mouvement" value={form.movement} onChangeText={set('movement')} placeholder="ex. Calibre OR-21" />
                         <TextField label="Boîtier" value={form.case} onChangeText={set('case')} placeholder="ex. Acier, 43 mm" />
                         <TextField label="Cadran" value={form.dial} onChangeText={set('dial')} placeholder="ex. Noir" />
                         <TextField label="Bracelet" value={form.bracelet} onChangeText={set('bracelet')} placeholder="ex. Acier" />

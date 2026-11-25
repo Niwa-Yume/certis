@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { ACCESS_TOKEN_KEY } from './auth';
 import { deleteItemAsync, getItemAsync } from './storage';
-import { tr } from './i18n';
+import { lang, tr } from './i18n';
 
 const DEFAULT_BACKEND_PORT = 3001;
 
@@ -54,6 +54,8 @@ export const absoluteUrl = (path: string) => (path.startsWith('/') ? `${api.defa
 // → Centralise la logique auth en un seul endroit. Chaque appel api.get/post/...
 //   est automatiquement authentifié sans rien changer dans les écrans.
 api.interceptors.request.use(async (config) => {
+    // Les refus de l'API suivent la langue de l'interface (ADR-0015).
+    config.headers['Accept-Language'] = lang;
     const token = await getItemAsync(ACCESS_TOKEN_KEY);
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;

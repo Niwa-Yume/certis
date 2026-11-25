@@ -135,7 +135,7 @@ export function Wordmark({ tone = color.ink, size = 13 }: { tone?: string; size?
     );
 }
 
-/** « Carrera » droit + « Calibre S » italique : le second membre porte l'accent par la forme, pas par la couleur. */
+/** « Méridienne » droit + « Petite Seconde » italique : le second membre porte l'accent par la forme, pas par la couleur. */
 export function PieceName({ parts, size, style, accent = color.ink, stacked = false }: {
     parts: [string, string]; size: number; style?: StyleProp<TextStyle>; accent?: string; stacked?: boolean;
 }) {
@@ -377,11 +377,10 @@ export function Spinner({ size = 120, track = 'rgba(244,241,234,0.15)' }: { size
  * Chargement, vide, hors ligne, erreur, introuvable, révoqué : ce qui se passe, en titre, puis quoi faire.
  * Le texte par défaut vient du dictionnaire ; un écran ne le remplace que s'il en sait plus.
  */
-export function State({ kind, title, body, action }: {
-    kind: keyof typeof tr.state; title?: string; body?: string; action?: { label: string; onPress: () => void };
+export function State({ kind, title, body, action, alarm = kind === 'revoked' }: {
+    kind: keyof typeof tr.state; title?: string; body?: string; action?: { label: string; onPress: () => void }; alarm?: boolean;
 }) {
     const copy = tr.state[kind];
-    const alarm = kind === 'revoked';
     return (
         <View
             accessibilityRole={alarm ? 'alert' : undefined}

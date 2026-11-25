@@ -6,7 +6,7 @@ export function registryNumber(id: string): string {
     return `CRT·${hex.slice(0, 4)}·${hex.slice(4, 8)}`;
 }
 
-// « Carrera Calibre S » → ['Carrera', 'Calibre S'] : le second membre passe en italique.
+// « Méridienne Petite Seconde » → ['Méridienne', 'Petite Seconde'] : le second membre passe en italique.
 export function splitName(name: string): [string, string] {
     const i = name.indexOf(' ');
     return i < 0 ? [name, ''] : [name.slice(0, i), name.slice(i + 1)];
