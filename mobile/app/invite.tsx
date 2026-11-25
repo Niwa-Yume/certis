@@ -6,10 +6,10 @@ import api, { explain, stateOf } from '../lib/api';
 import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import { tr } from '../lib/i18n';
 import { splitName } from '../lib/format';
-import { setItemAsync } from '../lib/storage';
+import { getItemAsync, setItemAsync } from '../lib/storage';
 import FaceLine, { type Face } from '../components/Face';
 import Showcase from '../components/Showcase';
-import { Button, Notice, PieceName, State, TextField, TextLink, t, useLayout } from '../components/ui';
+import { Button, Notice, PieceName, State, TextField, t, useLayout } from '../components/ui';
 import { color, space, typeScale } from '../theme/tokens';
 
 type Invitation = {
@@ -30,6 +30,12 @@ export default function InviteScreen() {
     const [password, setPassword] = useState('');
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<{ message: string; exists: boolean } | null>(null);
+    const [signedIn, setSignedIn] = useState(false);
+    const here = `/invite?token=${encodeURIComponent(token ?? '')}`;
+
+    useEffect(() => {
+        getItemAsync(ACCESS_TOKEN_KEY).then((t) => setSignedIn(Boolean(t)));
+    }, []);
 
     useEffect(() => {
         api.get(`/invitations/${encodeURIComponent(token ?? '')}`).then((res) => setInvitation(res.data), setFailure);
@@ -45,6 +51,20 @@ export default function InviteScreen() {
         } catch (e) {
             const exists = axios.isAxiosError(e) && e.response?.status === 409;
             setError({ message: explain(e, tr.invite.failed), exists });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    // Compte existant, connecté : le jeton lie l'invitation à ce compte (ADR-0019).
+    const link = async () => {
+        setBusy(true);
+        setError(null);
+        try {
+            await api.post(`/invitations/${encodeURIComponent(token ?? '')}/link`);
+            router.replace('/dashboard');
+        } catch (e) {
+            setError({ message: explain(e, tr.invite.failed), exists: false });
         } finally {
             setBusy(false);
         }
@@ -75,27 +95,38 @@ export default function InviteScreen() {
             </View>
             <PieceName parts={splitName(piece.name, piece.model)} size={typeScale.title} />
             {invitation.issuedBy ? <FaceLine face={invitation.issuedBy} house={invitation.house} /> : null}
-            <Text style={t.body}>{tr.invite.body(invitation.issuedBy?.name ?? invitation.house, piece.name)}</Text>
+            <Text style={t.body}>{(signedIn ? tr.invite.ready : tr.invite.body)(invitation.issuedBy?.name ?? invitation.house, piece.name)}</Text>
 
             <View style={styles.form}>
                 <View style={{ gap: space.xs }}>
                     <Text style={t.label}>{tr.invite.email}</Text>
                     <Text style={[t.body, t.medium]}>{invitation.email}</Text>
                 </View>
-                <TextField
-                    label={tr.invite.password}
-                    hint={tr.invite.passwordHint}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    autoComplete="new-password"
-                    onSubmitEditing={create}
-                />
-                {error ? <Notice message={error.message} /> : null}
-                {error?.exists ? (
-                    <TextLink label={tr.invite.signIn} onPress={() => router.push({ pathname: '/login', params: { next: '/dashboard' } })} />
+                {signedIn ? (
+                    <>
+                        <Text style={t.small}>{tr.invite.signedIn}</Text>
+                        {error ? <Notice message={error.message} /> : null}
+                        <Button label={tr.invite.add} arrow loading={busy} onPress={link} />
+                    </>
                 ) : (
-                    <Button label={tr.invite.create} arrow loading={busy} disabled={password.length < 8} onPress={create} />
+                    <>
+                        <TextField
+                            label={tr.invite.password}
+                            hint={tr.invite.passwordHint}
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry
+                            autoComplete="new-password"
+                            onSubmitEditing={create}
+                        />
+                        {error ? <Notice message={error.message} /> : null}
+                        {error?.exists ? (
+                            // Compte existant : se connecter, puis revenir ici pour lier l'invitation.
+                            <Button label={tr.invite.signIn} arrow onPress={() => router.push({ pathname: '/login', params: { next: here } })} />
+                        ) : (
+                            <Button label={tr.invite.create} arrow loading={busy} disabled={password.length < 8} onPress={create} />
+                        )}
+                    </>
                 )}
             </View>
         </Showcase>
