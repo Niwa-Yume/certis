@@ -90,10 +90,10 @@ const STEPS = [
       const piece = await must('POST', '/assets', {
         token: s.issuer.token,
         body: {
-          name: 'Carrera Calibre S', brand: 'TAG Heuer', model: 'Carrera', reference: 'CV7A12.BA0795',
-          serial: s.serial, movement: 'TAG Heuer Calibre S', case: 'Acier, 43 mm, lunette tachymètre',
-          dial: 'Noir', bracelet: 'Acier', ownerEmail: s.revendeur.email,
-          imageUrl: '/public/watches/carrera.webp', imageCutout: true,
+          name: 'Méridienne Petite Seconde', brand: 'Maison Orvène', model: 'Méridienne', reference: 'OR-1201',
+          serial: s.serial, movement: 'Calibre OR-21, remontage automatique', case: 'Acier poli et satiné, 39 mm',
+          dial: 'Ardoise soleillé', bracelet: 'Cuir d’alligator brun, boucle ardillon', ownerEmail: s.revendeur.email,
+          imageUrl: '/public/watches/orvene-meridienne-ardoise.webp', imageCutout: false,
         },
       });
       s.id = piece.id;

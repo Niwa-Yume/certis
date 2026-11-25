@@ -20,8 +20,8 @@ const production =
   process.env.NODE_ENV === 'production' ||
   !['localhost', '127.0.0.1', '[::1]'].includes(databaseHost);
 const ISSUER = {
-  // Fictif, et affiché comme tel : aucune maison réelle n'est présentée comme signataire (ADR-0003).
-  name: 'Atelier de démonstration',
+  // Fictive, et présentée comme telle : aucune maison réelle n'est signataire (ADR-0003, ADR-0015).
+  name: 'Maison Orvène',
   email: 'atelier@certis.demo',
   password: process.env.DEMO_ISSUER_PASSWORD ?? 'Atelier2026!',
 };
@@ -31,74 +31,39 @@ const owners = [
   { email: 'julien.castro@certis.local', password: 'ChangeMe123!' },
 ];
 
-// Caractéristiques relevées sur WatchBase le 2026-10-24 (URL en regard de chaque pièce).
-// Numéros de série et dates : fictifs, pour la démo.
+// Les pièces des clients de la maison, tirées de son catalogue (fictif, comme la maison).
+// Numéros de série et dates : fictifs, pour la démo. Une seule histoire est suivie par la démo :
+// la Méridienne ardoise, remise, révisée, puis cédée (DEMO.md).
+const piece = (reference: string, serial: string) => {
+  // `source` part avec : mint() ne retient que les champs de la pièce.
+  const { photo, ...entry } = CATALOG.find((e) => e.reference === reference)!;
+  return { dto: { ...entry, serial }, photo: photo! };
+};
 const watches = [
   {
-    // https://watchbase.com/rolex/submariner/126610ln-0001
-    dto: {
-      name: 'Submariner Date',
-      brand: 'Rolex',
-      model: 'Submariner',
-      reference: '126610LN',
-      serial: 'DEMO-SUB-3235',
-      movement: 'Rolex 3235',
-      case: 'Acier, 41 mm, lunette tournante 0-60',
-      dial: 'Noir',
-      bracelet: 'Acier',
-    },
-    photo: { imageUrl: '/public/watches/submariner.webp', imageCutout: false },
-    story: [{ type: 'MINT', at: '2023-11-20', owner: 'certis@pro.com' }],
-  },
-  {
-    // https://watchbase.com/audemars-piguet/royal-oak/15202st-oo-1240st-01
-    dto: {
-      name: 'Royal Oak Extra-Plat',
-      brand: 'Audemars Piguet',
-      model: 'Royal Oak',
-      reference: '15202ST.OO.1240ST.01',
-      serial: 'DEMO-RO-1972',
-      movement: 'Audemars Piguet 2121',
-      case: 'Acier, 39 mm, 9,8 mm d’épaisseur',
-      dial: 'Bleu, « Petite Tapisserie »',
-      bracelet: 'Acier',
-    },
-    photo: { imageUrl: '/public/watches/royal-oak.webp', imageCutout: true },
-    story: [
-      { type: 'MINT', at: '2024-05-14' },
-      { type: 'TRANSFER', at: '2024-06-02', owner: 'certis@pro.com' },
-      {
-        type: 'SERVICE',
-        at: '2026-04-09',
-        note: 'Révision complète, étanchéité contrôlée',
-      },
-    ],
-  },
-  {
-    // https://watchbase.com/tag-heuer/carrera/cv7a12-ba0795
-    dto: {
-      name: 'Carrera Calibre S',
-      brand: 'TAG Heuer',
-      model: 'Carrera',
-      reference: 'CV7A12.BA0795',
-      serial: 'DEMO-CS-0417',
-      movement: 'TAG Heuer Calibre S',
-      case: 'Acier, 43 mm, lunette tachymètre',
-      dial: 'Noir',
-      bracelet: 'Acier',
-    },
-    photo: { imageUrl: '/public/watches/carrera.webp', imageCutout: true },
+    ...piece('OR-1201', 'DEMO-OR-1201-0417'),
     story: [
       { type: 'MINT', at: '2024-03-12', owner: 'certis@pro.com' },
       {
         type: 'SERVICE',
         at: '2025-11-18',
-        note: 'Remplacement de la pile du Calibre S',
+        note: 'Contrôle de marche et d’étanchéité',
       },
       {
         type: 'TRANSFER',
         at: '2026-09-03',
         owner: 'julien.castro@certis.local',
+      },
+    ],
+  },
+  {
+    ...piece('OR-3101', 'DEMO-OR-3101-0088'),
+    story: [
+      { type: 'MINT', at: '2023-11-20', owner: 'certis@pro.com' },
+      {
+        type: 'SERVICE',
+        at: '2026-04-09',
+        note: 'Révision complète, étanchéité contrôlée',
       },
     ],
   },
