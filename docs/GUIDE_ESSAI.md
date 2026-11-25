@@ -31,8 +31,8 @@ La pièce d'essai est une montre fictive, « Certis · Pièce d'essai », sans v
 
 ## 2. Côté maison
 
-1. **Se connecter** avec `atelier@certis.demo`. Le stock compte 18 pièces : des variantes de Royal Oak, Rolex, Patek Philippe, Vacheron Constantin, Omega et TAG Heuer.
-2. **Inscrire une pièce.** Choisissez « Inscrire une pièce », puis cherchez dans le catalogue (« Royal Oak noir », « 126610LN », « Nautilus »). La fiche se remplit : vérifiez-la, puis saisissez un numéro de série. Avec l'e-mail d'un client, la pièce est inscrite directement à son nom ; sans e-mail, elle reste en stock.
+1. **Se connecter** avec `atelier@certis.demo`. Le stock compte les 3 références de la Maison Orvène, une maison fictive.
+2. **Inscrire une pièce.** Choisissez « Inscrire une pièce », puis cherchez dans le catalogue (« Méridienne », « OR-1201 »). La fiche se remplit : vérifiez-la, puis saisissez un numéro de série. Avec l'e-mail d'un client, la pièce est inscrite directement à son nom ; sans e-mail, elle reste en stock.
 3. **Remettre une pièce du stock à un client.** Ouvrez la pièce, choisissez « Céder la pièce », saisissez l'e-mail du client, puis montrez-lui le QR. Il l'accepte depuis son compte.
 
 ## 3. Les refus à essayer

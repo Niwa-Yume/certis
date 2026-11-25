@@ -3,7 +3,12 @@ import { NestFactory } from '@nestjs/core';
 import * as bcrypt from 'bcrypt';
 import { AppModule } from '../src/app.module';
 import { AssetService } from '../src/asset/asset.service';
-import { CATALOG } from '../src/catalog/catalog';
+import {
+  CATALOG,
+  DEMO_HOUSE,
+  DEMO_WATCHES,
+  type DemoWatch,
+} from '../src/catalog/catalog';
 import { IssuerService } from '../src/issuer/issuer.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { RegistryService } from '../src/registry/registry.service';
@@ -20,8 +25,8 @@ const production =
   process.env.NODE_ENV === 'production' ||
   !['localhost', '127.0.0.1', '[::1]'].includes(databaseHost);
 const ISSUER = {
-  // Fictif, et affiché comme tel : aucune maison réelle n'est présentée comme signataire (ADR-0003).
-  name: 'Atelier de démonstration',
+  // Fictive par défaut, et présentée comme telle (ADR-0003, ADR-0015) ; DEMO_HOUSE_FILE la remplace.
+  name: DEMO_HOUSE,
   email: 'atelier@certis.demo',
   password: process.env.DEMO_ISSUER_PASSWORD ?? 'Atelier2026!',
 };
@@ -31,69 +36,18 @@ const owners = [
   { email: 'julien.castro@certis.local', password: 'ChangeMe123!' },
 ];
 
-// Caractéristiques relevées sur WatchBase le 2026-10-24 (URL en regard de chaque pièce).
-// Numéros de série et dates : fictifs, pour la démo.
-const watches = [
+// Les pièces des clients de la maison, tirées de son catalogue. Numéros de série et dates :
+// fictifs. Une seule histoire est suivie par la démo : remise, révisée, puis cédée (DEMO.md).
+const ORVENE_WATCHES: DemoWatch[] = [
   {
-    // https://watchbase.com/rolex/submariner/126610ln-0001
-    dto: {
-      name: 'Submariner Date',
-      brand: 'Rolex',
-      model: 'Submariner',
-      reference: '126610LN',
-      serial: 'DEMO-SUB-3235',
-      movement: 'Rolex 3235',
-      case: 'Acier, 41 mm, lunette tournante 0-60',
-      dial: 'Noir',
-      bracelet: 'Acier',
-    },
-    photo: { imageUrl: '/public/watches/submariner.webp', imageCutout: false },
-    story: [{ type: 'MINT', at: '2023-11-20', owner: 'certis@pro.com' }],
-  },
-  {
-    // https://watchbase.com/audemars-piguet/royal-oak/15202st-oo-1240st-01
-    dto: {
-      name: 'Royal Oak Extra-Plat',
-      brand: 'Audemars Piguet',
-      model: 'Royal Oak',
-      reference: '15202ST.OO.1240ST.01',
-      serial: 'DEMO-RO-1972',
-      movement: 'Audemars Piguet 2121',
-      case: 'Acier, 39 mm, 9,8 mm d’épaisseur',
-      dial: 'Bleu, « Petite Tapisserie »',
-      bracelet: 'Acier',
-    },
-    photo: { imageUrl: '/public/watches/royal-oak.webp', imageCutout: true },
-    story: [
-      { type: 'MINT', at: '2024-05-14' },
-      { type: 'TRANSFER', at: '2024-06-02', owner: 'certis@pro.com' },
-      {
-        type: 'SERVICE',
-        at: '2026-04-09',
-        note: 'Révision complète, étanchéité contrôlée',
-      },
-    ],
-  },
-  {
-    // https://watchbase.com/tag-heuer/carrera/cv7a12-ba0795
-    dto: {
-      name: 'Carrera Calibre S',
-      brand: 'TAG Heuer',
-      model: 'Carrera',
-      reference: 'CV7A12.BA0795',
-      serial: 'DEMO-CS-0417',
-      movement: 'TAG Heuer Calibre S',
-      case: 'Acier, 43 mm, lunette tachymètre',
-      dial: 'Noir',
-      bracelet: 'Acier',
-    },
-    photo: { imageUrl: '/public/watches/carrera.webp', imageCutout: true },
+    reference: 'OR-1201',
+    serial: 'DEMO-OR-1201-0417',
     story: [
       { type: 'MINT', at: '2024-03-12', owner: 'certis@pro.com' },
       {
         type: 'SERVICE',
         at: '2025-11-18',
-        note: 'Remplacement de la pile du Calibre S',
+        note: 'Contrôle de marche et d’étanchéité',
       },
       {
         type: 'TRANSFER',
@@ -102,7 +56,26 @@ const watches = [
       },
     ],
   },
-] as const;
+  {
+    reference: 'OR-3101',
+    serial: 'DEMO-OR-3101-0088',
+    story: [
+      { type: 'MINT', at: '2023-11-20', owner: 'certis@pro.com' },
+      {
+        type: 'SERVICE',
+        at: '2026-04-09',
+        note: 'Révision complète, étanchéité contrôlée',
+      },
+    ],
+  },
+];
+const watches = (DEMO_WATCHES ?? ORVENE_WATCHES).map(
+  ({ reference, serial, story }) => {
+    // `source` part avec : mint() ne retient que les champs de la pièce.
+    const { photo, ...entry } = CATALOG.find((e) => e.reference === reference)!;
+    return { dto: { ...entry, serial }, photo: photo ?? {}, story };
+  },
+);
 
 async function main() {
   const reset = process.argv.includes('--reset');
@@ -177,6 +150,7 @@ async function main() {
       );
       let ownerId = firstOwner ? users.get(firstOwner)! : issuerUserId;
       for (const event of events) {
+        if (event.type === 'MINT') continue; // une seule inscription, en tête
         await prisma.$transaction(async (tx) => {
           const asset = { id, issuerId: issuer.id };
           const at = new Date(event.at);

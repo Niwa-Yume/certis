@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { ENGLISH } from '../src/common/english';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { RegistryService } from '../src/registry/registry.service';
 import {
@@ -86,7 +87,7 @@ describe('Trying Certis: trial piece, catalogue, explicit refusals (e2e)', () =>
     expect((await app.get(RegistryService).verify(asset)).problem).toBeNull();
   });
 
-  it('P7: the catalogue gives issuers real references, Royal Oak variants included', async () => {
+  it('P7: the catalogue gives the demo house its own references, no real brand', async () => {
     const { body } = await http(app).get('/catalog').expect(200);
     const catalogue = body as {
       brand: string;
@@ -105,10 +106,11 @@ describe('Trying Certis: trial piece, catalogue, explicit refusals (e2e)', () =>
         }),
       );
     }
-    const royalOaks = catalogue.filter(
-      (e) => e.brand === 'Audemars Piguet' && e.model === 'Royal Oak',
+    // ADR-0015 : la démo ne montre que la maison fictive.
+    expect(catalogue.length).toBeGreaterThan(1);
+    expect(new Set(catalogue.map((e) => e.brand))).toEqual(
+      new Set(['Maison Orvène']),
     );
-    expect(royalOaks.length).toBeGreaterThan(1);
   });
 
   it('P7: refusals say, in French, what went wrong and how to fix it', async () => {
@@ -167,5 +169,29 @@ describe('Trying Certis: trial piece, catalogue, explicit refusals (e2e)', () =>
       // Ce qui s'est passé, puis comment corriger : au moins deux propositions.
       expect(message.split(/[.:;] /).length).toBeGreaterThan(1);
     }
+  });
+
+  it('P8: with Accept-Language en, refusals come back in English, same shape', async () => {
+    const owner = await registerUser(app);
+    const issuer = await createIssuer(app);
+    const watch = (await mint(app, issuer, { ownerEmail: owner.email }))
+      .body as { id: string };
+    const nonce = await nonceValue(issueTransferNonce(app, owner, watch.id));
+
+    const wrongLogin = { email: owner.email, password: 'wrong-password' };
+    const fr = await http(app).post('/auth/login').send(wrongLogin).expect(401);
+    const en = await http(app)
+      .post('/auth/login')
+      .set('Accept-Language', 'en-GB,en;q=0.9')
+      .send(wrongLogin)
+      .expect(401);
+    expect(en.body).toEqual({ ...fr.body, message: ENGLISH[fr.body.message] });
+    expect(en.body.message).toMatch(/^Wrong e-mail or password: /);
+
+    // L'acheteur qui scanne son propre QR de cession : le refus du parcours de la démo.
+    const { body } = (await claim(app, owner, watch.id, nonce)
+      .set('Accept-Language', 'en')
+      .expect(409)) as { body: { message: string } };
+    expect(body.message).toMatch(/^You already own this watch: /);
   });
 });

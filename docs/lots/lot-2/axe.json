@@ -1,0 +1,242 @@
+[
+  {
+    "file": "fr-360-light-verifiee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-light-verifiee-preuves.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-light-volee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-light-qr-expire.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-light-cession.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-light-cession-acceptee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-light-verifiee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-light-verifiee-preuves.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-light-volee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-light-qr-expire.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-light-cession.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-light-cession-acceptee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-dark-verifiee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-dark-verifiee-preuves.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-dark-volee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-dark-qr-expire.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-dark-cession.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-360-dark-cession-acceptee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-dark-verifiee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-dark-verifiee-preuves.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-dark-volee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-dark-qr-expire.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-dark-cession.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "fr-1440-dark-cession-acceptee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-light-verifiee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-light-verifiee-preuves.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-light-volee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-light-qr-expire.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-light-cession.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-light-cession-acceptee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-light-verifiee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-light-verifiee-preuves.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-light-volee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-light-qr-expire.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-light-cession.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-light-cession-acceptee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-dark-verifiee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-dark-verifiee-preuves.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-dark-volee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-dark-qr-expire.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-dark-cession.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-360-dark-cession-acceptee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-dark-verifiee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-dark-verifiee-preuves.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-dark-volee.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-dark-qr-expire.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-dark-cession.jpg",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "file": "en-1440-dark-cession-acceptee.jpg",
+    "overflow": false,
+    "violations": []
+  }
+]
