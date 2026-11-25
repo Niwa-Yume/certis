@@ -1,4 +1,4 @@
-# Certis — le passeport numérique d'une montre
+# Certis  le passeport numérique d'une montre
 
 La maison qui vend une montre lui remet un passeport qu'elle signe, et reste présente dans sa vie : remise, révisions, revente. Le propriétaire décide de ce qu'il montre. N'importe quel acheteur vérifie le passeport sans compte, et un expert peut refaire la vérification **sans faire confiance à Certis**.
 
