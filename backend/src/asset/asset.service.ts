@@ -226,13 +226,13 @@ export class AssetService {
     ];
   }
 
-  /** Les pièces qu'une maison a promises à ce compte : elles l'attendent, encore à la maison. */
+  /**
+   * Les pièces qu'une maison a promises à ce compte, encore à la maison. Seulement celles dont il a
+   * présenté le jeton : l'e-mail seul ne suffit pas, l'inscription n'est pas vérifiée (ADR-0019).
+   */
   private async pendingFor(userId: string) {
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-    });
     const invitations = await this.prisma.invitation.findMany({
-      where: { email: user.email },
+      where: { acceptedUserId: userId },
       include: { asset: { include: { issuer: true } } },
       orderBy: { createdAt: 'asc' },
     });
@@ -509,7 +509,9 @@ export class AssetService {
     if (invitation.expiresAt < new Date()) throw invitationExpired();
     const { asset } = invitation;
     return {
+      id: invitation.id,
       email: invitation.email,
+      acceptedUserId: invitation.acceptedUserId,
       view: {
         email: maskEmail(invitation.email),
         house: asset.issuer.name,
@@ -556,9 +558,34 @@ export class AssetService {
     return { ...base, state: 'stolen', stolenAt: report?.at.toISOString() };
   }
 
-  /** Droit à l'effacement : les invitations adressées à cet e-mail disparaissent avec le compte. */
-  async forgetInvitations(email: string) {
-    await this.prisma.invitation.deleteMany({ where: { email } });
+  /**
+   * Lie l'invitation au compte qui présente son jeton (ADR-0019). Le compte doit porter l'e-mail invité,
+   * et une invitation déjà liée à un autre compte ne change plus de main.
+   */
+  async bindInvitation(token: string, user: { id: string; email: string }) {
+    const { id, email, acceptedUserId } = await this.invitation(token);
+    if (email !== user.email) {
+      throw new ForbiddenException(
+        'Cette invitation est adressée à une autre adresse : connectez-vous avec le compte de l’e-mail invité.',
+      );
+    }
+    if (acceptedUserId && acceptedUserId !== user.id) {
+      throw new ConflictException(
+        'Cette invitation a déjà été acceptée : demandez-en une nouvelle à la maison.',
+      );
+    }
+    await this.prisma.invitation.update({
+      where: { id },
+      data: { acceptedUserId: user.id },
+    });
+    return { linked: true };
+  }
+
+  /** Droit à l'effacement : les invitations que ce compte a acceptées disparaissent avec lui. */
+  async forgetInvitations(userId: string) {
+    await this.prisma.invitation.deleteMany({
+      where: { acceptedUserId: userId },
+    });
   }
 
   /** Le visage de la personne qui a inscrit la pièce, si la maison l'a renseigné (hors passeport). */

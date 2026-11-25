@@ -15,8 +15,14 @@ export const ENGLISH: Record<string, string> = {
     'This invitation cannot be found: check the link, or ask the house for a new one.',
   'Cette invitation a expiré : elle ne vaut que sept jours. Demandez-en une nouvelle à la maison.':
     'This invitation has expired: it is valid for seven days only. Ask the house for a new one.',
-  'Un compte existe déjà avec cet e-mail : connectez-vous, la pièce vous attend dans votre collection.':
-    'An account already exists with this e-mail: sign in, the piece is waiting in your collection.',
+  'Un compte existe déjà avec cet e-mail : connectez-vous, puis ouvrez à nouveau l’invitation pour ajouter la pièce à votre collection.':
+    'An account already exists with this e-mail: sign in, then open the invitation again to add the piece to your collection.',
+  'Cette invitation est adressée à une autre adresse : connectez-vous avec le compte de l’e-mail invité.':
+    'This invitation is addressed to another e-mail: sign in with the account of the invited e-mail.',
+  'Cette invitation a déjà été acceptée : demandez-en une nouvelle à la maison.':
+    'This invitation has already been accepted: ask the house for a new one.',
+  'Le client n’a pas encore accepté l’invitation : il doit l’ouvrir avec le QR remis en boutique avant la remise.':
+    'The client has not accepted the invitation yet: they must open it with the QR shown in the shop before the handover.',
   'Cette demande de révision est introuvable : rechargez la liste des révisions.':
     'This service request cannot be found: reload the list of services.',
   'Ce partage n’est plus valable : demandez au propriétaire un nouveau lien.':

@@ -48,8 +48,9 @@ export class RelationService {
         HttpStatus.LOCKED,
       );
     }
+    // Une demande à la fois, par propriétaire : celle d'un ancien propriétaire ne bloque pas le nouveau (ADR-0019).
     const open = await this.prisma.serviceRequest.findFirst({
-      where: { assetId, status: { not: 'RETURNED' } },
+      where: { assetId, ownerId, status: { not: 'RETURNED' } },
     });
     if (open) {
       throw new ConflictException(
@@ -73,22 +74,25 @@ export class RelationService {
       include: { asset: true, owner: true },
       orderBy: { requestedAt: 'asc' },
     });
-    return requests.map((r) => ({
-      id: r.id,
-      status: r.status,
-      requestedAt: r.requestedAt,
-      receivedAt: r.receivedAt,
-      // Le propriétaire a demandé la révision : la maison reçoit son e-mail pour convenir du dépôt.
-      owner: r.owner.email,
-      piece: {
-        id: r.asset.id,
-        name: r.asset.name,
-        model: r.asset.model,
-        reference: r.asset.reference,
-        imageUrl: r.asset.imageUrl,
-        imageCutout: r.asset.imageCutout,
-      },
-    }));
+    // Une demande ne vaut que pour celui qui possède encore la pièce : après une cession, elle sort de la file.
+    return requests
+      .filter((r) => r.ownerId === r.asset.ownerId)
+      .map((r) => ({
+        id: r.id,
+        status: r.status,
+        requestedAt: r.requestedAt,
+        receivedAt: r.receivedAt,
+        // Le propriétaire a demandé la révision : la maison reçoit son e-mail pour convenir du dépôt.
+        owner: r.owner.email,
+        piece: {
+          id: r.asset.id,
+          name: r.asset.name,
+          model: r.asset.model,
+          reference: r.asset.reference,
+          imageUrl: r.asset.imageUrl,
+          imageCutout: r.asset.imageCutout,
+        },
+      }));
   }
 
   private async houseRequest(id: string, issuerId: string) {
@@ -96,7 +100,8 @@ export class RelationService {
       where: { id, asset: { issuerId } },
       include: { asset: true },
     });
-    if (!request) throw requestNotFound();
+    if (!request || request.ownerId !== request.asset.ownerId)
+      throw requestNotFound();
     return request;
   }
 

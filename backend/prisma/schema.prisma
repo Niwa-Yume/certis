@@ -185,17 +185,21 @@ enum AssetStatus {
 // La maison invite un client : la pièce l'attend dans sa collection jusqu'à la remise (ADR-0017).
 // Le jeton n'est montré qu'une fois, à la maison ; seule son empreinte est gardée. Supprimée à la remise.
 model Invitation {
-  id          String   @id @default(uuid())
-  tokenHash   String   @unique
-  assetId     String
-  email       String
-  createdById String // le compte de la maison qui détient la pièce
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
+  id             String   @id @default(uuid())
+  tokenHash      String   @unique
+  assetId        String
+  email          String
+  createdById    String // le compte de la maison qui détient la pièce
+  // Le compte qui a présenté le jeton (création ou liaison) : seul lui voit la pièce et reçoit la remise.
+  // L'e-mail seul ne prouve rien, l'inscription n'est pas vérifiée (audit run 1, ADR-0019).
+  acceptedUserId String?
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
 
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([email])
+  @@index([acceptedUserId])
 }
 
 // La demande de révision d'un propriétaire, suivie en trois étapes par la maison (ADR-0018).

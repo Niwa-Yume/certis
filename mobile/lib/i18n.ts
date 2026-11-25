@@ -142,11 +142,14 @@ const fr = {
     invite: {
         title: 'Votre pièce vous attend',
         body: (who: string, piece: string) => `${who} a préparé votre ${piece}. Choisissez un mot de passe : votre compte est créé, et la pièce est déjà dans votre collection.`,
+        ready: (who: string, piece: string) => `${who} a préparé votre ${piece}.`,
         email: 'Votre e-mail',
         password: 'Choisissez un mot de passe',
         passwordHint: '8 caractères au moins.',
         create: 'Créer mon compte',
         signIn: 'Me connecter',
+        add: 'Ajouter à ma collection',
+        signedIn: 'Vous êtes connecté : la pièce rejoint votre collection, en attendant sa remise.',
         failed: 'Création du compte impossible pour le moment : réessayez dans un instant.',
     },
     handover: {
@@ -366,11 +369,14 @@ const en: typeof fr = {
     invite: {
         title: 'Your piece is waiting for you',
         body: (who: string, piece: string) => `${who} has prepared your ${piece}. Choose a password: your account is created, and the piece is already in your collection.`,
+        ready: (who: string, piece: string) => `${who} has prepared your ${piece}.`,
         email: 'Your e-mail',
         password: 'Choose a password',
         passwordHint: 'At least 8 characters.',
         create: 'Create my account',
         signIn: 'Sign in',
+        add: 'Add to my collection',
+        signedIn: 'You are signed in: the piece joins your collection until its handover.',
         failed: 'Account creation unavailable right now: try again in a moment.',
     },
     handover: {

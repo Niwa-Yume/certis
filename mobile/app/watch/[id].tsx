@@ -45,9 +45,9 @@ export default function WatchScreen() {
     const load = useCallback(async () => {
         setFailure(null);
         try {
-            const [watch, me] = await Promise.all([api.get(`/assets/${id}`), api.get('/auth/me')]);
+            const [watch, me] = await Promise.all([api.get(`/assets/${encodeURIComponent(id)}`), api.get('/auth/me')]);
             // La vérification d'intégrité ne doit pas empêcher d'afficher la pièce.
-            const valid = watch.data.pending ? null : await api.get(`/assets/${id}/verify`).then((r) => Boolean(r.data.valid), () => null);
+            const valid = watch.data.pending ? null : await api.get(`/assets/${encodeURIComponent(id)}/verify`).then((r) => Boolean(r.data.valid), () => null);
             // La maison qui détient la pièce dans son stock : elle peut inviter le client et la lui remettre.
             const house = !watch.data.pending && me.data.issuer?.id === watch.data.issuer.id;
             setData({ watch: watch.data, valid, house });

@@ -11,6 +11,7 @@ import { Button, Icon, Notice, Wordmark, t } from '../components/ui';
 import { color, space, typeScale } from '../theme/tokens';
 
 /** Écran 7, fin de la cession : l'acheteur accepte la pièce, puis retrouve sa collection (écran 3). */
+// L'id vient du lien : encodé, il ne peut pas viser une autre route avec la session (audit run 1).
 export default function ClaimScreen() {
     const { id, nonce } = useLocalSearchParams<{ id: string; nonce: string }>();
     const router = useRouter();
@@ -28,9 +29,9 @@ export default function ClaimScreen() {
         setLoading(true);
         setError(null);
         try {
-            const { data } = await api.post(`/assets/${id}/claim`, { nonce });
+            const { data } = await api.post(`/assets/${encodeURIComponent(id)}/claim`, { nonce });
             // La pièce est maintenant à ce compte : on lit son nom et sa maison pour l'activation.
-            const piece = await api.get(`/assets/${id}`).then((r) => r.data, () => null);
+            const piece = await api.get(`/assets/${encodeURIComponent(id)}`).then((r) => r.data, () => null);
             setClaimed({ handover: Boolean(data.handover), name: piece?.name ?? '', house: piece?.issuer.name ?? '' });
         } catch (e) {
             if (axios.isAxiosError(e) && e.response?.status === 401) return setSignedIn(false);

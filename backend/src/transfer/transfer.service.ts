@@ -43,6 +43,15 @@ export class TransferService {
         );
       }
       recipientId = recipient.id;
+      // Remise d'une pièce invitée : réservée au compte qui a présenté le jeton, pas à l'e-mail (ADR-0019).
+      const invitation = await this.prisma.invitation.findFirst({
+        where: { assetId, email: recipientEmail },
+      });
+      if (invitation && invitation.acceptedUserId !== recipient.id) {
+        throw new ConflictException(
+          'Le client n’a pas encore accepté l’invitation : il doit l’ouvrir avec le QR remis en boutique avant la remise.',
+        );
+      }
     }
     return this.nonce.issue(assetId, ownerId, 'TRANSFER', recipientId);
   }
