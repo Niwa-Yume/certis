@@ -1,5 +1,5 @@
 import { Module, ValidationPipe } from '@nestjs/common';
-import { APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { IssuerModule } from './issuer/issuer.module';
 import { RegistryModule } from './registry/registry.module';
 import { validationError } from './common/validation';
+import { EnglishRefusals } from './common/english';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { validationError } from './common/validation';
       }),
     },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_FILTER, useClass: EnglishRefusals },
   ],
 })
 export class AppModule {}
