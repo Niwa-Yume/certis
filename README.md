@@ -40,7 +40,7 @@ sequenceDiagram
     P->>C: crée son compte avec le jeton : la pièce l'attend
     M->>P: remise, cession réservée à ce compte
     C->>C: maillon TRANSFER signé : le passeport est actif
-    P->>C: demande une révision ; la maison la rend (maillon SERVICE)
+    P->>C: demande une révision, que la maison rend (maillon SERVICE)
     P->>A: partage un lien, ou présente un QR (60 s, usage unique)
     A->>C: vérifie, sans compte : passeport vérifié, statut de vol
     P->>A: cède la pièce (offre réservée, puis acceptation)
