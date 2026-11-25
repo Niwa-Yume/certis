@@ -14,8 +14,18 @@ export function usePhoto(imageUrl?: string | null, cutout = false) {
     return { photo, onError: () => setFailed(true) };
 }
 
-/** La Carrera de l'accueil et de la connexion : embarquée, l'écran ne dépend pas de l'API. */
-export const SHOWCASE: Photo = { source: require('../assets/watch/carrera.webp'), cutout: true };
+// Une démo locale peut montrer sa propre pièce, servie par l'API et gardée hors dépôt (visuels sous droits).
+const showcaseUrl = process.env.EXPO_PUBLIC_SHOWCASE_URL?.trim();
+
+/** La pièce de l'accueil et de la connexion : embarquée par défaut, l'écran ne dépend pas de l'API. */
+export const SHOWCASE: Photo & { label: string } = showcaseUrl
+    ? { source: { uri: absoluteUrl(showcaseUrl) }, cutout: false, label: process.env.EXPO_PUBLIC_SHOWCASE_LABEL?.trim() || 'Montre' }
+    : { source: require('../assets/watch/carrera.webp'), cutout: true, label: 'TAG Heuer Carrera Calibre S' };
+
+// Photo non détourée, sur fond sombre : ses bords se fondent dans le fond, sans cadre visible.
+// 37 % : la demi-hauteur d'une photo 3:4 posée en « contain » dans une boîte 5:9.
+const vignette = 'radial-gradient(ellipse 50% 37% at 50% 50%, #000 55%, transparent 100%)';
+export const VIGNETTE = web({ maskImage: vignette, WebkitMaskImage: vignette });
 
 export function NoPhoto({ tone = color.mist }: { tone?: string }) {
     return (
@@ -81,7 +91,7 @@ export function WatchVisual({ photo, onError, label, width: W, height: H, lens: 
     const fade = 'linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%)';
     // Le masque rognerait l'ombre aux bords de la boîte : ombre sur le conteneur, masque sur l'image.
     const shadow = photo?.cutout ? web({ filter: 'drop-shadow(0 20px 26px rgba(0,0,0,0.4))' }) : null;
-    const mask = photo?.cutout ? web({ maskImage: fade, WebkitMaskImage: fade }) : null;
+    const mask = photo?.cutout ? web({ maskImage: fade, WebkitMaskImage: fade }) : photo ? VIGNETTE : null;
 
     return (
         <View

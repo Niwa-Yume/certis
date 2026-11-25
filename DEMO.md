@@ -11,7 +11,7 @@ L'impression à laisser : *la maison reste présente dans la vie de ma montre*.
    - un compte connecté sur l'ordinateur, émetteur de la maison : `npm --prefix backend run issuer:grant -- <e-mail> "<maison>" "<prénom nom>" "<rôle>"` ;
    - une pièce en stock, inscrite depuis « Inscrire une pièce ».
 3. Téléphone du client : la page d'accueil ouverte, rien d'autre. Téléphone de l'acheteur : un compte déjà créé, connecté.
-4. Version aux couleurs d'une maison réelle : `DEMO_HOUSE_FILE` dans `backend/.env` désigne un fichier `*.local.json`, hors dépôt (ADR-0015). Sans lui, la maison est fictive.
+4. Version aux couleurs d'une maison réelle : `DEMO_HOUSE_FILE` dans `backend/.env` désigne un fichier `*.local.json`, hors dépôt (ADR-0015). Sans lui, la maison est fictive. La montre de l'accueil se choisit dans `mobile/.env.local` (`EXPO_PUBLIC_SHOWCASE_URL`, `EXPO_PUBLIC_SHOWCASE_LABEL`), puis on relance le web.
 5. Répétition : `cd e2e && WEB_URL=<adresse> npx playwright test` rejoue tout le parcours en 7 secondes. S'il passe, la démo passera.
 
 ## Le déroulé

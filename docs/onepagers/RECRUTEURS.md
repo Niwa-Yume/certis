@@ -7,7 +7,7 @@
 
 Travail de bachelor (CREA, 2026), repris après le jury pour en corriger les failles et le mener au niveau d'une implémentation de référence.
 
-**Voir** : [vidéo de 34 s](../demo/certis-demo.mp4) · [captures](../screenshots) · [README](../../README.md)
+**Voir** : [démo de 3 minutes](../../DEMO.md) · [README](../../README.md)
 
 ## Ce que le projet démontre
 
@@ -16,7 +16,7 @@ Travail de bachelor (CREA, 2026), repris après le jury pour en corriger les fai
 | **Sécurité applicative** | 4 failles de cession reproduites en tests rouges ([`9fd0503`](https://github.com/Niwa-Yume/certis/commit/9fd0503)), puis corrigées ([`90b0b35`](https://github.com/Niwa-Yume/certis/commit/90b0b35)). Consommation atomique sous concurrence : 20 réclamations simultanées, une seule réussit ([ADR-0002](../adr/0002-consommation-atomique-du-nonce.md)). |
 | **Cryptographie appliquée, sans bibliothèque tierce** | JWS ES256 sur JSON canonique (RFC 8785), JWKS publique avec empreintes RFC 7638, clés chiffrées en AES-256-GCM, HMAC pour le numéro de série ([ADR-0003 à 0005](../adr)). |
 | **Modélisation de données et intégrité** | Chaîne d'événements par pièce : append-only imposé par un trigger PostgreSQL, sans fourche possible grâce à `UNIQUE (assetId, seq)` ([ADR-0006](../adr/0006-journal-d-evenements-chaine.md)). Un vérificateur indépendant signale le maillon modifié ([`tools/verify`](../../tools/verify)). |
-| **Front-end et accessibilité** | Expo/React Native pour le mobile et le web, design system maison, responsive. 0 violation axe (WCAG 2.2 AA) sur 9 écrans. Rapport imprimable ([ADR-0009](../adr/0009-direction-visuelle-registre-v6.md)). |
+| **Front-end et accessibilité** | Expo/React Native pour le mobile et le web, design system maison, responsive. Sept écrans client, de l'invitation à la cession ; 0 violation axe (WCAG 2.2 AA) sur 168 contrôles, en clair et en sombre ([ADR-0014](../adr/0014-tokens-maison-et-theme-sombre.md)). |
 | **Méthode** | Audit chiffré du code de départ ([AUDIT](../AUDIT.md)), backlog MoSCoW, une décision documentée par choix structurant, tests rouges avant correctif, un bilan par phase avec ses écarts ([BACKLOG](../BACKLOG.md)). |
 | **Compréhension du métier** | Contraintes réelles du marché : passeport européen, règlement anti-blanchiment de 2027, RGPD face aux registres immuables. Sourcées et datées ([vision marché](../market/MARKET_VISION.md)). |
 

@@ -75,7 +75,7 @@ export default function IndexScreen() {
                     </Rise>
                     {/* Sans fondu d'entrée : la photo est le plus grand élément, elle s'affiche dès qu'elle est là (LCP). */}
                     <View style={{ alignSelf: 'center' }}>
-                        <WatchVisual photo={SHOWCASE} label="TAG Heuer Carrera Calibre S" width={compact ? 200 : 280} height={compact ? 360 : 504}>
+                        <WatchVisual photo={SHOWCASE} label={SHOWCASE.label} width={compact ? 200 : 280} height={compact ? 360 : 504}>
                             <Stamp delay={900} style={{ position: 'absolute', right: compact ? -12 : -24, bottom: compact ? 56 : 90 }}>
                                 <Seal number="SPÉCIMEN" size={compact ? 80 : 104} />
                             </Stamp>
