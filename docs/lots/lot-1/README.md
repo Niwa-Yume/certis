@@ -4,7 +4,7 @@ Décision : [ADR-0014](../../adr/0014-tokens-maison-et-theme-sombre.md). Vocabul
 
 ## Vérification (2026-11-25)
 
-- **Captures** : 8 vues × 360 et 1440 px × clair et sombre, soit 32 captures dans ce dossier. Elles couvrent l'accueil, la connexion, la collection (pleine, vide, hors ligne), la fiche, la vérification, et la vérification avec `?lang=en`.
+- **Captures** : 8 vues × 360 et 1440 px × clair et sombre, soit 32 captures dans ce dossier. Elles couvrent l'accueil, la connexion, la collection (pleine, vide, hors ligne ; un compte jetable et sa pièce d’essai), la fiche, la vérification, et la vérification avec `?lang=en`.
 - **Débordement horizontal** : aucun, sur les 32.
 - **axe (WCAG 2.0, 2.1 et 2.2 AA)** : 0 violation sur les 32 ([`axe.json`](axe.json)).
 - **Contraste** : tous les couples texte/fond des quatre palettes passent 4,5:1. Le plus faible, le texte secondaire sur une carte de nuit, est à 6,5:1.

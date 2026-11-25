@@ -4,6 +4,7 @@
 import { chromium } from 'playwright';
 import { AxeBuilder } from '@axe-core/playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 
 const WEB = 'http://localhost:8091';
 const API = 'http://localhost:3001';
@@ -16,18 +17,18 @@ const post = async (path, body, token) =>
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(body ?? {}),
     })).json();
-const julien = (await post('/auth/login', { email: 'julien.castro@certis.local', password: 'ChangeMe123!' })).accessToken;
-const pro = (await post('/auth/login', { email: 'certis@pro.com', password: '1234567' })).accessToken;
-const [carrera] = await (await fetch(`${API}/assets`, { headers: { Authorization: `Bearer ${julien}` } })).json();
-const verifyUrl = async () => `/verify?id=${carrera.id}&nonce=${(await post(`/assets/${carrera.id}/verifications`, {}, julien)).nonce}`;
+// Un compte jetable, qui reçoit sa pièce d'essai à l'inscription (ADR-0012) : aucun identifiant dans ce fichier.
+const owner = (await post('/auth/register', { email: `verif-${randomUUID()}@certis.local`, password: randomUUID() })).accessToken;
+const [piece] = await (await fetch(`${API}/assets`, { headers: { Authorization: `Bearer ${owner}` } })).json();
+const verifyUrl = async () => `/verify?id=${piece.id}&nonce=${(await post(`/assets/${piece.id}/verifications`, {}, owner)).nonce}`;
 
 const shots = [
     ['accueil', '/'],
     ['connexion', '/login'],
-    ['collection', '/dashboard', { token: pro }],
-    ['collection-vide', '/dashboard', { token: pro, route: (r) => r.fulfill({ json: [] }) }],
-    ['collection-hors-ligne', '/dashboard', { token: pro, route: (r) => r.abort() }],
-    ['fiche', `/watch/${carrera.id}`, { token: julien }],
+    ['collection', '/dashboard', { token: owner }],
+    ['collection-vide', '/dashboard', { token: owner, route: (r) => r.fulfill({ json: [] }) }],
+    ['collection-hors-ligne', '/dashboard', { token: owner, route: (r) => r.abort() }],
+    ['fiche', `/watch/${piece.id}`, { token: owner }],
     ['verification', verifyUrl],
     ['verification-en', async () => `${await verifyUrl()}&lang=en`],
 ];
