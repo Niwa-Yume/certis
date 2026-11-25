@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import api, { explain } from '../lib/api';
 import { ACCESS_TOKEN_KEY, safeNext } from '../lib/auth';
 import { setItemAsync } from '../lib/storage';
-import { SHOWCASE } from './WatchPhoto';
+import { SHOWCASE, VIGNETTE } from './WatchPhoto';
 import { color, space } from '../theme/tokens';
 import { Button, Glow, Icon, Notice, PieceName, Rise, TextField, TextLink, Wordmark, t, useLayout, web } from './ui';
 
@@ -104,9 +104,9 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
                     <Rise delay={150} distance={28} scale={0.97} style={styles.panelPhoto}>
                         <Image
                             source={SHOWCASE.source}
-                            accessibilityLabel="TAG Heuer Carrera Calibre S"
+                            accessibilityLabel={SHOWCASE.label}
                             resizeMode="contain"
-                            style={[{ width: 250, height: 450 }, web({ filter: 'drop-shadow(0 24px 30px rgba(0,0,0,0.45))' })]}
+                            style={[{ width: 250, height: 450 }, SHOWCASE.cutout ? web({ filter: 'drop-shadow(0 24px 30px rgba(0,0,0,0.45))' }) : VIGNETTE]}
                         />
                     </Rise>
                     <View style={{ padding: space.xl, gap: 8 }}>
