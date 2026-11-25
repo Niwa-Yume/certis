@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AssetService } from './asset.service';
-import { CreateAssetDto, ServiceDto } from './dto/create-asset.dto';
+import { CreateAssetDto, InviteDto, ServiceDto } from './dto/create-asset.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { IssuerGuard, type IssuerRequest } from '../issuer/issuer.guard';
 
@@ -61,6 +61,22 @@ export class AssetController {
   @Post(':id/recovered')
   reportRecovered(@Param('id') id: string, @Req() request: IssuerRequest) {
     return this.assetService.report(id, request.user.id, 'RECOVERED');
+  }
+
+  // La maison invite le client d'une pièce de son stock ; le lien ou le QR se montre en boutique.
+  @UseGuards(IssuerGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Post(':id/invitations')
+  invite(
+    @Param('id') id: string,
+    @Body() dto: InviteDto,
+    @Req() request: IssuerRequest,
+  ) {
+    return this.assetService.invite(
+      id,
+      { id: request.user.id, issuerId: request.user.issuerId! },
+      dto.email,
+    );
   }
 
   @UseGuards(IssuerGuard)

@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AssetService } from './asset.service';
 import { NonceDto } from '../nonce/dto/nonce.dto';
@@ -24,5 +24,17 @@ export class PublicVerificationController {
   @HttpCode(200)
   checkSerial(@Param('id') id: string, @Body() dto: SerialCheckDto) {
     return this.assetService.checkSerial(id, dto.nonce, dto.serial);
+  }
+}
+
+// La carte physique remise avec la pièce : son QR est permanent, il ne dit que l'état du passeport.
+@Controller('cards')
+export class CardController {
+  constructor(private readonly assetService: AssetService) {}
+
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Get(':id')
+  card(@Param('id') id: string) {
+    return this.assetService.card(id);
   }
 }

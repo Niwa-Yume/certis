@@ -1,6 +1,7 @@
 import {
   ConflictException,
   ForbiddenException,
+  GoneException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -24,6 +25,23 @@ const SERIAL_CHECKS = 5;
 const SERIAL_WINDOW_MS = 10 * 60_000;
 
 /** Pour le seed : une date d'inscription passée et une photo détourée, hors de l'API. */
+const INVITATION_DAYS = 7;
+
+const invitationNotFound = () =>
+  new NotFoundException(
+    'Cette invitation est introuvable : vérifiez le lien, ou demandez-en une nouvelle à la maison.',
+  );
+const invitationExpired = () =>
+  new GoneException(
+    'Cette invitation a expiré : elle ne vaut que sept jours. Demandez-en une nouvelle à la maison.',
+  );
+
+/** « claire.vasseur@exemple.ch » → « c•••@exemple.ch » : le client se reconnaît, un tiers non. */
+export const maskEmail = (email: string) => {
+  const [name, domain] = email.split('@');
+  return `${name[0]}•••@${domain}`;
+};
+
 type MintOptions = { at?: Date; imageCutout?: boolean; imageUrl?: string };
 
 @Injectable()
@@ -201,12 +219,34 @@ export class AssetService {
       include: { issuer: true },
       orderBy: { createdAt: 'asc' },
     });
-    return assets.map((asset) => this.summary(asset));
+    const pending = await this.pendingFor(ownerId);
+    return [
+      ...pending.map((asset) => ({ ...this.summary(asset), pending: true })),
+      ...assets.map((asset) => ({ ...this.summary(asset), pending: false })),
+    ];
+  }
+
+  /** Les pièces qu'une maison a promises à ce compte : elles l'attendent, encore à la maison. */
+  private async pendingFor(userId: string) {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+    const invitations = await this.prisma.invitation.findMany({
+      where: { email: user.email },
+      include: { asset: { include: { issuer: true } } },
+      orderBy: { createdAt: 'asc' },
+    });
+    return invitations
+      .filter(
+        (i) => i.asset.ownerId === i.createdById && i.asset.status === 'ACTIVE',
+      )
+      .map((i) => i.asset);
   }
 
   /** Vue du propriétaire : la pièce, son émetteur et sa provenance, où il se reconnaît. */
   async findOne(id: string, userId: string) {
-    const asset = await this.owned(id, userId);
+    const waiting = (await this.pendingFor(userId)).find((a) => a.id === id);
+    const asset = waiting ?? (await this.owned(id, userId));
     const [issuer, events, issuedBy] = await Promise.all([
       this.prisma.issuer.findUniqueOrThrow({ where: { id: asset.issuerId } }),
       this.prisma.event.findMany({
@@ -220,6 +260,7 @@ export class AssetService {
       ...this.summary({ ...asset, issuer }),
       issuer: { id: issuer.id, name: issuer.name },
       issuedBy,
+      pending: Boolean(waiting),
       ...this.house(asset.reference, issuer.name),
       provenance: events.map((e) => ({
         ...this.provenance(e),
@@ -378,6 +419,105 @@ export class AssetService {
   }
 
   /** Réservé au propriétaire : 404 plutôt que 403, pour ne pas confirmer l'existence d'une montre d'autrui (AUDIT S8). */
+  /**
+   * La maison invite le client d'une pièce de son stock (ADR-0017). Le jeton n'est rendu qu'ici :
+   * seule son empreinte est gardée. Une nouvelle invitation remplace la précédente.
+   */
+  async invite(
+    assetId: string,
+    house: { id: string; issuerId: string },
+    email: string,
+  ) {
+    const asset = await this.prisma.asset.findFirst({
+      where: {
+        id: assetId,
+        ownerId: house.id,
+        issuerId: house.issuerId,
+        status: 'ACTIVE',
+      },
+    });
+    if (!asset) throw pieceNotFound();
+    const token = randomBytes(32).toString('base64url');
+    const cardId = asset.cardId ?? randomBytes(16).toString('base64url');
+    const expiresAt = new Date(Date.now() + INVITATION_DAYS * 86_400_000);
+    await this.prisma.$transaction([
+      this.prisma.invitation.deleteMany({ where: { assetId } }),
+      this.prisma.asset.update({ where: { id: assetId }, data: { cardId } }),
+      this.prisma.invitation.create({
+        data: {
+          tokenHash: sha256(token),
+          assetId,
+          email,
+          createdById: house.id,
+          expiresAt,
+        },
+      }),
+    ]);
+    return { token, expiresAt: expiresAt.toISOString(), cardId };
+  }
+
+  /** Ce que voit le client qui ouvre son invitation : la pièce, la maison, son e-mail masqué. */
+  async invitation(token: string) {
+    const invitation = await this.prisma.invitation.findUnique({
+      where: { tokenHash: sha256(token) },
+      include: { asset: { include: { issuer: true } } },
+    });
+    if (!invitation) throw invitationNotFound();
+    if (invitation.expiresAt < new Date()) throw invitationExpired();
+    const { asset } = invitation;
+    return {
+      email: invitation.email,
+      view: {
+        email: maskEmail(invitation.email),
+        house: asset.issuer.name,
+        issuedBy: await this.face(asset.issuedById),
+        piece: {
+          name: asset.name,
+          brand: asset.brand,
+          model: asset.model,
+          reference: asset.reference,
+          imageUrl: asset.imageUrl,
+          imageCutout: asset.imageCutout,
+        },
+        expiresAt: invitation.expiresAt.toISOString(),
+      },
+    };
+  }
+
+  /** La carte remise avec la pièce : au public, seulement l'état du passeport (principe 6). */
+  async card(cardId: string) {
+    const asset = await this.prisma.asset.findUnique({
+      where: { cardId },
+      include: { issuer: true, owner: true },
+    });
+    if (!asset) throw pieceNotFound();
+    const piece = {
+      name: asset.name,
+      brand: asset.brand,
+      model: asset.model,
+      reference: asset.reference,
+      imageUrl: asset.imageUrl,
+      imageCutout: asset.imageCutout,
+    };
+    const base = { house: asset.issuer.name, piece };
+    // Encore dans le stock de la maison : la carte s'active à la remise.
+    if (asset.owner.issuerId === asset.issuerId)
+      return { ...base, state: 'pending' };
+    const result = await this.registry.verify(asset);
+    if (result.problem) return { ...base, state: 'unconfirmed' };
+    if (!result.stolen) return { ...base, state: 'verified' };
+    const report = await this.prisma.event.findFirst({
+      where: { assetId: asset.id, type: 'STOLEN_REPORTED' },
+      orderBy: { seq: 'desc' },
+    });
+    return { ...base, state: 'stolen', stolenAt: report?.at.toISOString() };
+  }
+
+  /** Droit à l'effacement : les invitations adressées à cet e-mail disparaissent avec le compte. */
+  async forgetInvitations(email: string) {
+    await this.prisma.invitation.deleteMany({ where: { email } });
+  }
+
   /** Le visage de la personne qui a inscrit la pièce, si la maison l'a renseigné (hors passeport). */
   private async face(userId: string | null) {
     if (!userId) return null;
