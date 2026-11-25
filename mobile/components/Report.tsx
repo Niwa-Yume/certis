@@ -136,9 +136,9 @@ function ScanLine({ height, delay }: { height: number; delay: number }) {
             <Svg width="100%" height={2}>
                 <Defs>
                     <LinearGradient id="scan" x1="0" y1="0" x2="1" y2="0">
-                        <Stop offset="0" stopColor={color.gold} stopOpacity={0} />
-                        <Stop offset="0.5" stopColor={color.gold} stopOpacity={1} />
-                        <Stop offset="1" stopColor={color.gold} stopOpacity={0} />
+                        <Stop offset="0" stopColor={color.metal} stopOpacity={0} />
+                        <Stop offset="0.5" stopColor={color.metal} stopOpacity={1} />
+                        <Stop offset="1" stopColor={color.metal} stopOpacity={0} />
                     </LinearGradient>
                 </Defs>
                 <Rect width="100%" height={2} fill="url(#scan)" />
@@ -172,7 +172,7 @@ function CompactHero({ result, number, onReport }: { result: Verification; numbe
         <View style={styles.navy}>
             <Glow cy="25%" rx="70%" ry="40%" strength={0.26} />
             <View style={styles.compactHeader}>
-                <Wordmark tone={color.paper} />
+                <Wordmark tone={color.onDeep} />
                 <Text style={[t.mono, { color: color.mist }]}>{shortDate(result.verifiedAt)} · {clock(result.verifiedAt).replace(' h ', ':')}</Text>
             </View>
             <Rise distance={24} scale={0.97} style={{ alignSelf: 'center', marginTop: 14 }}>
@@ -180,9 +180,9 @@ function CompactHero({ result, number, onReport }: { result: Verification; numbe
             </Rise>
             <View accessibilityLiveRegion="polite" style={{ paddingHorizontal: 22, gap: 6, marginTop: 20 }}>
                 <Rise delay={1250} distance={14}>
-                    <Text style={[t.serif, t.italic, { color: color.paper, fontSize: 30, lineHeight: 30 }]}>Cette pièce est</Text>
+                    <Text style={[t.serif, t.italic, { color: color.onDeep, fontSize: 30, lineHeight: 30 }]}>Cette pièce est</Text>
                 </Rise>
-                <TrackIn size={Math.min(34, (width - 44) / (11 * 0.8))} delay={1300} from={0.3} to={0.03} style={[t.wide, { color: color.gold }]}>
+                <TrackIn size={Math.min(34, (width - 44) / (11 * 0.8))} delay={1300} from={0.3} to={0.03} style={[t.wide, { color: color.metal }]}>
                     {result.trial ? 'FICTIVE' : 'AUTHENTIQUE'}
                 </TrackIn>
                 <Rise delay={1500} distance={14}>
@@ -218,18 +218,18 @@ function WideHero({ result, number }: { result: Verification; number: string }) 
         <View style={[styles.navy, { minHeight: 900 }]}>
             <Glow cy="62%" rx="34%" ry="52%" strength={0.3} />
             <Container style={styles.wideNav}>
-                <Wordmark tone={color.paper} size={15} />
+                <Wordmark tone={color.onDeep} size={15} />
                 <Text style={[t.mono, { color: color.mist }]}>N° {number}</Text>
             </Container>
             <View accessibilityRole="header" style={{ paddingTop: 36 }}>
                 <Container>
                     <Rise>
-                        <Text style={[t.serif, t.italic, { color: color.paper, fontSize: fluid(width, 34, 4, 60), lineHeight: fluid(width, 34, 4, 60) }]}>
+                        <Text style={[t.serif, t.italic, { color: color.onDeep, fontSize: fluid(width, 34, 4, 60), lineHeight: fluid(width, 34, 4, 60) }]}>
                             Cette pièce est
                         </Text>
                     </Rise>
                 </Container>
-                <TrackIn size={word} delay={100} from={0.3} style={[t.wide, { color: color.paper, textAlign: 'center' }]}>{result.trial ? 'FICTIVE' : 'AUTHENTIQUE'}</TrackIn>
+                <TrackIn size={word} delay={100} from={0.3} style={[t.wide, { color: color.onDeep, textAlign: 'center' }]}>{result.trial ? 'FICTIVE' : 'AUTHENTIQUE'}</TrackIn>
             </View>
             <Rise delay={350} distance={60} duration={1100} style={[styles.widePiece, { left: width / 2 - boxW / 2 }]}>
                 <Piece result={result} number={number} width={boxW} height={boxH} lens={170} zoom={2.4} pinned={pinned} seal={96} />
@@ -237,7 +237,7 @@ function WideHero({ result, number }: { result: Verification; number: string }) 
             <View style={styles.wideFoot}>
                 <Container style={styles.wideFootRow}>
                     <Rise delay={500} style={{ maxWidth: 360, gap: 10 }}>
-                        <Text style={[t.lead, { color: color.paper }]}>Son certificat est intact : il n’a pas été modifié depuis son inscription au registre.</Text>
+                        <Text style={[t.body, { color: color.onDeep }]}>Son certificat est intact : il n’a pas été modifié depuis son inscription au registre.</Text>
                         <Text style={[t.small, { color: color.mist }]}>Vérifiée le {longDate(result.verifiedAt)} à {clock(result.verifiedAt)}</Text>
                         <Pressable nativeID="inspect" onPress={() => setPinned((p) => !p)} accessibilityRole="button" style={styles.inspect}>
                             <Icon name="loupe" size={16} tone={color.mist} />
@@ -393,9 +393,9 @@ function Anatomy({ result, scrollY, top }: { result: Verification; scrollY: Anim
         <Container style={[styles.split, { alignItems: 'center', paddingVertical: compact ? 64 : 110 }]}>
             <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 380, gap: 18 }}>
                 <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: fluid(width, 48, 6, 92), lineHeight: fluid(width, 48, 6, 92) * 0.92 }]}>
-                    Anatomie <Text style={[t.italic, { color: color.seal }]}>d’un certificat</Text>
+                    Anatomie <Text style={[t.italic, { color: color.ink }]}>d’un certificat</Text>
                 </Text>
-                <Text style={[t.lead, { maxWidth: 520 }]}>
+                <Text style={[t.body, { maxWidth: 520 }]}>
                     Un certificat Certis n’est pas une image : ce sont quatre couches de données, scellées ensemble. Si une seule change, le sceau se brise.
                 </Text>
                 <View style={{ borderTopWidth: 1, borderColor: color.hairline, marginTop: 8 }}>
@@ -409,9 +409,9 @@ function Anatomy({ result, scrollY, top }: { result: Verification; scrollY: Anim
                             accessibilityState={{ selected: i === active }}
                             style={styles.layerItem}
                         >
-                            <Text style={[t.wide, { width: 28, fontSize: 13, color: i === active ? color.seal : color.slate }]}>0{i + 1}</Text>
+                            <Text style={[t.wide, { width: 28, fontSize: 13, color: i === active ? color.ink : color.slate }]}>0{i + 1}</Text>
                             <View style={{ flex: 1, gap: 2 }}>
-                                <Text style={[t.lead, t.strong]}>{l.name}</Text>
+                                <Text style={[t.body, t.strong]}>{l.name}</Text>
                                 <Text style={[t.body, { color: color.slate }]}>{l.desc}</Text>
                             </View>
                         </Pressable>
@@ -431,8 +431,8 @@ function Anatomy({ result, scrollY, top }: { result: Verification; scrollY: Anim
                                     width: S,
                                     height: S * 0.64,
                                     padding: compact ? 14 : 20,
-                                    backgroundColor: seal ? color.seal : color.card,
-                                    borderColor: on ? color.gold : seal ? color.seal : color.hairline,
+                                    backgroundColor: seal ? color.deep : color.card,
+                                    borderColor: on ? color.metal : seal ? color.deep : color.hairline,
                                     boxShadow: on ? '0 30px 60px rgba(11,20,48,0.28)' : '0 10px 24px rgba(11,20,48,0.10)',
                                     transform: [
                                         { perspective: 1700 },
@@ -444,8 +444,8 @@ function Anatomy({ result, scrollY, top }: { result: Verification; scrollY: Anim
                                 transition('border-color, box-shadow', 300),
                             ]}
                         >
-                            <Text style={[t.caps, { fontSize: compact ? 10 : 12, letterSpacing: 2, color: seal ? color.paper : color.ink }]}>0{i + 1} · {l.caps}</Text>
-                            <Text numberOfLines={1} style={[t.serif, { fontSize: compact ? 22 : 30, color: seal ? color.paper : color.ink }]}>{l.headline}</Text>
+                            <Text style={[t.caps, { fontSize: compact ? 10 : 12, letterSpacing: 2, color: seal ? color.onDeep : color.ink }]}>0{i + 1} · {l.caps}</Text>
+                            <Text numberOfLines={1} style={[t.serif, { fontSize: compact ? 22 : 30, color: seal ? color.onDeep : color.ink }]}>{l.headline}</Text>
                             <Text style={[t.mono, { color: seal ? color.mist : color.slate }]}>{l.mono}</Text>
                         </Animated.View>
                     );
@@ -468,19 +468,19 @@ function Proof({ result }: { result: Verification }) {
         { label: 'Tête de chaîne', value: `${head.slice(0, 16)}…` },
     ];
     return (
-        <View style={{ backgroundColor: color.night }}>
+        <View style={{ backgroundColor: color.deep }}>
             <Container style={[styles.split, { paddingTop: compact ? 72 : 120, paddingBottom: compact ? 56 : 90 }]}>
                 <View style={{ flexGrow: 1.2, flexShrink: 1, flexBasis: 480, gap: 20 }}>
-                    <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { color: color.paper, fontSize: fluid(width, 48, 6.5, 104), lineHeight: fluid(width, 48, 6.5, 104) * 0.92 }]}>
-                        Le cœur <Text style={[t.italic, { color: color.gold }]}>cryptographique</Text>
+                    <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { color: color.onDeep, fontSize: fluid(width, 48, 6.5, 104), lineHeight: fluid(width, 48, 6.5, 104) * 0.92 }]}>
+                        Le cœur <Text style={[t.italic, { color: color.metal }]}>cryptographique</Text>
                     </Text>
-                    <Text style={[t.lead, { color: color.mist, maxWidth: 560 }]}>
+                    <Text style={[t.body, { color: color.mist, maxWidth: 560 }]}>
                         La maison qui a inscrit la pièce signe son passeport ; Certis signe chaque changement de mains. Chaque événement est chaîné au précédent : la moindre modification, même d’un seul caractère, rompt la chaîne.
                     </Text>
                     <Pressable onPress={() => setOpen((o) => !o)} accessibilityRole="button" accessibilityState={{ expanded: open }} style={styles.disclosure}>
-                        <Text style={[t.body, t.medium, { color: color.paper }]}>Détails techniques, pour les experts</Text>
+                        <Text style={[t.body, t.medium, { color: color.onDeep }]}>Détails techniques, pour les experts</Text>
                         <View style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }}>
-                            <Icon name="arrow" size={16} tone={color.gold} />
+                            <Icon name="arrow" size={16} tone={color.metal} />
                         </View>
                     </Pressable>
                     {open ? (
@@ -488,7 +488,7 @@ function Proof({ result }: { result: Verification }) {
                             {details.map((d) => (
                                 <View key={d.label} style={styles.proofRow}>
                                     <Text style={[t.body, { color: color.mist }]}>{d.label}</Text>
-                                    <Text selectable style={{ fontFamily: font.mono, fontSize: 14, color: color.paper }}>{d.value}</Text>
+                                    <Text selectable style={{ fontFamily: font.mono, fontSize: 14, color: color.onDeep }}>{d.value}</Text>
                                 </View>
                             ))}
                             <Text style={[t.small, { color: color.mist }]}>
@@ -497,7 +497,7 @@ function Proof({ result }: { result: Verification }) {
                             {Platform.OS === 'web' ? (
                                 <TextLink
                                     label="Télécharger la preuve (JSON)"
-                                    tone={color.gold}
+                                    tone={color.metal}
                                     onPress={() => downloadJson(`certis-preuve-${registryNumber(result.passport.credentialSubject.id).replace(/·/g, '-')}.json`, { passport: proof.passport, events: proof.events, anchors: proof.anchors })}
                                 />
                             ) : null}
@@ -505,11 +505,11 @@ function Proof({ result }: { result: Verification }) {
                     ) : null}
                 </View>
                 <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 380, gap: 18 }}>
-                    <Text style={[t.lead, t.strong, { color: color.paper }]}>Avant de conclure</Text>
+                    <Text style={[t.body, t.strong, { color: color.onDeep }]}>Avant de conclure</Text>
                     {CHECKS(result.passport.credentialSubject.reference).map((c) => (
                         <View key={c} style={{ flexDirection: 'row', gap: 10 }}>
-                            <Text style={[t.body, { color: color.gold }]}>—</Text>
-                            <Text style={[t.body, { color: color.paper, flex: 1 }]}>{c}</Text>
+                            <Text style={[t.body, { color: color.metal }]}>—</Text>
+                            <Text style={[t.body, { color: color.onDeep, flex: 1 }]}>{c}</Text>
                         </View>
                     ))}
                     {wide && Platform.OS === 'web' ? (
@@ -527,7 +527,7 @@ function Proof({ result }: { result: Verification }) {
 }
 
 const styles = StyleSheet.create({
-    navy: { backgroundColor: color.seal, overflow: 'hidden' },
+    navy: { backgroundColor: color.deep, overflow: 'hidden' },
     compactHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 22, paddingTop: 24 },
     heroCard: {
         margin: 14, marginTop: space.lg, padding: 16, gap: 12, backgroundColor: color.paper,

@@ -99,7 +99,7 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
                 <View style={[styles.panel, { minHeight: height }]}>
                     <Glow cy="58%" rx="55%" ry="45%" />
                     <View style={{ padding: space.xl }}>
-                        <Wordmark tone={color.paper} size={15} />
+                        <Wordmark tone={color.onDeep} size={15} />
                     </View>
                     <Rise delay={150} distance={28} scale={0.97} style={styles.panelPhoto}>
                         <Image
@@ -110,7 +110,7 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
                         />
                     </Rise>
                     <View style={{ padding: space.xl, gap: 8 }}>
-                        <PieceName parts={['Le registre', 'des garde-temps']} size={44} accent={color.gold} style={{ color: color.paper }} />
+                        <PieceName parts={['Le registre', 'des garde-temps']} size={44} accent={color.metal} style={{ color: color.onDeep }} />
                         <Text style={[t.body, { color: color.mist, maxWidth: 420 }]}>
                             Chaque pièce inscrite porte un certificat signé, vérifiable par tout acheteur, sans compte.
                         </Text>
@@ -126,7 +126,7 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
 
 const styles = StyleSheet.create({
     screen: { flex: 1, flexDirection: 'row', backgroundColor: color.paper },
-    panel: { flex: 1, backgroundColor: color.seal, overflow: 'hidden', justifyContent: 'space-between' },
+    panel: { flex: 1, backgroundColor: color.deep, overflow: 'hidden', justifyContent: 'space-between' },
     panelPhoto: { alignSelf: 'center' },
     scroll: { flexGrow: 1, justifyContent: 'center', padding: space.lg },
     form: { width: '100%', maxWidth: 440, alignSelf: 'center', gap: space.lg },

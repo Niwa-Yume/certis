@@ -53,7 +53,7 @@ export default function ClaimScreen() {
                             <Seal number={registryNumber(id)} size={112} />
                         </Stamp>
                         <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={[t.serif, styles.title]}>
-                            Pièce <Text style={[t.italic, { color: color.seal }]}>reçue</Text>
+                            Pièce <Text style={[t.italic, { color: color.ink }]}>reçue</Text>
                         </Text>
                         <Text style={t.body}>Elle figure maintenant dans votre collection, et son certificat est signé à votre nom.</Text>
                         <Button label="Voir la pièce" arrow onPress={() => router.replace(`/watch/${id}`)} />
@@ -62,7 +62,7 @@ export default function ClaimScreen() {
                     <View style={styles.block}>
                         <Text style={t.caps}>CESSION</Text>
                         <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, styles.title]}>
-                            Recevoir <Text style={[t.italic, { color: color.seal }]}>une pièce</Text>
+                            Recevoir <Text style={[t.italic, { color: color.ink }]}>une pièce</Text>
                         </Text>
                         <Text style={t.body}>
                             Un propriétaire vous cède une montre inscrite au registre. En l’acceptant, elle rejoint votre collection et son certificat est signé à nouveau, à votre nom.
