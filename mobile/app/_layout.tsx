@@ -29,6 +29,10 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
             #report { flex: none !important; height: auto !important; }
             #report * { opacity: 1 !important; }
             #scan, #stack, #inspect, #print-hero, #print-proof { display: none !important; }
+            /* La carte de la pièce, imprimée seule par la maison (lot 4). */
+            body:has(#piece-card) * { visibility: hidden; }
+            #piece-card, #piece-card * { visibility: visible; }
+            #piece-card { position: absolute; left: 0; top: 0; }
         }
     `;
     document.head.appendChild(style);

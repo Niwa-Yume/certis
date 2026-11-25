@@ -11,6 +11,12 @@ import type { Request, Response } from 'express';
 // shortcut: les erreurs de validation (champ par champ) restent en français ; à traduire si un
 // formulaire anglais en produit dans la démo.
 export const ENGLISH: Record<string, string> = {
+  'Cette invitation est introuvable : vérifiez le lien, ou demandez-en une nouvelle à la maison.':
+    'This invitation cannot be found: check the link, or ask the house for a new one.',
+  'Cette invitation a expiré : elle ne vaut que sept jours. Demandez-en une nouvelle à la maison.':
+    'This invitation has expired: it is valid for seven days only. Ask the house for a new one.',
+  'Un compte existe déjà avec cet e-mail : connectez-vous, la pièce vous attend dans votre collection.':
+    'An account already exists with this e-mail: sign in, the piece is waiting in your collection.',
   'Aucun compte Certis n’utilise cet e-mail : vérifiez-le, ou demandez à l’acheteur de créer son compte d’abord.':
     'No Certis account uses this e-mail: check it, or ask the buyer to create an account first.',
   'Aucun compte Certis n’utilise l’e-mail du premier propriétaire : vérifiez-le, ou laissez-le vide pour garder la pièce en stock.':

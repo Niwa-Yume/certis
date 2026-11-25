@@ -106,3 +106,10 @@ export class SerialCheckDto {
   @MaxLength(64)
   serial: string;
 }
+
+/** La maison invite le client d'une pièce de son stock : son e-mail, rien d'autre. */
+export class InviteDto {
+  @Transform(normalizeEmail)
+  @IsEmail()
+  email: string;
+}
