@@ -93,17 +93,18 @@ Réponse 200 quand tout concorde :
 |---|---|
 | 🔒 `POST /assets/:id/invitations` (30/min) | La maison qui détient la pièce invite son client : `{ email }` → `{ token, expiresAt, cardId }`. Le jeton n'est rendu qu'ici (7 jours) ; une nouvelle invitation remplace la précédente. 404 si la pièce n'est pas dans son stock. |
 | `GET /invitations/:token` (10/min) | Sans compte : `{ email (masqué), house, issuedBy, piece, expiresAt }`. 404 inconnue, 410 expirée. |
-| `POST /invitations/:token/accept` (10/min) | Sans compte : `{ password }` → `{ user, accessToken }`. Le compte prend l'e-mail invité, sans pièce d'essai. 409 si un compte existe déjà : la pièce l'attend dans sa collection. |
+| `POST /invitations/:token/accept` (10/min) | Sans compte : `{ password }` → `{ user, accessToken }`. Le compte prend l'e-mail invité, sans pièce d'essai, et l'invitation lui est liée. 409 si un compte existe déjà : se connecter, puis `link`. |
+| 🔒 `POST /invitations/:token/link` (10/min) | Un compte connecté qui porte l'e-mail invité lie l'invitation à lui (403 sinon, 409 si elle est déjà liée à un autre compte) (ADR-0019). |
 | `GET /cards/:id` (30/min) | Sans compte : la carte remise avec la pièce. `{ state: pending \| verified \| unconfirmed \| stolen, house, piece, stolenAt? }`, rien d'autre. |
 
-Une pièce invitée apparaît dans `GET /assets` du client avec `pending: true`, et `GET /assets/:id` la montre, mais elle reste à la maison : ni QR de vérification ni cession avant la remise. La remise est une cession réservée (`recipientEmail`) ; `claim` répond alors `handover: true` et l'invitation est supprimée.
+Une pièce invitée apparaît dans `GET /assets` du compte qui a présenté le jeton (pas de tout compte portant l'e-mail) avec `pending: true`, et `GET /assets/:id` la montre, mais elle reste à la maison : ni QR de vérification ni cession avant la remise. La remise est une cession réservée (`recipientEmail`), refusée (409) tant que l'invitation n'est pas acceptée par le compte de cet e-mail ; `claim` répond alors `handover: true` et l'invitation est supprimée.
 
 ## Révision et partage (ADR-0018)
 
 | Route | Rôle |
 |---|---|
-| 🔒 `POST /assets/:id/service-requests` | Le propriétaire demande une révision. 409 si une révision est déjà en cours, 423 si la pièce est déclarée volée. |
-| 🔒 `GET /service-requests` | La maison : les demandes en cours sur ses pièces, avec l'e-mail du propriétaire. |
+| 🔒 `POST /assets/:id/service-requests` | Le propriétaire demande une révision. 409 s'il en a déjà une en cours, 423 si la pièce est déclarée volée. La demande d'un ancien propriétaire ne compte pas (ADR-0019). |
+| 🔒 `GET /service-requests` | La maison : les demandes en cours de propriétaires actuels de ses pièces, avec leur e-mail. |
 | 🔒 `POST /service-requests/:id/receive` | La maison reçoit la pièce en atelier. 409 si ce n'est pas l'étape. |
 | 🔒 `POST /service-requests/:id/return` | `{ note }` : la maison rend la pièce ; un maillon `SERVICE` signé est écrit dans la même transaction. |
 | 🔒 `POST /assets/:id/shares` (30/min) | `{ hours: 1 \| 24 \| 168, history }` → `{ id, token, expiresAt }`. Le propriétaire seul. |

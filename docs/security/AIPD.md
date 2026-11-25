@@ -20,7 +20,7 @@ Cadres concernés :
 | Jeton de session | Navigateur (`localStorage`), 1 h | Session | Expiration |
 | Adresses IP | Journaux de l'hébergeur (Render) | Exploitation, limitation de débit | **Inconnue** : dépend de l'hébergeur |
 | Nom affiché, rôle et photo d'un membre de la maison | `User.displayName`, `title`, `photoUrl` ; `Asset.issuedById` | Le visage de la maison sur la fiche et la vérification publique (ADR-0016) | Facultatif, renseigné par la maison ; jusqu'à la suppression du compte (le lien devient nul) |
-| E-mail du client invité, avant qu'il ait un compte | `Invitation.email` | Créer son compte et lui réserver la pièce (ADR-0017) | Jusqu'à la remise, ou l'effacement du compte ; jeton de 7 jours |
+| E-mail du client invité, avant qu'il ait un compte | `Invitation.email` | Créer son compte et lui réserver la pièce (ADR-0017) | Jusqu'à la remise, ou l'effacement du compte qui l'a acceptée (ADR-0019) ; jeton de 7 jours |
 | E-mail du propriétaire, transmis à la maison | `ServiceRequest.ownerId`, e-mail montré à la maison émettrice | Convenir du dépôt d'une révision qu'il a demandée (ADR-0018) | Tant que la demande existe ; **pas de purge des demandes rendues** (à corriger) |
 | Partages créés par le propriétaire | `Share` | Montrer sa pièce, pour une durée qu'il choisit (ADR-0018) | Jusqu'à expiration ou arrêt ; **lignes expirées non purgées** (à corriger) |
 
