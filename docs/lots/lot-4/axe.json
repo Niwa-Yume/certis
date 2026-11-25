@@ -1,0 +1,246 @@
+{
+  "report": [
+    {
+      "file": "fr-360-light-2-maison-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-360-light-1-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-360-light-3-collection-attendue",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-360-light-2-activation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-360-light-6-carte-publique",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-light-2-maison-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-light-1-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-light-3-collection-attendue",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-light-2-activation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-light-6-carte-publique",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-360-dark-2-maison-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-360-dark-1-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-360-dark-3-collection-attendue",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-360-dark-2-activation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-360-dark-6-carte-publique",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-dark-2-maison-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-dark-1-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-dark-3-collection-attendue",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-dark-2-activation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "fr-1440-dark-6-carte-publique",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-light-2-maison-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-light-1-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-light-3-collection-attendue",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-light-2-activation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-light-6-carte-publique",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-light-2-maison-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-light-1-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-light-3-collection-attendue",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-light-2-activation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-light-6-carte-publique",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-dark-2-maison-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-dark-1-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-dark-3-collection-attendue",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-dark-2-activation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-360-dark-6-carte-publique",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-dark-2-maison-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-dark-1-invitation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-dark-3-collection-attendue",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-dark-2-activation",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "file": "en-1440-dark-6-carte-publique",
+      "overflow": false,
+      "violations": []
+    }
+  ],
+  "timings": [
+    {
+      "tag": "fr-360-light",
+      "signupSeconds": 2.459,
+      "activationSeconds": 1.197
+    },
+    {
+      "tag": "fr-1440-light",
+      "signupSeconds": 2.511,
+      "activationSeconds": 1.143
+    },
+    {
+      "tag": "fr-360-dark",
+      "signupSeconds": 2.332,
+      "activationSeconds": 1.153
+    },
+    {
+      "tag": "fr-1440-dark",
+      "signupSeconds": 2.333,
+      "activationSeconds": 1.146
+    },
+    {
+      "tag": "en-360-light",
+      "signupSeconds": 2.319,
+      "activationSeconds": 1.149
+    },
+    {
+      "tag": "en-1440-light",
+      "signupSeconds": 2.332,
+      "activationSeconds": 1.146
+    },
+    {
+      "tag": "en-360-dark",
+      "signupSeconds": 2.418,
+      "activationSeconds": 1.152
+    },
+    {
+      "tag": "en-1440-dark",
+      "signupSeconds": 2.366,
+      "activationSeconds": 1.143
+    }
+  ]
+}

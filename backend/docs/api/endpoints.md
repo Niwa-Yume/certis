@@ -87,6 +87,17 @@ Réponse 200 quand tout concorde :
 
 3. `POST /assets/:id/serial-check` `{ nonce, serial }` (sans compte) : `{ match }`. Seulement après une vérification réussie avec ce même QR (403 sinon), 5 fois au plus en 10 minutes (429 ensuite).
 
+## Invitation et remise (ADR-0017)
+
+| Route | Rôle |
+|---|---|
+| 🔒 `POST /assets/:id/invitations` (30/min) | La maison qui détient la pièce invite son client : `{ email }` → `{ token, expiresAt, cardId }`. Le jeton n'est rendu qu'ici (7 jours) ; une nouvelle invitation remplace la précédente. 404 si la pièce n'est pas dans son stock. |
+| `GET /invitations/:token` (10/min) | Sans compte : `{ email (masqué), house, issuedBy, piece, expiresAt }`. 404 inconnue, 410 expirée. |
+| `POST /invitations/:token/accept` (10/min) | Sans compte : `{ password }` → `{ user, accessToken }`. Le compte prend l'e-mail invité, sans pièce d'essai. 409 si un compte existe déjà : la pièce l'attend dans sa collection. |
+| `GET /cards/:id` (30/min) | Sans compte : la carte remise avec la pièce. `{ state: pending \| verified \| unconfirmed \| stolen, house, piece, stolenAt? }`, rien d'autre. |
+
+Une pièce invitée apparaît dans `GET /assets` du client avec `pending: true`, et `GET /assets/:id` la montre, mais elle reste à la maison : ni QR de vérification ni cession avant la remise. La remise est une cession réservée (`recipientEmail`) ; `claim` répond alors `handover: true` et l'invitation est supprimée.
+
 ## Cession en deux temps 🔒
 
 1. `POST /assets/:id/transfer-offers` (30/min) `{ recipientEmail? }` : le propriétaire obtient `{ nonce, expiresAt }`, valable 5 min. Avec un e-mail, seul ce compte peut accepter (404 si le compte n'existe pas).
