@@ -37,12 +37,14 @@ model Asset {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  owner       User         @relation(fields: [ownerId], references: [id])
-  issuer      Issuer       @relation(fields: [issuerId], references: [id])
-  issuedBy    User?        @relation("IssuedBy", fields: [issuedById], references: [id], onDelete: SetNull)
+  owner       User             @relation(fields: [ownerId], references: [id])
+  issuer      Issuer           @relation(fields: [issuerId], references: [id])
+  issuedBy    User?            @relation("IssuedBy", fields: [issuedById], references: [id], onDelete: SetNull)
   nonces      AuthNonce[]
   events      Event[]
   invitations Invitation[]
+  services    ServiceRequest[]
+  shares      Share[]
 }
 
 model User {
@@ -57,11 +59,13 @@ model User {
   photoUrl     String?
   createdAt    DateTime @default(now())
 
-  issuer         Issuer?     @relation(fields: [issuerId], references: [id])
+  issuer         Issuer?          @relation(fields: [issuerId], references: [id])
   assets         Asset[]
-  issuedAssets   Asset[]     @relation("IssuedBy")
-  issuedNonces   AuthNonce[] @relation("NonceIssuer")
-  reservedNonces AuthNonce[] @relation("NonceRecipient")
+  issuedAssets   Asset[]          @relation("IssuedBy")
+  services       ServiceRequest[]
+  shares         Share[]
+  issuedNonces   AuthNonce[]      @relation("NonceIssuer")
+  reservedNonces AuthNonce[]      @relation("NonceRecipient")
 }
 
 enum Role {
@@ -192,4 +196,42 @@ model Invitation {
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([email])
+}
+
+// La demande de révision d'un propriétaire, suivie en trois étapes par la maison (ADR-0018).
+// Le retour inscrit un maillon SERVICE : la révision entre dans l'histoire de la pièce.
+model ServiceRequest {
+  id          String        @id @default(uuid())
+  assetId     String
+  ownerId     String // la maison voit son e-mail, pour convenir du dépôt
+  status      ServiceStatus @default(REQUESTED)
+  requestedAt DateTime      @default(now())
+  receivedAt  DateTime?
+  returnedAt  DateTime?
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  owner User  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+}
+
+enum ServiceStatus {
+  REQUESTED
+  IN_WORKSHOP
+  RETURNED
+}
+
+// Un partage choisi par le propriétaire : un lien, ou son QR, à durée limitée et révocable.
+// Seule l'empreinte du jeton est gardée. Il ne vaut plus si la pièce change de mains (ADR-0018).
+model Share {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  assetId   String
+  ownerId   String
+  history   Boolean // montrer l'histoire, ou seulement « Passeport vérifié »
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  owner User  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }
