@@ -8,6 +8,7 @@ import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import { registryNumber, splitName } from '../lib/format';
 import { deleteItemAsync } from '../lib/storage';
 import { NoPhoto, usePhoto } from '../components/WatchPhoto';
+import ServiceQueue from '../components/ServiceQueue';
 import { Badge, Button, Container, Glow, Notice, PieceName, Rise, State, TextField, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
 import { color, space, typeScale } from '../theme/tokens';
 
@@ -76,12 +77,13 @@ export default function DashboardScreen() {
             </Container>
 
             <Container>
+                {issuer ? <ServiceQueue /> : null}
                 {failure ? (
                     <State kind={stateOf(failure)} action={{ label: tr.retry, onPress: load }} />
                 ) : !assets ? (
                     <State kind="loading" />
                 ) : count === 0 ? (
-                    <State kind="empty" {...(issuer ? { title: 'Votre stock est vide', body: 'Inscrivez une pièce que vous avez examinée : vous signez son passeport, puis vous pouvez la remettre à son acheteur.' } : {})} />
+                    <State kind="empty" {...(issuer ? { title: tr.piece.emptyStock, body: tr.piece.emptyStockBody } : {})} />
                 ) : (
                     <View style={styles.grid}>
                         {assets.map((asset, i) => (

@@ -17,6 +17,20 @@ export const ENGLISH: Record<string, string> = {
     'This invitation has expired: it is valid for seven days only. Ask the house for a new one.',
   'Un compte existe déjà avec cet e-mail : connectez-vous, la pièce vous attend dans votre collection.':
     'An account already exists with this e-mail: sign in, the piece is waiting in your collection.',
+  'Cette demande de révision est introuvable : rechargez la liste des révisions.':
+    'This service request cannot be found: reload the list of services.',
+  'Ce partage n’est plus valable : demandez au propriétaire un nouveau lien.':
+    'This share is no longer valid: ask the owner for a new link.',
+  'Ce partage est introuvable : vérifiez le lien, ou demandez-en un nouveau au propriétaire.':
+    'This share cannot be found: check the link, or ask the owner for a new one.',
+  'Cette montre est déclarée volée : elle ne peut pas partir en révision. Si elle a été retrouvée, déclarez-la retrouvée d’abord.':
+    'This watch is reported stolen: it cannot go for service. If it has been recovered, report it recovered first.',
+  'Une révision est déjà en cours pour cette pièce : suivez son avancement sur sa fiche.':
+    'A service is already under way for this piece: follow its progress on its record.',
+  'Cette pièce est déjà en atelier, ou déjà rendue : rechargez la liste des révisions.':
+    'This piece is already in the workshop, or already returned: reload the list of services.',
+  'Cette pièce n’est pas en atelier : recevez-la d’abord, ou rechargez la liste des révisions.':
+    'This piece is not in the workshop: receive it first, or reload the list of services.',
   'Aucun compte Certis n’utilise cet e-mail : vérifiez-le, ou demandez à l’acheteur de créer son compte d’abord.':
     'No Certis account uses this e-mail: check it, or ask the buyer to create an account first.',
   'Aucun compte Certis n’utilise l’e-mail du premier propriétaire : vérifiez-le, ou laissez-le vide pour garder la pièce en stock.':

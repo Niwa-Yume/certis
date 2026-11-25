@@ -261,6 +261,30 @@ export class AssetService {
       issuer: { id: issuer.id, name: issuer.name },
       issuedBy,
       pending: Boolean(waiting),
+      // La dernière demande de révision, et les partages en cours : au propriétaire seulement.
+      service: waiting
+        ? null
+        : await this.prisma.serviceRequest.findFirst({
+            where: { assetId: id, ownerId: userId },
+            orderBy: { requestedAt: 'desc' },
+            select: {
+              status: true,
+              requestedAt: true,
+              receivedAt: true,
+              returnedAt: true,
+            },
+          }),
+      shares: waiting
+        ? []
+        : await this.prisma.share.findMany({
+            where: {
+              assetId: id,
+              ownerId: userId,
+              expiresAt: { gt: new Date() },
+            },
+            select: { id: true, history: true, expiresAt: true },
+            orderBy: { createdAt: 'desc' },
+          }),
       // La carte de la pièce : à son détenteur seulement (maison ou propriétaire), pas au client qui attend.
       cardId: waiting ? null : asset.cardId,
       ...this.house(asset.reference, issuer.name),
@@ -347,15 +371,28 @@ export class AssetService {
       where: { id },
       include: { issuer: true },
     });
+    return this.publicView(asset, true);
+  }
+
+  /**
+   * Ce que voit un tiers : par le QR présenté en personne, ou par un partage du propriétaire.
+   * Sans `history`, seulement l'état du passeport : ni chaîne, ni fichier de preuve (ADR-0018).
+   */
+  async publicView(asset: Asset & { issuer: Issuer }, history: boolean) {
     const verifiedAt = new Date().toISOString();
     const result = await this.registry.verify(asset);
     if (result.problem) {
       return { valid: false, problem: result.problem, verifiedAt };
     }
+    const stolenAt = result.stolen
+      ? [...result.events].reverse().find((e) => e.type === 'STOLEN_REPORTED')
+          ?.at
+      : undefined;
     return {
       valid: true,
       verifiedAt,
       status: result.stolen ? 'STOLEN' : 'ACTIVE',
+      stolenAt,
       // Pièce d'essai (ADR-0012) : l'interface le dit avant tout le reste.
       trial: asset.issuer.trial,
       // Le visage de la maison : hors du passeport signé, affiché à côté (principe « un visage »).
@@ -363,17 +400,21 @@ export class AssetService {
       passport: result.payload,
       // Indication d'affichage (photo détourée), hors du passeport signé.
       imageCutout: asset.imageCutout,
-      provenance: result.events.map((e) => ({
-        type: e.type,
-        at: e.at,
-        ...(e.type === 'SERVICE' ? { note: e.data.note } : {}),
-      })),
-      proof: {
-        passport: asset.passport,
-        events: result.events,
-        anchors: result.anchors,
-        keys: '/.well-known/certis-keys',
-      },
+      ...(history
+        ? {
+            provenance: result.events.map((e) => ({
+              type: e.type,
+              at: e.at,
+              ...(e.type === 'SERVICE' ? { note: e.data.note } : {}),
+            })),
+            proof: {
+              passport: asset.passport,
+              events: result.events,
+              anchors: result.anchors,
+              keys: '/.well-known/certis-keys',
+            },
+          }
+        : {}),
     };
   }
 

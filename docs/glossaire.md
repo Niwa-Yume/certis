@@ -23,7 +23,8 @@ Un mot, un sens, partout : dans l'interface, le code et la base. Quand l'interfa
 | Remise | Handover | `claim` → `handover: true` | La maison remet la pièce à son premier propriétaire : une cession réservée à son compte. Le passeport devient actif devant lui, avec le seul geste animé de l'app. |
 | Carte | Card | `Asset.cardId`, `/cards/:id` | La carte physique remise avec la pièce. Son QR permanent ne dit que l'état du passeport. |
 | Cession | Change of ownership | `TRANSFER`, `/transfer-offers`, `/claim` | Le passage d'un propriétaire à un autre. Jamais « transfert d'actif » à l'écran. |
-| Révision | Service | `SERVICE` | Un entretien enregistré par la maison. |
+| Révision | Service | `SERVICE`, `ServiceRequest` | Un entretien : demandé par le propriétaire, reçu en atelier, puis rendu par la maison, qui l'inscrit dans l'histoire (ADR-0018). |
+| Partage | Share | `Share`, `/shares/:token` | Un lien, ou son QR, créé par le propriétaire : 1 h, 24 h ou 7 jours, avec ou sans l'histoire, arrêtable. |
 | Déclaration de vol | Theft report | `STOLEN_REPORTED` | Le propriétaire déclare la pièce volée. À l'écran : « Déclarée volée le [date] par son propriétaire », un fait daté. La pièce ne peut plus être cédée. |
 | Retrouvée | Recovered | `RECOVERED` | Le propriétaire lève sa déclaration de vol. |
 | QR de vérification | Verification QR | `NoncePurpose.VERIFY` | Un code à durée limitée que le propriétaire présente pour qu'un tiers vérifie le passeport. |

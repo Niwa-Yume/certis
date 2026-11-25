@@ -98,6 +98,20 @@ Réponse 200 quand tout concorde :
 
 Une pièce invitée apparaît dans `GET /assets` du client avec `pending: true`, et `GET /assets/:id` la montre, mais elle reste à la maison : ni QR de vérification ni cession avant la remise. La remise est une cession réservée (`recipientEmail`) ; `claim` répond alors `handover: true` et l'invitation est supprimée.
 
+## Révision et partage (ADR-0018)
+
+| Route | Rôle |
+|---|---|
+| 🔒 `POST /assets/:id/service-requests` | Le propriétaire demande une révision. 409 si une révision est déjà en cours, 423 si la pièce est déclarée volée. |
+| 🔒 `GET /service-requests` | La maison : les demandes en cours sur ses pièces, avec l'e-mail du propriétaire. |
+| 🔒 `POST /service-requests/:id/receive` | La maison reçoit la pièce en atelier. 409 si ce n'est pas l'étape. |
+| 🔒 `POST /service-requests/:id/return` | `{ note }` : la maison rend la pièce ; un maillon `SERVICE` signé est écrit dans la même transaction. |
+| 🔒 `POST /assets/:id/shares` (30/min) | `{ hours: 1 \| 24 \| 168, history }` → `{ id, token, expiresAt }`. Le propriétaire seul. |
+| 🔒 `DELETE /assets/:id/shares/:shareId` | Le propriétaire arrête un partage. |
+| `GET /shares/:token` (30/min) | Sans compte : la même vue que la vérification par QR, sans `provenance` ni `proof` quand l'histoire n'est pas partagée. 404 inconnu, 410 arrêté, expiré ou pièce cédée. |
+
+`GET /assets/:id` donne au propriétaire `service` (la dernière demande et ses dates) et `shares` (les partages en cours).
+
 ## Cession en deux temps 🔒
 
 1. `POST /assets/:id/transfer-offers` (30/min) `{ recipientEmail? }` : le propriétaire obtient `{ nonce, expiresAt }`, valable 5 min. Avec un e-mail, seul ce compte peut accepter (404 si le compte n'existe pas).

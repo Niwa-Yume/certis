@@ -29,8 +29,10 @@ export type Verification = {
             specs: Specs; image: string | null;
         };
     };
-    provenance: { type: EventType; at: string; note?: string }[];
-    proof: { passport: string; events: { seq: number; hash: string }[]; anchors: unknown[]; keys: string };
+    // Absents d'un partage sans histoire : le propriétaire n'a montré que le passeport (ADR-0018).
+    provenance?: { type: EventType; at: string; note?: string }[];
+    proof?: { passport: string; events: { seq: number; hash: string }[]; anchors: unknown[]; keys: string };
+    stolenAt?: string;
 };
 
 /**
@@ -38,12 +40,12 @@ export type Verification = {
  * émis par la maison »), le statut de vol en fait daté, l'histoire, la cession guidée.
  * La cryptographie reste dans le volet « Preuves », fermé par défaut.
  */
-export default function Passport({ result, nonce }: { result: Verification; nonce: string }) {
+export default function Passport({ result, nonce }: { result: Verification; nonce?: string }) {
     const { wide } = useLayout();
     const piece = result.passport.credentialSubject;
     const house = result.passport.issuer.name;
     const stolen = result.status === 'STOLEN';
-    const stolenAt = [...result.provenance].reverse().find((e) => e.type === 'STOLEN_REPORTED')?.at;
+    const stolenAt = result.stolenAt ?? [...(result.provenance ?? [])].reverse().find((e) => e.type === 'STOLEN_REPORTED')?.at;
     const title = wide ? typeScale.display : typeScale.title;
 
     return (
@@ -81,7 +83,7 @@ export default function Passport({ result, nonce }: { result: Verification; nonc
             </View>
             <Text style={[t.body, { color: color.slate }]}>{tr.verify.proves(piece.reference)}</Text>
 
-            <Section title={tr.verify.history}>
+            {result.provenance ? <Section title={tr.verify.history}>
                 {result.provenance.map((e, i) => {
                     const d = describeEvent(e.type, { issuer: house, note: e.note });
                     return (
@@ -94,7 +96,7 @@ export default function Passport({ result, nonce }: { result: Verification; nonc
                         </View>
                     );
                 })}
-            </Section>
+            </Section> : null}
 
             {stolen ? null : (
                 <Section title={tr.verify.buyTitle}>
@@ -107,7 +109,7 @@ export default function Passport({ result, nonce }: { result: Verification; nonc
                 </Section>
             )}
 
-            <Proofs result={result} nonce={nonce} />
+            {result.proof ? <Proofs result={result} nonce={nonce} /> : null}
         </Showcase>
     );
 }
@@ -122,9 +124,9 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /** Le volet technique, fermé par défaut : signatures, chaîne, numéro de série, fichier de preuve. */
-function Proofs({ result, nonce }: { result: Verification; nonce: string }) {
+function Proofs({ result, nonce }: { result: Verification; nonce?: string }) {
     const [open, setOpen] = useState(false);
-    const { proof } = result;
+    const proof = result.proof!;
     const piece = result.passport.credentialSubject;
     const kid = (JSON.parse(atob(proof.passport.split('.')[0].replace(/-/g, '+').replace(/_/g, '/'))) as { kid: string }).kid;
     const head = proof.events[proof.events.length - 1]?.hash ?? '';
@@ -165,7 +167,8 @@ function Proofs({ result, nonce }: { result: Verification; nonce: string }) {
                             onPress={() => downloadJson(`certis-preuve-${registryNumber(piece.id).replace(/·/g, '-')}.json`, { passport: proof.passport, events: proof.events, anchors: proof.anchors })}
                         />
                     ) : null}
-                    <SerialCheck assetId={piece.id} nonce={nonce} />
+                    {/* La comparaison du numéro gravé exige le QR présenté en personne, pas un lien partagé. */}
+                    {nonce ? <SerialCheck assetId={piece.id} nonce={nonce} /> : null}
                 </View>
             ) : null}
         </View>

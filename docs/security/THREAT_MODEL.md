@@ -64,3 +64,6 @@ Version : 2026-10-25, après la Phase 7 (base : fin de Phase 3, branche `phase-3
 | I | L'invitation révèle l'e-mail du client | E-mail masqué à l'affichage (« c•••@domaine ») ; invitation supprimée à la remise et à l'effacement du compte | H1, H3 |
 | E | Inviter un client pour la pièce d'autrui, ou une pièce déjà remise | Réservé à la maison qui détient la pièce dans son stock (404 sinon) | H4 |
 | I | La carte publique trahit le propriétaire ou l'histoire | Elle ne dit que l'état (attendue, vérifié, non confirmé, déclarée volée) ; identifiant de 128 bits, 30 requêtes par minute | H7 |
+| I | Un lien de partage expose la pièce au-delà de ce que voulait le propriétaire | Créé par lui seul ; 1 h, 24 h ou 7 jours ; sans histoire par défaut ; arrêtable ; caduc si la pièce change de mains ; jamais l'e-mail ni l'identifiant du propriétaire (ADR-0018) | P1 à P3 (`service-share.e2e-spec.ts`) |
+| I | L'e-mail du propriétaire fuit vers une autre maison | Seule la maison qui a émis la pièce voit la demande de révision | S2 |
+| T | Une révision inscrite sans que la pièce soit passée à l'atelier | Retour refusé tant que la pièce n'est pas reçue ; une seule demande ouverte ; jamais pour une pièce volée | S1, S3, S4 |
