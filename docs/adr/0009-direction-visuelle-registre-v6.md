@@ -1,5 +1,7 @@
 # ADR-0009 — Direction visuelle : « Registre », version 6
 
+> **Remplacée en partie par [ADR-0014](0014-tokens-maison-et-theme-sombre.md)** (2026-11-25) : un seul accent métal au lieu du bleu sceau et de l'or, deux familles de polices au lieu de quatre, mouvement de 400 ms au plus. La hiérarchie, la place donnée à la pièce et la retenue restent.
+
 - Statut : accepté (choix du propriétaire du projet, 2026-10-24)
 - Constats liés : critique du jury J2 (« interface desktop très basique, visuels en dessous des standards du luxe »), AUDIT F1, N2
 - Maquettes : canevas privé « Certis — directions visuelles », rangée « V6 »

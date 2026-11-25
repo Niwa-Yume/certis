@@ -372,6 +372,14 @@ Les *Should* représentent environ 14 h. Ce sont les premiers à sauter si l'éc
 | 0011 | Révocation datée des clés d'émetteur | S-02 |
 | 0012 | Essayer Certis : pièce d'essai, maison de démonstration, catalogue | 7 |
 | 0013 | Messages de refus : ce qui s'est passé, puis comment corriger | 7 |
+| 0014 | Identité par tokens : maison ou neutre, thème sombre | Lot 1 |
+| 0015 | Écran de vérification, maison fictive, refus en anglais | Lot 2 |
+| 0016 | Fiche de vie et visage de la maison | Lot 3 |
+| 0017 | Invitation, remise et carte | Lot 4 |
+| 0018 | Révision en trois étapes et partage | Lot 5 |
+| 0019 | Corrections de l'audit de sécurité, run 1 | Audit |
+
+L'index à jour, avec les statuts : [`adr/README.md`](adr/README.md).
 
 ## Choix techniques vérifiés (registre npm et nodejs.org, 2026-10-23)
 
@@ -454,4 +462,53 @@ Demande du 2026-10-25. Un compte neuf ne pouvait rien essayer ; la maison de dé
 
 - **Vert** : 56 tests e2e sur 56, trois exécutions de suite.
 - **Imprévu de test** : le test D crée 20 comptes en parallèle, et chacun signe désormais sa pièce d'essai. Il dépassait les 5 s par défaut ; il a 15 s. La création concurrente de l'émetteur d'essai est partagée, au lieu d'être refaite par chaque inscription.
+
+## Expérience client — lots 1 à 6 (2026-11-25)
+
+Le brief : faire de Certis une démo de 3 minutes au niveau d'une grande maison horlogère, sur mobile et sur ordinateur, en sept écrans, sans toucher au socle de confiance. Un lot = une branche et une PR, chacune empilée sur la précédente et fusionnée par le propriétaire du projet. Le plan a été validé avant le premier commit, avec des coupes : pas d'e-mail envoyé, remise par la cession réservée existante, partage en trois durées.
+
+| Lot | Contenu | PR | Preuves | Écart |
+|---|---|---|---|---|
+| 1 | Tokens maison ou neutre, thème sombre, deux familles de polices, FR/EN, états d'écran | #3 (fusionnée) | ADR-0014 ; 32 captures, 0 violation axe | LCP traité au lot 6 |
+| 2 | Écran 7 : « Passeport vérifié, émis par la maison », vol en premier, cession guidée ; Maison Orvène fictive ; refus de l'API en anglais | #4 | ADR-0015 ; 57/57 e2e ; 48 captures, 0 violation | Les visuels Orvène générés dans Canva n'ont pas pu être exportés (S-11) |
+| 3 | Écrans 3 et 4 : cartes de même hauteur, statut en un mot, fiche de vie en récit, visage de la maison | #5 | ADR-0016 ; 58/58 ; 32 captures, 0 violation | — |
+| 4 | Écrans 1 et 2 : invitation, pièce attendue, remise et animation d'activation, carte publique | #6 | ADR-0017 ; rouge `b4999e2`, puis 65/65 ; activation en 1,15 s ; 40 captures, 0 violation | — |
+| 5 | Écrans 5 et 6 : révision en trois étapes, partage choisi par le propriétaire | #7 | ADR-0018 ; rouge `03c935d`, puis 72/72 ; 48 captures, 0 violation | Le partage est un objet distinct du QR de vérification, pas une extension du nonce : le socle reste intact |
+| 6 | Polices WOFF2 préchargées, test du parcours 1 à 7, `DEMO.md`, AIPD | #8 | [Rapport du lot 6](lots/lot-6/README.md) ; e2e 20/20 ; 168 captures, 0 violation | LCP en « Slow 4G » : 3,7 à 6,2 s. Le pré-rendu statique a été essayé, sans gain (S-10) |
+
+**Imprévus**
+- **Visuels de la démo.** Une démo aux couleurs d'une maison réelle, à la demande du propriétaire du projet, avec l'accord de la marque. Elle tourne en local seulement (`DEMO_HOUSE_FILE`, ignoré par Git), parce que le dépôt est **public**.
+- **Secret repéré.** GitGuardian a signalé un mot de passe de démo recopié dans un script de vérification. Le script crée désormais des comptes jetables.
+- **Poste de dev.** Ports 5432 et 8090 déjà pris, Metro qui ne surveille plus les fichiers sous `CI=1`, anciens processus restés en vie : contournés en local, puis `WEB_PORT` ajouté au script de dev.
+
+## Audit de sécurité, run 1 (2026-11-26)
+
+- **Cadre.** Audit ciblé des surfaces ajoutées par les lots 2 à 6, profil `quick`, revue de source seule. Trois chasseurs, un critique de couverture, puis un vérificateur indépendant par piste. Le rapport est gardé hors dépôt.
+- **Résultat.** Aucun constat confirmé, trois pistes « à valider ».
+- **Corrections.** Chaque piste a été reproduite par un test rouge (`75cdd7b`), puis corrigée dans la PR #9 (ADR-0019) :
+  - l'`id` venu d'un lien est encodé côté client ; la première piste s'est révélée réelle ;
+  - l'invitation est liée au compte qui présente le jeton ;
+  - la révision est rattachée au propriétaire actuel.
+- **Preuves.** 77/77 tests e2e de l'API, 60/60 dans le navigateur.
+
+## Suites après les lots et l'audit
+
+| ID | Item | MoSCoW | Origine |
+|---|---|---|---|
+| S-08 | Vérification de l'e-mail à l'inscription (fournisseur d'envoi) : seule réponse au tiers qui bloque la création de compte à une adresse | Must avant toute donnée réelle | ADR-0019, risque résiduel 5 du modèle de menace |
+| S-09 | Purges planifiées : partages expirés, demandes de révision rendues, invitations expirées, QR expirés | Should | AIPD |
+| S-10 | LCP sous 2,5 s en « Slow 4G » : rendu serveur avec les données, ou premier écran sans react-native-web | Could | Rapport du lot 6 |
+| S-11 | Visuels de la Maison Orvène (export depuis Canva) ; retirer les photos de marques réelles qui restent dans le dépôt (`backend/public/watches`, `mobile/assets/watch/carrera.webp`, utilisée par l'accueil et la connexion) | Must pour la version publique | Lot 2 |
+| S-12 | Durcissements relevés par l'audit (pas des constats) | Should | Audit run 1 |
+| S-13 | Nouveau run d'audit sur les corrections de la PR #9 et sur les écrans hors des sept (accueil, connexion, inscription d'une pièce) | Should | Audit run 1 |
+| S-14 | Accueil et connexion : encore dans la direction de la phase 4, hors des sept écrans | Should | Lot 1 |
+| P5-03 | Trois répétitions chronométrées, cette fois de [`DEMO.md`](../DEMO.md) (3 min) | Must avant le jury | Phase 5 |
+
+Le détail de S-12 :
+- mises à jour conditionnelles pour `receive`, `giveBack` et `requestService` ;
+- une erreur P2002 traduite en 409 dans `acceptInvitation` ;
+- le contrôle de propriété de `invite` dans sa transaction ;
+- le jeton de session envoyé seulement aux routes authentifiées ;
+- `Linking.openURL` limité à `https:` ;
+- `stolenAt` de la carte publique lu dans la chaîne vérifiée.
 

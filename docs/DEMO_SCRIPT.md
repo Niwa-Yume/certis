@@ -1,5 +1,7 @@
 # Démonstration Certis — 10 minutes
 
+> **Démo technique**, pilotée depuis le terminal : la chaîne, les clés, le vol. Pour la démo produit de 3 minutes sur les sept écrans, voir [`DEMO.md`](../DEMO.md).
+
 Une seule pièce, de l'atelier au vol. Les étapes qui **changent l'état** passent par le script (`npm run demo -- next`), qui ne rate pas. L'interface montre les **moments que l'on doit voir** : la fiche du propriétaire, la vérification sur le téléphone de l'acheteur, l'alerte de vol.
 
 Chaque étape a une durée cible et un repli. Si tout tombe, `npm run demo` raconte l'histoire entière dans le terminal en une minute.
