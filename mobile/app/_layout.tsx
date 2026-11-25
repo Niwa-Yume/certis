@@ -39,7 +39,9 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 }
 
 export default function RootLayout() {
-    const [loaded, error] = useFonts({
+    // Web : les polices sont déclarées et préchargées dans public/index.html, sans bloquer le rendu.
+    // Natif : chargées ici, avant le premier rendu.
+    const [loaded, error] = useFonts(Platform.OS === 'web' ? {} : {
         InstrumentSerif_400Regular,
         InstrumentSerif_400Regular_Italic,
         Geist_400Regular,
