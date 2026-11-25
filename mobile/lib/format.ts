@@ -1,3 +1,5 @@
+import { lang, locale } from './i18n';
+
 // N° d'inscription lisible, dérivé de l'identifiant : CRT·7F3A·21C9.
 export function registryNumber(id: string): string {
     const hex = id.replace(/-/g, '').toUpperCase();
@@ -11,7 +13,7 @@ export function splitName(name: string): [string, string] {
 }
 
 const date = (iso: string, options: Intl.DateTimeFormatOptions) =>
-    new Date(iso).toLocaleDateString('fr-FR', options);
+    new Date(iso).toLocaleDateString(locale, options);
 
 /** 12.03.2026 */
 export const shortDate = (iso: string) =>
@@ -24,8 +26,9 @@ export const longDate = (iso: string) => date(iso, { day: 'numeric', month: 'lon
 export const capsDate = (iso: string) =>
     date(iso, { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
 
-/** 10 h 42 */
+/** 10 h 42, ou 10:42 en anglais */
 export function clock(iso: string): string {
     const d = new Date(iso);
-    return `${d.getHours()} h ${String(d.getMinutes()).padStart(2, '0')}`;
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return lang === 'en' ? `${d.getHours()}:${mm}` : `${d.getHours()} h ${mm}`;
 }

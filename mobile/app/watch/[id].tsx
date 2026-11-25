@@ -143,13 +143,13 @@ function Hero({ style, word, wordSize, wordTop, photo, onError, label, box, lens
         <View style={[styles.hero, style]}>
             <Glow />
             <View style={styles.heroHeader}>
-                {onBack ? <IconButton icon="back" label="Retour à la collection" tone={color.paper} onPress={onBack} /> : null}
+                {onBack ? <IconButton icon="back" label="Retour à la collection" tone={color.onDeep} onPress={onBack} /> : null}
                 <View style={onBack ? styles.wordmarkCentered : { paddingLeft: space.xl, paddingTop: space.md }}>
-                    <Wordmark tone={color.paper} />
+                    <Wordmark tone={color.onDeep} />
                 </View>
             </View>
             <View aria-hidden style={[styles.giantWord, { top: wordTop }]}>
-                <TrackIn size={wordSize} opacity={0.9} style={[t.wide, { color: color.paper, textAlign: 'center' }]}>{word}</TrackIn>
+                <TrackIn size={wordSize} opacity={0.9} style={[t.wide, { color: color.onDeep, textAlign: 'center' }]}>{word}</TrackIn>
             </View>
             <Rise delay={150} distance={28} scale={0.97} duration={1000} style={[styles.photo, { top: box.top }]}>
                 <WatchVisual photo={photo} onError={onError} label={label} width={box.width} height={box.height} lens={lens} zoom={zoom} pinned={pinned} />
@@ -335,9 +335,9 @@ function Proof({ watch, valid }: { watch: Watch; valid: boolean | null }) {
         <View style={{ gap: space.sm }}>
             <Text style={t.body}>{text}</Text>
             <Pressable onPress={() => setOpen((o) => !o)} accessibilityRole="button" accessibilityState={{ expanded: open }} style={styles.disclosure}>
-                <Text style={[t.body, t.medium, { color: color.seal }]}>Détails techniques</Text>
+                <Text style={[t.body, t.medium, { color: color.ink }]}>Détails techniques</Text>
                 <View style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }}>
-                    <Icon name="arrow" size={16} tone={color.seal} />
+                    <Icon name="arrow" size={16} tone={color.ink} />
                 </View>
             </Pressable>
             {open ? (
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: color.paper },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.paper },
     row: { flex: 1, flexDirection: 'row', backgroundColor: color.paper },
-    hero: { backgroundColor: color.seal, overflow: 'hidden' },
+    hero: { backgroundColor: color.deep, overflow: 'hidden' },
     heroHeader: { flexDirection: 'row', alignItems: 'center', paddingTop: 10, paddingHorizontal: 10, zIndex: 3 },
     wordmarkCentered: { position: 'absolute', left: 0, right: 0, top: 10, height: 48, alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' },
     giantWord: { position: 'absolute', left: 0, right: 0, zIndex: 1 },
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     badgeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 6 },
     tabs: { flexDirection: 'row', borderBottomWidth: 1, borderColor: color.hairline },
     tab: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
-    indicator: { position: 'absolute', bottom: -1, left: 0, height: 2, backgroundColor: color.seal },
+    indicator: { position: 'absolute', bottom: -1, left: 0, height: 2, backgroundColor: color.deep },
     rowItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, minHeight: 56, paddingVertical: 12, borderBottomWidth: 1, borderColor: color.hairline },
     rowHover: { backgroundColor: color.hover, paddingHorizontal: 14 },
     event: { flexDirection: 'row', alignItems: 'baseline', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderColor: color.hairline },

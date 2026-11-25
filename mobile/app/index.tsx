@@ -37,7 +37,7 @@ export default function IndexScreen() {
 
     if (checking) {
         return (
-            <View style={[styles.center, { backgroundColor: color.seal }]}>
+            <View style={[styles.center, { backgroundColor: color.deep }]}>
                 <Spinner size={72} />
             </View>
         );
@@ -50,8 +50,8 @@ export default function IndexScreen() {
             <View style={styles.hero}>
                 <Glow cx={compact ? '50%' : '72%'} cy="55%" rx="45%" ry="55%" />
                 <Container style={styles.nav}>
-                    <Wordmark tone={color.paper} size={15} />
-                    <TextLink label="Se connecter" tone={color.paper} onPress={() => router.push('/login')} />
+                    <Wordmark tone={color.onDeep} size={15} />
+                    <TextLink label="Se connecter" tone={color.onDeep} onPress={() => router.push('/login')} />
                 </Container>
                 <Container style={[styles.heroBody, { flexDirection: compact ? 'column' : 'row' }]}>
                     <Rise style={{ flex: compact ? undefined : 1.2, gap: space.lg, maxWidth: 640 }}>
@@ -62,10 +62,10 @@ export default function IndexScreen() {
                             parts={['Chaque montre a une histoire.', 'Certis la rend vérifiable.']}
                             size={title}
                             stacked
-                            accent={color.gold}
-                            style={{ color: color.paper, lineHeight: title * 1.02 }}
+                            accent={color.metal}
+                            style={{ color: color.onDeep, lineHeight: title * 1.02 }}
                         />
-                        <Text style={[t.lead, { color: color.mist, maxWidth: 520 }]}>
+                        <Text style={[t.body, { color: color.mist, maxWidth: 520 }]}>
                             Inscrivez vos pièces, présentez-les à un acheteur, cédez-les en toute sécurité : chaque certificat est signé et vérifiable sans compte.
                         </Text>
                         <View style={styles.ctas}>
@@ -87,14 +87,14 @@ export default function IndexScreen() {
                 <View style={{ gap: 12, maxWidth: 640 }}>
                     <Text style={t.caps}>VOUS ACHETEZ UNE MONTRE ?</Text>
                     <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: fluid(width, 40, 5, 72), lineHeight: fluid(width, 40, 5, 72) }]}>
-                        Vérifiez-la <Text style={[t.italic, { color: color.seal }]}>avant de payer.</Text>
+                        Vérifiez-la <Text style={[t.italic, { color: color.ink }]}>avant de payer.</Text>
                     </Text>
                 </View>
                 <View style={styles.steps}>
                     {STEPS.map((s) => (
                         <View key={s.n} style={styles.step}>
-                            <Text style={[t.wide, { fontSize: 28, color: color.seal }]}>{s.n}</Text>
-                            <Text style={[t.lead, t.strong]}>{s.title}</Text>
+                            <Text style={[t.wide, { fontSize: 28, color: color.ink }]}>{s.n}</Text>
+                            <Text style={[t.body, t.strong]}>{s.title}</Text>
                             <Text style={[t.body, { color: color.slate }]}>{s.text}</Text>
                         </View>
                     ))}
@@ -114,7 +114,7 @@ export default function IndexScreen() {
 
 const styles = StyleSheet.create({
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    hero: { backgroundColor: color.seal, overflow: 'hidden' },
+    hero: { backgroundColor: color.deep, overflow: 'hidden' },
     nav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14 },
     heroBody: { alignItems: 'center', gap: space.xl, paddingTop: space.xl, paddingBottom: 72 },
     ctas: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.sm },

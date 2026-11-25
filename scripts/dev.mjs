@@ -37,10 +37,12 @@ run(envCreated ? 'npm run db:reset' : 'npx prisma db seed', 'backend');
 
 // Démo sur téléphone : la page web ouverte par l'IP du réseau local doit pouvoir appeler l'API.
 // Seulement si backend/.env ne fixe pas déjà les origines ; la production n'est pas concernée.
+// WEB_PORT : si 8090 est déjà pris par un autre projet.
+const web = process.env.WEB_PORT ?? '8090';
 const lan = Object.values(networkInterfaces()).flat().find((net) => net?.family === 'IPv4' && !net.internal)?.address;
 const cors = /^CORS_ORIGINS=/m.test(readFileSync('backend/.env', 'utf8')) || !lan
   ? {}
-  : { CORS_ORIGINS: `http://localhost:8090,http://localhost:8081,http://${lan}:8090` };
+  : { CORS_ORIGINS: `http://localhost:${web},http://localhost:8081,http://${lan}:${web}` };
 
 const children = [
   // PORT forcé : le mobile appelle l'API sur 3001 (mobile/lib/api.ts), même si le shell exporte un autre PORT.
@@ -49,9 +51,9 @@ const children = [
     stdio: ['ignore', 'inherit', 'inherit'],
     env: { ...process.env, PORT: '3001', ...cors },
   }),
-  spawn('npx', ['expo', 'start', '--web', '--port', '8090'], { cwd: 'mobile', stdio: 'inherit' }),
+  spawn('npx', ['expo', 'start', '--web', '--port', web], { cwd: 'mobile', stdio: 'inherit' }),
 ];
-if (lan) console.log(`\nSur un téléphone du même réseau : http://${lan}:8090\n`);
+if (lan) console.log(`\nSur un téléphone du même réseau : http://${lan}:${web}\n`);
 const stopAll = () => children.forEach((child) => child.kill());
 process.on('SIGINT', stopAll);
 process.on('SIGTERM', stopAll);

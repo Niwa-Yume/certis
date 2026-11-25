@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import * as Linking from 'expo-linking';
 import QRCode from 'react-native-qrcode-svg';
 import api, { explain } from '../lib/api';
-import { color, space } from '../theme/tokens';
+import { color, palette, space } from '../theme/tokens';
 import { Button, IconButton, Notice, TextField, t, useLayout } from './ui';
 
 type Kind = 'verify' | 'transfer';
@@ -111,7 +111,7 @@ export default function NonceSheet({ kind, assetId, onClose }: { kind: Kind | nu
                     {qr ? (
                         <View style={{ alignItems: 'center', gap: space.md }}>
                             <View style={styles.qr} accessible accessibilityRole="image" accessibilityLabel={`QR de ${kind === 'verify' ? 'vérification' : 'cession'}`}>
-                                <QRCode value={qr} size={220} color={color.seal} backgroundColor={color.card} />
+                                <QRCode value={qr} size={220} color={palette.light.ink} backgroundColor={palette.light.card} />
                             </View>
                             <View style={styles.progressTrack}>
                                 <View style={[styles.progress, { width: `${(left / offer!.ttl) * 100}%` }]} />
@@ -152,5 +152,5 @@ const styles = StyleSheet.create({
     head: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
     qr: { padding: 16, backgroundColor: color.card, borderWidth: 1, borderColor: color.hairline },
     progressTrack: { width: 252, height: 2, backgroundColor: color.hairline },
-    progress: { height: 2, backgroundColor: color.seal },
+    progress: { height: 2, backgroundColor: color.deep },
 });

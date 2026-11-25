@@ -69,12 +69,12 @@ export default function VerifyScreen() {
     }[outcome.state];
 
     return (
-        <ScrollView style={{ backgroundColor: dark ? color.seal : color.paper }} contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView style={{ backgroundColor: dark ? color.deep : color.paper }} contentContainerStyle={{ flexGrow: 1 }}>
             {dark ? <Glow cy="25%" rx="70%" ry="40%" strength={0.26} /> : null}
             {/* Mobile : la marche à suivre tombe sous le pouce ; desktop : un bloc centré. */}
             <View style={[styles.column, compact ? null : styles.centered]}>
                 <View style={styles.header}>
-                    <Wordmark tone={dark ? color.paper : color.ink} />
+                    <Wordmark tone={dark ? color.onDeep : color.ink} />
                     {verifiedAt ? (
                         <Text style={t.mono}>{shortDate(verifiedAt)} · {clock(verifiedAt).replace(' h ', ':')}</Text>
                     ) : null}
@@ -84,13 +84,13 @@ export default function VerifyScreen() {
                     {outcome.state === 'loading' ? <Spinner size={150} /> : null}
                     {alarm ? (
                         <Svg width={150} height={150} viewBox="0 0 120 120" aria-hidden>
-                            <Circle cx={60} cy={60} r={54} fill={color.white} stroke={color.refused} strokeWidth={2} />
+                            <Circle cx={60} cy={60} r={54} fill={color.card} stroke={color.refused} strokeWidth={2} />
                             <Path d="M60 36v30M60 80v2" fill="none" stroke={color.refused} strokeWidth={6} strokeLinecap="round" />
                         </Svg>
                     ) : null}
                     {outcome.state === 'unverifiable' ? (
                         <Svg width={150} height={150} viewBox="0 0 120 120" aria-hidden>
-                            <Circle cx={60} cy={60} r={54} fill={color.white} stroke={color.slate} strokeWidth={2} />
+                            <Circle cx={60} cy={60} r={54} fill={color.card} stroke={color.slate} strokeWidth={2} />
                             <Path
                                 d="M44 36h32M44 84h32M47 36c0 14 26 14 26 24s-26 10-26 24M73 36c0 14-26 14-26 24s26 10 26 24"
                                 fill="none" stroke={color.slate} strokeWidth={3} strokeLinejoin="round"
@@ -100,8 +100,8 @@ export default function VerifyScreen() {
                 </View>
 
                 <View accessibilityLiveRegion="polite" style={{ gap: 6, paddingHorizontal: 22 }}>
-                    <Text style={[t.serif, t.italic, { fontSize: 30, lineHeight: 32, color: dark ? color.paper : color.ink }]}>{copy.a}</Text>
-                    <Text style={[t.wide, { fontSize: 34, lineHeight: 38, color: alarm ? color.refused : dark ? color.gold : color.ink }]}>
+                    <Text style={[t.serif, t.italic, { fontSize: 30, lineHeight: 32, color: dark ? color.onDeep : color.ink }]}>{copy.a}</Text>
+                    <Text style={[t.wide, { fontSize: 34, lineHeight: 38, color: alarm ? color.refused : dark ? color.metal : color.ink }]}>
                         {copy.b}
                     </Text>
                     <Text style={[t.body, { marginTop: 6, color: dark ? color.mist : color.ink }]}>{copy.message}</Text>
@@ -120,7 +120,7 @@ export default function VerifyScreen() {
                             'Gardez une capture de cet écran : il indique la date et l’heure de la vérification.',
                         ].map((step, i) => (
                             <View key={step} style={{ flexDirection: 'row', gap: 10 }}>
-                                <Text style={[t.body, t.medium, { color: color.seal }]}>{i + 1}.</Text>
+                                <Text style={[t.body, t.medium, { color: color.ink }]}>{i + 1}.</Text>
                                 <Text style={[t.body, { flex: 1 }]}>{step}</Text>
                             </View>
                         ))}
@@ -164,7 +164,7 @@ function StolenCard({ result }: { result: Verification }) {
                 `Prévenez son émetteur : ${issuer.name}.`,
             ].map((step, i) => (
                 <View key={step} style={{ flexDirection: 'row', gap: 10 }}>
-                    <Text style={[t.body, t.medium, { color: color.seal }]}>{i + 1}.</Text>
+                    <Text style={[t.body, t.medium, { color: color.ink }]}>{i + 1}.</Text>
                     <Text style={[t.body, { flex: 1 }]}>{step}</Text>
                 </View>
             ))}
@@ -181,6 +181,6 @@ const styles = StyleSheet.create({
     footnote: { marginTop: 'auto', marginHorizontal: 22, marginBottom: 28 },
     card: {
         marginTop: 'auto', margin: 14, padding: 16, gap: 10,
-        backgroundColor: color.white, borderWidth: 1, borderColor: color.hairline,
+        backgroundColor: color.card, borderWidth: 1, borderColor: color.hairline,
     },
 });

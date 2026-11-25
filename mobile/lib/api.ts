@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { ACCESS_TOKEN_KEY } from './auth';
 import { deleteItemAsync, getItemAsync } from './storage';
+import { tr } from './i18n';
 
 const DEFAULT_BACKEND_PORT = 3001;
 
@@ -79,9 +80,15 @@ api.interceptors.response.use(
  */
 export function explain(error: unknown, fallback: string): string {
     if (!axios.isAxiosError(error)) return fallback;
-    if (!error.response) return 'Serveur injoignable : vérifiez votre connexion, puis réessayez.';
+    if (!error.response) return tr.unreachable;
     const message = (error.response.data as { message?: unknown } | undefined)?.message;
     return typeof message === 'string' ? message : fallback;
 }
 
 export default api;
+/** L'état d'écran qui correspond à un échec (composant State). */
+export function stateOf(error: unknown): 'offline' | 'notFound' | 'error' {
+    if (!axios.isAxiosError(error)) return 'error';
+    if (!error.response) return 'offline';
+    return error.response.status === 404 ? 'notFound' : 'error';
+}

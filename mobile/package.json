@@ -13,7 +13,6 @@
     "@expo-google-fonts/geist": "^0.4.2",
     "@expo-google-fonts/geist-mono": "^0.4.3",
     "@expo-google-fonts/instrument-serif": "^0.4.1",
-    "@expo-google-fonts/unbounded": "^0.4.1",
     "axios": "^1.16.0",
     "expo": "~54.0.37",
     "expo-constants": "~18.0.14",
