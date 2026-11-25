@@ -83,7 +83,7 @@ Comptes de démo, en dev uniquement (mots de passe dans `backend/prisma/seed.ts`
 
 | Compte | Rôle |
 |---|---|
-| `atelier@certis.demo` | La maison fictive « Maison Orvène » (visage : Claire Vasseur, conseillère horlogère), 3 pièces en stock |
+| `atelier@certis.demo` | La maison de la démo, Audemars Piguet (ou la Maison Orvène, fictive, sans `DEMO_HOUSE_FILE`) |
 | `certis@pro.com` | Propriétaire : Équinoxe Phase de Lune, révisée |
 | `julien.castro@certis.local` | Propriétaire : Méridienne Petite Seconde, révisée puis reçue par cession |
 
@@ -91,12 +91,12 @@ Chaque nouveau compte créé hors invitation reçoit une pièce d'essai, fictive
 
 ### Une démo aux couleurs d'une maison
 
-Le dépôt montre une maison fictive. Pour une démo aux couleurs d'une vraie maison, avec son accord, un fichier local remplace la maison, son catalogue, ses textes, ses liens et le visage de son conseiller :
-- `DEMO_HOUSE_FILE=demo-house.local.json` dans `backend/.env` ;
-- les photos dans `backend/public/watches/local/` ;
-- la montre de l'accueil et de la connexion : `EXPO_PUBLIC_SHOWCASE_URL` (chemin d'une de ces photos, servie par l'API) et `EXPO_PUBLIC_SHOWCASE_LABEL` (son nom, lu par les lecteurs d'écran) dans `mobile/.env.local`. Sans elles, l'accueil montre la photo embarquée. Une photo non détourée se fond dans le fond sombre, sans cadre ; elle doit donc avoir un fond sombre.
+La démo est aux couleurs d'Audemars Piguet, avec l'accord de la marque, pour une présentation ; le dépôt est privé pour cette raison. Un fichier remplace la maison, son catalogue, ses textes, ses liens et le visage de son conseiller :
+- `DEMO_HOUSE_FILE=demo-house.ap.json` dans `backend/.env`, mis par défaut depuis `backend/.env.example` ;
+- ses photos dans `backend/public/watches/local/` ;
+- la montre de l'accueil et de la connexion, embarquée dans l'app : la Royal Oak « Cactus Jack ». `EXPO_PUBLIC_SHOWCASE_URL` et `EXPO_PUBLIC_SHOWCASE_LABEL` (dans `mobile/.env.local`) la remplacent par une photo servie par l'API. Une photo non détourée se fond dans le fond sombre, sans cadre ; elle doit donc avoir un fond sombre.
 
-Git ignore ces fichiers : le nom et les visuels d'une marque réelle n'entrent jamais dans ce dépôt public (ADR-0015). Les couleurs passent par des tokens : `EXPO_PUBLIC_THEME=neutral` donne la version Certis, sans maison (ADR-0014).
+Sans la ligne `DEMO_HOUSE_FILE`, la maison redevient la Maison Orvène, fictive (ADR-0015). Les couleurs passent par des tokens : `EXPO_PUBLIC_THEME=neutral` donne la version Certis, sans maison (ADR-0014).
 
 ## Périmètre
 
@@ -104,7 +104,7 @@ Git ignore ces fichiers : le nom et les visuels d'une marque réelle n'entrent j
 |---|---|---|
 | App Expo et API NestJS, comptes, inscription d'une montre par son propriétaire, QR de vérification et de cession, signature ECDSA par la plateforme, historique des cessions. État exact : `main` @ `9de1082`, audité dans [`docs/AUDIT.md`](docs/AUDIT.md). | **Socle** : audit et backlog ; failles de cession corrigées, tests rouges d'abord ; modèle émetteur, passeport signé, chaîne d'événements, vol, numéro de série ; vérificateur indépendant ; ancrage chez un tiers horodateur ; pièce d'essai, refus expliqués. **Expérience client** (lots 1 à 6) : les sept écrans, identité par tokens, FR/EN, thème sombre, test du parcours complet. **Audit de sécurité** des nouveaux écrans, et ses corrections. | Blockchain, intégration Aura ou Arianee, paiements, marketplace, enchères, publication sur les stores, puce NFC, Verifiable Credentials W3C, envoi d'e-mails. |
 
-Projet personnel, sans affiliation avec aucune maison horlogère. Il ne contient aucun code, document ni information issus de mes stages, et n'engage aucune entreprise. La maison de démonstration est fictive.
+Projet personnel, sans affiliation avec aucune maison horlogère. Il ne contient aucun code, document ni information issus de mes stages, et n'engage aucune entreprise. La démo est aux couleurs d'Audemars Piguet avec l'accord de la marque ; la maison fictive Orvène reste disponible.
 
 ## Ce qui a changé après le jury
 

@@ -1,0 +1,126 @@
+{
+  "house": "Audemars Piguet",
+  "catalog": [
+    {
+      "brand": "Audemars Piguet",
+      "model": "Royal Oak",
+      "name": "Royal Oak Quantième Perpétuel Ajouré « Cactus Jack »",
+      "reference": "26585CM.OO.D301VE.01",
+      "movement": "Calibre 5135, remontage automatique, quantième perpétuel",
+      "case": "Céramique brune, 41 mm, édition limitée à 200 pièces",
+      "dial": "Ajouré, détails Cactus Jack",
+      "bracelet": "Cuir texturé brun",
+      "source": "https://www.audemarspiguet.com/com/en/watch-collection/royal-oak/26585CM.OO.D301VE.01.html",
+      "photo": {
+        "imageUrl": "/public/watches/local/ap-cactus-jack.webp",
+        "imageCutout": false
+      },
+      "story": "La première Royal Oak en céramique brune, éditée à 200 exemplaires avec Cactus Jack, la maison de Travis Scott. Son calendrier perpétuel ajouré laisse voir le calibre 5135 ; le fond porte « Utopia is a state of mind »."
+    },
+    {
+      "brand": "Audemars Piguet",
+      "model": "Royal Oak",
+      "name": "Royal Oak Extra-Plat",
+      "reference": "15202ST.OO.1240ST.01",
+      "movement": "Audemars Piguet 2121",
+      "case": "Acier, 39 mm, 9,8 mm d’épaisseur",
+      "dial": "Bleu, « Petite Tapisserie »",
+      "bracelet": "Acier",
+      "source": "https://www.audemarspiguet.com/",
+      "photo": {
+        "imageUrl": "/public/watches/royal-oak.webp",
+        "imageCutout": true
+      },
+      "story": "Présentée en 1972 à Bâle, la Royal Oak est la première montre de luxe en acier. Gérald Genta l’a dessinée : une lunette octogonale tenue par huit vis hexagonales, un bracelet intégré, un cadran « Tapisserie ». La 15202 garde les 39 mm et la finesse du modèle de 1972."
+    },
+    {
+      "brand": "Audemars Piguet",
+      "model": "Royal Oak Offshore",
+      "name": "Royal Oak Offshore Chronographe",
+      "reference": "26470ST",
+      "movement": "Calibre 3126/3840, remontage automatique, chronographe",
+      "case": "Acier, 42 mm",
+      "dial": "Gris « Méga Tapisserie », compteurs noirs",
+      "bracelet": "Acier",
+      "source": "https://www.audemarspiguet.com/",
+      "photo": {
+        "imageUrl": "/public/watches/local/ap-offshore.webp",
+        "imageCutout": false
+      },
+      "story": "Lancée en 1993, la Royal Oak Offshore porte la Royal Oak à 42 mm, plus sportive. Emmanuel Gueit l’a dessinée ; son cadran « Méga Tapisserie » et ses compteurs noirs ont valu à cette version gris et noir son surnom, « Elephant »."
+    },
+    {
+      "brand": "Audemars Piguet",
+      "model": "Royal Oak",
+      "name": "Royal Oak Automatique",
+      "reference": "15400OR.OO.D002CR.01",
+      "movement": "Calibre 3120, remontage automatique",
+      "case": "Or rose 18 carats, 41 mm",
+      "dial": "Noir « Grande Tapisserie »",
+      "bracelet": "Cuir d’alligator brun",
+      "source": "https://www.audemarspiguet.com/",
+      "photo": {
+        "imageUrl": "/public/watches/local/ap-royal-oak-or.webp",
+        "imageCutout": false
+      },
+      "story": "Présentée en 1972 à Bâle, la Royal Oak est la première montre de luxe en acier. Gérald Genta l’a dessinée : une lunette octogonale tenue par huit vis hexagonales, un bracelet intégré, un cadran « Tapisserie ». La 15400, en or rose et 41 mm, en est la version automatique de 2012."
+    }
+  ],
+  "watches": [
+    {
+      "reference": "26585CM.OO.D301VE.01",
+      "serial": "DEMO-AP-26585-0042",
+      "story": [
+        {
+          "type": "MINT",
+          "at": "2024-01-18",
+          "owner": "certis@pro.com"
+        },
+        {
+          "type": "SERVICE",
+          "at": "2025-11-18",
+          "note": "Contrôle de marche et d’étanchéité"
+        },
+        {
+          "type": "TRANSFER",
+          "at": "2026-09-03",
+          "owner": "julien.castro@certis.local"
+        }
+      ]
+    },
+    {
+      "reference": "15202ST.OO.1240ST.01",
+      "serial": "DEMO-AP-15202-1972",
+      "story": [
+        {
+          "type": "MINT",
+          "at": "2023-11-20",
+          "owner": "certis@pro.com"
+        },
+        {
+          "type": "SERVICE",
+          "at": "2026-04-09",
+          "note": "Révision complète, étanchéité contrôlée"
+        }
+      ]
+    }
+  ],
+  "advisor": {
+    "name": "Julien Castro",
+    "title": "Conseiller horloger"
+  },
+  "links": [
+    {
+      "label": "Entretien et service",
+      "url": "https://www.audemarspiguet.com/com/en/services.html"
+    },
+    {
+      "label": "La collection Royal Oak",
+      "url": "https://www.audemarspiguet.com/com/en/watch-collection/royal-oak.html"
+    },
+    {
+      "label": "Le Musée Atelier, au Brassus",
+      "url": "https://museeatelier.audemarspiguet.com/"
+    }
+  ]
+}

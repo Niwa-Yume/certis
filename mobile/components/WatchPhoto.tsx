@@ -17,10 +17,10 @@ export function usePhoto(imageUrl?: string | null, cutout = false) {
 // Une démo locale peut montrer sa propre pièce, servie par l'API et gardée hors dépôt (visuels sous droits).
 const showcaseUrl = process.env.EXPO_PUBLIC_SHOWCASE_URL?.trim();
 
-/** La pièce de l'accueil et de la connexion : embarquée par défaut, l'écran ne dépend pas de l'API. */
+/** La pièce de l'accueil et de la connexion : embarquée, l'écran ne dépend pas de l'API. */
 export const SHOWCASE: Photo & { label: string } = showcaseUrl
     ? { source: { uri: absoluteUrl(showcaseUrl) }, cutout: false, label: process.env.EXPO_PUBLIC_SHOWCASE_LABEL?.trim() || 'Montre' }
-    : { source: require('../assets/watch/carrera.webp'), cutout: true, label: 'TAG Heuer Carrera Calibre S' };
+    : { source: require('../assets/watch/ap-cactus-jack.webp'), cutout: false, label: 'Audemars Piguet Royal Oak Quantième Perpétuel « Cactus Jack »' };
 
 // Photo non détourée, sur fond sombre : ses bords se fondent dans le fond, sans cadre visible.
 // 37 % : la demi-hauteur d'une photo 3:4 posée en « contain » dans une boîte 5:9.
