@@ -9,6 +9,7 @@ import { type EventType, SPEC_LABELS, type Specs, describeEvent, downloadJson } 
 import { NoPhoto, usePhoto } from '../../components/WatchPhoto';
 import NonceSheet from '../../components/NonceSheet';
 import FaceLine, { type Face } from '../../components/Face';
+import Handover from '../../components/Handover';
 import { Button, CopyButton, Icon, IconButton, Notice, PieceName, State, TextLink, t, transition, useLayout } from '../../components/ui';
 import { color, space, typeScale } from '../../theme/tokens';
 
@@ -17,9 +18,11 @@ type Watch = {
     imageUrl: string | null; imageCutout: boolean; specs: Specs; issuer: { id: string; name: string }; trial: boolean;
     provenance: { seq: number; type: EventType; at: string; note?: string; you: boolean }[];
     issuedBy: Face | null; story: string | null; links: { label: string; url: string }[];
+    // pending : promise à ce compte, encore à la maison ; cardId : la carte, pour son détenteur.
+    pending: boolean; cardId: string | null;
 };
 // valid : passeport, chaîne et base concordent (null si la vérification n'a pas pu tourner).
-type Loaded = { watch: Watch; valid: boolean | null };
+type Loaded = { watch: Watch; valid: boolean | null; house: boolean };
 
 // Révision conseillée tous les cinq ans, comptés depuis la dernière intervention de la maison.
 const SERVICE_YEARS = 5;
@@ -39,10 +42,12 @@ export default function WatchScreen() {
     const load = useCallback(async () => {
         setFailure(null);
         try {
-            const watch = await api.get(`/assets/${id}`);
+            const [watch, me] = await Promise.all([api.get(`/assets/${id}`), api.get('/auth/me')]);
             // La vérification d'intégrité ne doit pas empêcher d'afficher la pièce.
-            const valid = await api.get(`/assets/${id}/verify`).then((r) => Boolean(r.data.valid), () => null);
-            setData({ watch: watch.data, valid });
+            const valid = watch.data.pending ? null : await api.get(`/assets/${id}/verify`).then((r) => Boolean(r.data.valid), () => null);
+            // La maison qui détient la pièce dans son stock : elle peut inviter le client et la lui remettre.
+            const house = !watch.data.pending && me.data.issuer?.id === watch.data.issuer.id;
+            setData({ watch: watch.data, valid, house });
         } catch (e) {
             if (axios.isAxiosError(e) && e.response?.status === 401) return router.replace('/login');
             setFailure(e);
@@ -68,6 +73,7 @@ export default function WatchScreen() {
 
     const { watch } = data;
     const stolen = watch.status === 'STOLEN';
+    const pending = watch.pending;
 
     // La photo occupe au moins la moitié du premier écran : 55 % de la hauteur sur mobile, la moitié gauche sur ordinateur.
     const hero = (
@@ -100,7 +106,7 @@ export default function WatchScreen() {
     );
 
     const content = (
-        <View style={[styles.content, { padding: gutter, paddingBottom: wide ? gutter : 120 }]}>
+        <View style={[styles.content, { padding: gutter, paddingBottom: wide || pending ? gutter : 120 }]}>
             {wide ? (
                 <Pressable onPress={back} accessibilityRole="link" style={styles.backLink}>
                     <Icon name="back" size={18} />
@@ -108,7 +114,7 @@ export default function WatchScreen() {
                 </Pressable>
             ) : null}
             <Life data={data} title={wide ? typeScale.display : typeScale.title} onChange={load} />
-            {wide ? actions : null}
+            {wide && !pending ? actions : null}
         </View>
     );
 
@@ -125,7 +131,7 @@ export default function WatchScreen() {
                         {hero}
                         {content}
                     </ScrollView>
-                    {actions}
+                    {pending ? null : actions}
                 </>
             )}
             <NonceSheet kind={sheet} assetId={watch.id} onClose={() => setSheet(null)} />
@@ -155,7 +161,7 @@ function Life({ data, title, onChange }: { data: Loaded; title: number; onChange
                 <View style={styles.top}>
                     <Text style={[t.caps, { flexShrink: 1 }]}>{watch.brand} · {watch.reference}</Text>
                     <Text style={[t.caps, { color: stolen ? color.refused : color.ink }]}>
-                        {tr.piece.status[stolen ? 'STOLEN' : watch.trial ? 'TRIAL' : 'ACTIVE']}
+                        {watch.pending ? tr.handover.status : tr.piece.status[stolen ? 'STOLEN' : watch.trial ? 'TRIAL' : 'ACTIVE']}
                     </Text>
                 </View>
                 <PieceName parts={splitName(watch.name, watch.model)} size={title} />
@@ -163,6 +169,8 @@ function Life({ data, title, onChange }: { data: Loaded; title: number; onChange
 
             {watch.issuedBy ? <FaceLine face={watch.issuedBy} house={watch.issuer.name} /> : null}
             {watch.trial ? <Notice tone="info" message={tr.piece.trialNote} /> : null}
+            {watch.pending ? <Notice tone="info" message={tr.handover.waiting(watch.issuer.name)} /> : null}
+            {data.house ? <Handover assetId={watch.id} cardId={watch.cardId} /> : null}
             {/* Volée : le fait daté et le geste pour la déclarer retrouvée, avant tout le reste. */}
             {stolen ? <Theft watch={watch} onChange={onChange} /> : null}
 
@@ -212,8 +220,8 @@ function Life({ data, title, onChange }: { data: Loaded; title: number; onChange
                 ) : null))}
             </Section>
 
-            <Proofs data={data} />
-            {stolen ? null : <Theft watch={watch} onChange={onChange} />}
+            {watch.pending ? null : <Proofs data={data} />}
+            {stolen || watch.pending ? null : <Theft watch={watch} onChange={onChange} />}
         </View>
     );
 }

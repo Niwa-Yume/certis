@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from 'react';
-import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import axios from 'axios';
 import api from '../lib/api';
 import { clock, longDate, registryNumber, shortDate, splitName } from '../lib/format';
@@ -7,7 +7,7 @@ import { tr } from '../lib/i18n';
 import { type EventType, type Specs, describeEvent, downloadJson } from '../lib/registry';
 import { color, font, space, typeScale } from '../theme/tokens';
 import FaceLine, { type Face } from './Face';
-import { NoPhoto, usePhoto } from './WatchPhoto';
+import Showcase from './Showcase';
 import { Badge, Button, Icon, Notice, PieceName, TextField, TextLink, t, transition, useLayout } from './ui';
 
 /** Réponse de POST /assets/:id/authenticate quand passeport, chaîne et registre concordent. */
@@ -39,32 +39,15 @@ export type Verification = {
  * La cryptographie reste dans le volet « Preuves », fermé par défaut.
  */
 export default function Passport({ result, nonce }: { result: Verification; nonce: string }) {
-    const { wide, height, gutter } = useLayout();
+    const { wide } = useLayout();
     const piece = result.passport.credentialSubject;
     const house = result.passport.issuer.name;
     const stolen = result.status === 'STOLEN';
     const stolenAt = [...result.provenance].reverse().find((e) => e.type === 'STOLEN_REPORTED')?.at;
-    const { photo, onError } = usePhoto(piece.image, result.imageCutout);
     const title = wide ? typeScale.display : typeScale.title;
 
-    // La photo occupe au moins la moitié du premier écran : 55 % de la hauteur sur mobile, la moitié gauche sur ordinateur.
-    const hero = (
-        <View
-            accessible
-            accessibilityRole="image"
-            accessibilityLabel={`${piece.name}, ${house}`}
-            style={[styles.hero, wide ? { width: '50%', height: '100%' } : { height: Math.max(360, Math.round(height * 0.55)) }]}
-        >
-            {photo ? (
-                <Image source={photo.source} onError={onError} resizeMode={photo.cutout ? 'contain' : 'cover'} style={StyleSheet.absoluteFill} />
-            ) : (
-                <NoPhoto />
-            )}
-        </View>
-    );
-
-    const content = (
-        <View style={[styles.content, { padding: gutter }]}>
+    return (
+        <Showcase imageUrl={piece.image} cutout={result.imageCutout} label={`${piece.name}, ${house}`}>
             {result.trial ? <Notice tone="info" message={tr.verify.trial} /> : null}
 
             <View accessibilityLiveRegion="polite" style={{ gap: space.sm }}>
@@ -125,19 +108,7 @@ export default function Passport({ result, nonce }: { result: Verification; nonc
             )}
 
             <Proofs result={result} nonce={nonce} />
-        </View>
-    );
-
-    return wide ? (
-        <View style={[styles.screen, { flexDirection: 'row' }]}>
-            {hero}
-            <ScrollView style={{ flex: 1 }}>{content}</ScrollView>
-        </View>
-    ) : (
-        <ScrollView style={styles.screen}>
-            {hero}
-            {content}
-        </ScrollView>
+        </Showcase>
     );
 }
 
@@ -242,9 +213,6 @@ function SerialCheck({ assetId, nonce }: { assetId: string; nonce: string }) {
 }
 
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: color.paper },
-    hero: { backgroundColor: color.deep, overflow: 'hidden' },
-    content: { width: '100%', maxWidth: 560 + 2 * space.xxl, gap: space.lg, paddingBottom: space.xxl },
     verdict: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     alarm: { gap: space.sm, paddingLeft: space.md, borderLeftWidth: 3, borderColor: color.refused },
     section: { gap: space.md, paddingTop: space.lg, borderTopWidth: 1, borderColor: color.hairline },

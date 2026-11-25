@@ -261,6 +261,8 @@ export class AssetService {
       issuer: { id: issuer.id, name: issuer.name },
       issuedBy,
       pending: Boolean(waiting),
+      // La carte de la pièce : à son détenteur seulement (maison ou propriétaire), pas au client qui attend.
+      cardId: waiting ? null : asset.cardId,
       ...this.house(asset.reference, issuer.name),
       provenance: events.map((e) => ({
         ...this.provenance(e),

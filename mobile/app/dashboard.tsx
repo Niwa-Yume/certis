@@ -16,6 +16,8 @@ type Asset = {
     status: string; imageUrl: string | null; imageCutout: boolean;
     // Pièce d'essai donnée à l'inscription (ADR-0012) : elle ne vaut pour aucune montre réelle.
     trial: boolean;
+    // Promise par une maison, pas encore remise (ADR-0017).
+    pending?: boolean;
 };
 type Me = { role: 'OWNER' | 'ISSUER'; issuer: { name: string } | null };
 
@@ -177,7 +179,7 @@ function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
                 <View style={styles.cardTop}>
                     <Text style={[t.caps, { flexShrink: 1 }]} numberOfLines={1}>{asset.brand}</Text>
                     {/* Le statut en un mot ; le rouge ne dit que « volée ». */}
-                    <Text style={[t.caps, { color: stolen ? color.refused : color.ink }]}>{tr.piece.status[stolen ? 'STOLEN' : asset.trial ? 'TRIAL' : 'ACTIVE']}</Text>
+                    <Text style={[t.caps, { color: stolen ? color.refused : color.ink }]}>{asset.pending ? tr.handover.status : tr.piece.status[stolen ? 'STOLEN' : asset.trial ? 'TRIAL' : 'ACTIVE']}</Text>
                 </View>
                 {/* Deux lignes réservées, deux au plus : toutes les cartes d'une rangée ont la même hauteur. */}
                 <PieceName parts={splitName(asset.name, asset.model)} size={typeScale.title} lines={2} style={{ minHeight: typeScale.title * 0.95 * 2 }} />
