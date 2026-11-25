@@ -1,0 +1,12 @@
+{
+  "name": "certis-e2e",
+  "private": true,
+  "description": "Le parcours de la démo, écrans 1 à 7, joué dans un vrai navigateur (lot 6).",
+  "scripts": {
+    "test": "playwright test",
+    "test:10": "playwright test --repeat-each=10"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

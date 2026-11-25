@@ -75,8 +75,12 @@ function Code({ value, hint, label, copy }: { value: string; hint: string; label
             <View accessible accessibilityRole="image" accessibilityLabel={`QR : ${label}`} style={styles.qr}>
                 <QRCode value={value} size={200} color={palette.light.ink} backgroundColor={palette.light.card} />
             </View>
-            <Text style={[t.small, { flex: 1, minWidth: 200 }]}>{hint}</Text>
-            {copy ? <CopyButton value={value} what={copy} /> : null}
+            <View style={{ flex: 1, minWidth: 200, gap: space.sm }}>
+                <Text style={t.small}>{hint}</Text>
+                {/* Le lien, lisible : la maison peut aussi l'envoyer elle-même. */}
+                <Text selectable numberOfLines={1} style={[t.mono, { color: color.ink }]}>{value}</Text>
+                <CopyButton value={value} what={copy ?? label} />
+            </View>
         </View>
     );
 }
