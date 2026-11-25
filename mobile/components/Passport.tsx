@@ -89,7 +89,7 @@ export default function Passport({ result, nonce }: { result: Verification; nonc
 
             <View style={{ gap: space.xs }}>
                 <Text style={t.caps}>{piece.brand} · {piece.reference}</Text>
-                <PieceName parts={splitName(piece.name)} size={typeScale.title} />
+                <PieceName parts={splitName(piece.name, piece.model)} size={typeScale.title} />
             </View>
             <Text style={[t.body, { color: color.slate }]}>{tr.verify.proves(piece.reference)}</Text>
 

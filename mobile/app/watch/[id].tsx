@@ -175,7 +175,7 @@ function Details({ data, tab, onTab, big, onChange }: { data: Loaded; tab: Tab; 
         <View style={{ gap: space.md }}>
             <View style={{ gap: 6 }}>
                 <Text style={t.caps}>{watch.brand.toUpperCase()}</Text>
-                <PieceName parts={splitName(watch.name)} size={big ? 72 : 46} />
+                <PieceName parts={splitName(watch.name, watch.model)} size={big ? 72 : 46} />
                 <View style={styles.badgeRow}>
                     {watch.trial ? <Badge label="Pièce d’essai" tone="info" /> : null}
                     {watch.status === 'STOLEN' ? <Badge label="Déclarée volée" tone="refused" /> : null}

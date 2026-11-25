@@ -181,7 +181,7 @@ export default function NewWatchScreen() {
                     <View aria-hidden style={[styles.preview, wide ? web({ position: 'sticky', top: 40 }) : null]}>
                         <Glow />
                         <Text style={[t.caps, { color: color.mist }]}>{clean(form.brand).toUpperCase() || 'MARQUE'}</Text>
-                        <PieceName parts={splitName(name)} size={40} accent={color.metal} style={{ color: color.onDeep }} />
+                        <PieceName parts={splitName(name, form.model)} size={40} accent={color.metal} style={{ color: color.onDeep }} />
                         <Text style={[t.ref, { color: color.onDeep, fontSize: 14 }]}>{clean(form.reference) || 'RÉFÉRENCE'}</Text>
                         {clean(form.movement) ? <Text style={[t.small, { color: color.mist }]}>{clean(form.movement)}</Text> : null}
                         <View style={{ alignSelf: 'flex-end', marginTop: space.lg }}>

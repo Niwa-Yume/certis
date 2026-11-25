@@ -9,7 +9,7 @@ import { registryNumber, splitName } from '../lib/format';
 import { deleteItemAsync } from '../lib/storage';
 import { NoPhoto, usePhoto } from '../components/WatchPhoto';
 import { Badge, Button, Container, Glow, Notice, PieceName, Rise, State, TextField, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
-import { color, space } from '../theme/tokens';
+import { color, space, typeScale } from '../theme/tokens';
 
 type Asset = {
     id: string; name: string; brand: string; model: string; reference: string;
@@ -85,7 +85,7 @@ export default function DashboardScreen() {
                 ) : (
                     <View style={styles.grid}>
                         {assets.map((asset, i) => (
-                            <Rise key={asset.id} delay={i * 80} distance={20} style={{ width: `${100 / columns}%`, padding: space.sm }}>
+                            <Rise key={asset.id} delay={i * 80} distance={20} style={{ width: `${100 / columns}%`, padding: space.sm, flexDirection: 'column' }}>
                                 <Card asset={asset} onPress={() => router.push(`/watch/${asset.id}`)} />
                             </Rise>
                         ))}
@@ -181,10 +181,11 @@ function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
                 ) : null}
             </View>
             <View style={styles.cardBody}>
-                <Text style={[t.caps, { fontSize: 12 }]}>{asset.brand.toUpperCase()}</Text>
-                <PieceName parts={splitName(asset.name)} size={30} />
+                <Text style={t.caps}>{asset.brand}</Text>
+                {/* Deux lignes réservées, deux au plus : toutes les cartes d'une rangée ont la même hauteur. */}
+                <PieceName parts={splitName(asset.name, asset.model)} size={typeScale.title} lines={2} style={{ minHeight: typeScale.title * 0.95 * 2 }} />
                 <View style={styles.cardMeta}>
-                    <Text style={[t.ref, { fontSize: 13 }]}>{asset.reference}</Text>
+                    <Text style={[t.ref, { fontSize: typeScale.caption, flexShrink: 1 }]}>{asset.reference}</Text>
                     <Text style={t.mono}>{registryNumber(asset.id)}</Text>
                 </View>
             </View>
@@ -199,9 +200,9 @@ const styles = StyleSheet.create({
     head: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: space.lg, paddingTop: space.xl, paddingBottom: space.lg },
     message: { gap: space.md, paddingVertical: space.xl },
     grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -space.sm },
-    card: { backgroundColor: color.card, borderWidth: 1, borderColor: color.hairline },
+    card: { flex: 1, backgroundColor: color.card, borderWidth: 1, borderColor: color.hairline },
     cardHover: { transform: [{ translateY: -4 }], boxShadow: '0 22px 44px rgba(11,20,48,0.16)' },
     cardPhoto: { height: 320, backgroundColor: color.deep, overflow: 'hidden' },
-    cardBody: { padding: 18, gap: 6 },
-    cardMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderColor: color.hairline },
+    cardBody: { flex: 1, padding: space.md, gap: space.sm },
+    cardMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginTop: 'auto', paddingTop: 12, borderTopWidth: 1, borderColor: color.hairline },
 });
