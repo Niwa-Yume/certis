@@ -7,10 +7,10 @@ export type EventType = 'MINT' | 'TRANSFER' | 'SERVICE' | 'STOLEN_REPORTED' | 'R
 export type Specs = Record<'movement' | 'case' | 'dial' | 'bracelet', string | null>;
 
 export const SPEC_LABELS: [keyof Specs, string][] = [
-    ['movement', 'Mouvement'],
-    ['case', 'Boîtier'],
-    ['dial', 'Cadran'],
-    ['bracelet', 'Bracelet'],
+    ['movement', tr.spec.movement],
+    ['case', tr.spec.case],
+    ['dial', tr.spec.dial],
+    ['bracelet', tr.spec.bracelet],
 ];
 
 /** Libellé et précision d'un maillon. `you` : le lecteur est celui qui a reçu la pièce. */

@@ -24,6 +24,9 @@ export const shortDate = (iso: string) =>
 /** 12 mars 2026 */
 export const longDate = (iso: string) => date(iso, { day: 'numeric', month: 'long', year: 'numeric' });
 
+/** mars 2031 */
+export const monthYear = (iso: string) => date(iso, { month: 'long', year: 'numeric' });
+
 /** 12 MARS 2026 */
 export const capsDate = (iso: string) =>
     date(iso, { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();

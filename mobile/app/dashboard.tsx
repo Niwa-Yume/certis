@@ -21,7 +21,7 @@ type Me = { role: 'OWNER' | 'ISSUER'; issuer: { name: string } | null };
 
 export default function DashboardScreen() {
     const router = useRouter();
-    const { size, compact } = useLayout();
+    const { size } = useLayout();
     const [assets, setAssets] = useState<Asset[] | null>(null);
     const [me, setMe] = useState<Me | null>(null);
     const [failure, setFailure] = useState<unknown>(null);
@@ -57,22 +57,20 @@ export default function DashboardScreen() {
         <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: 72 }}>
             <Container style={styles.bar}>
                 <Wordmark />
-                <TextLink label="Déconnexion" tone={color.ink} onPress={logout} />
+                <TextLink label={tr.piece.signOut} tone={color.ink} onPress={logout} />
             </Container>
 
             <Container style={styles.head}>
                 <View style={{ gap: 8, flexShrink: 1 }}>
-                    <Text style={t.caps}>{issuer ? `${issuer.toUpperCase()} · ÉMETTEUR` : 'COLLECTION PRIVÉE'}</Text>
-                    <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: compact ? 48 : 72, lineHeight: compact ? 50 : 74 }]}>
-                        Vos <Text style={[t.italic, { color: color.ink }]}>pièces</Text>
-                    </Text>
+                    <Text style={t.caps}>{issuer ? tr.piece.issuerTag(issuer) : tr.piece.private}</Text>
+                    <PieceName parts={tr.piece.title} size={typeScale.display} />
                     {assets ? (
                         <Text style={[t.body, { color: color.slate }]}>
-                            {count === 0 ? 'Aucune pièce inscrite' : `${count} pièce${count > 1 ? 's' : ''} inscrite${count > 1 ? 's' : ''} au registre`}
+                            {count === 0 ? tr.piece.none : tr.piece.count(count)}
                         </Text>
                     ) : null}
                 </View>
-                {issuer ? <Button label="Inscrire une pièce" arrow onPress={() => router.push('/watch/new')} style={{ minWidth: 240 }} /> : null}
+                {issuer ? <Button label={tr.piece.register} arrow onPress={() => router.push('/watch/new')} style={{ minWidth: 240 }} /> : null}
             </Container>
 
             <Container>
@@ -142,6 +140,7 @@ function EraseAccount({ onErased }: { onErased: () => void }) {
 
 function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
     const { photo, onError } = usePhoto(asset.imageUrl, asset.imageCutout);
+    const stolen = asset.status === 'STOLEN';
     return (
         <Pressable
             onPress={onPress}
@@ -173,15 +172,13 @@ function Card({ asset, onPress }: { asset: Asset; onPress: () => void }) {
                 ) : (
                     <NoPhoto />
                 )}
-                {asset.status === 'STOLEN' || asset.trial ? (
-                    <View style={{ position: 'absolute', top: 12, left: 12, gap: 6 }}>
-                        {asset.status === 'STOLEN' ? <Badge label="Déclarée volée" tone="refused" /> : null}
-                        {asset.trial ? <Badge label="Pièce d’essai" tone="info" /> : null}
-                    </View>
-                ) : null}
             </View>
             <View style={styles.cardBody}>
-                <Text style={t.caps}>{asset.brand}</Text>
+                <View style={styles.cardTop}>
+                    <Text style={[t.caps, { flexShrink: 1 }]} numberOfLines={1}>{asset.brand}</Text>
+                    {/* Le statut en un mot ; le rouge ne dit que « volée ». */}
+                    <Text style={[t.caps, { color: stolen ? color.refused : color.ink }]}>{tr.piece.status[stolen ? 'STOLEN' : asset.trial ? 'TRIAL' : 'ACTIVE']}</Text>
+                </View>
                 {/* Deux lignes réservées, deux au plus : toutes les cartes d'une rangée ont la même hauteur. */}
                 <PieceName parts={splitName(asset.name, asset.model)} size={typeScale.title} lines={2} style={{ minHeight: typeScale.title * 0.95 * 2 }} />
                 <View style={styles.cardMeta}>
@@ -203,6 +200,7 @@ const styles = StyleSheet.create({
     card: { flex: 1, backgroundColor: color.card, borderWidth: 1, borderColor: color.hairline },
     cardHover: { transform: [{ translateY: -4 }], boxShadow: '0 22px 44px rgba(11,20,48,0.16)' },
     cardPhoto: { height: 320, backgroundColor: color.deep, overflow: 'hidden' },
+    cardTop: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },
     cardBody: { flex: 1, padding: space.md, gap: space.sm },
     cardMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginTop: 'auto', paddingTop: 12, borderTopWidth: 1, borderColor: color.hairline },
 });
