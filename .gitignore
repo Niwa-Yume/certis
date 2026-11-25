@@ -141,3 +141,6 @@ vite.config.ts.timestamp-*
 # Données de démo locales (maison réelle, visuels sous droits) : jamais dans le dépôt.
 *.local.json
 backend/public/watches/local/
+
+# Captures et rapports Lighthouse du lot 6 : ils montrent les visuels locaux, hors dépôt public.
+docs/lots/lot-6/local/

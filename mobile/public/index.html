@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Certis</title>
+    <!-- Polices sous-ensemble latin en WOFF2 (102 Ko au lieu de 520) : préchargées, elles arrivent
+         en même temps que le JS au lieu d'après lui, et ne bloquent plus le premier rendu (lot 6). -->
+    <link rel="preload" href="/fonts/InstrumentSerif_400Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Geist_400Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Geist_500Medium.woff2" as="font" type="font/woff2" crossorigin />
+    <style id="certis-fonts">
+      @font-face { font-family: 'InstrumentSerif_400Regular'; src: url('/fonts/InstrumentSerif_400Regular.woff2') format('woff2'); font-display: swap; }
+      @font-face { font-family: 'InstrumentSerif_400Regular_Italic'; src: url('/fonts/InstrumentSerif_400Regular_Italic.woff2') format('woff2'); font-display: swap; }
+      @font-face { font-family: 'Geist_400Regular'; src: url('/fonts/Geist_400Regular.woff2') format('woff2'); font-display: swap; }
+      @font-face { font-family: 'Geist_500Medium'; src: url('/fonts/Geist_500Medium.woff2') format('woff2'); font-display: swap; }
+      @font-face { font-family: 'Geist_600SemiBold'; src: url('/fonts/Geist_600SemiBold.woff2') format('woff2'); font-display: swap; }
+      @font-face { font-family: 'GeistMono_400Regular'; src: url('/fonts/GeistMono_400Regular.woff2') format('woff2'); font-display: swap; }
+    </style>
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        overflow: hidden;
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>Certis a besoin de JavaScript.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

@@ -82,7 +82,10 @@ export default function Share({ assetId, shares, onChange }: { assetId: string; 
                     <View accessible accessibilityRole="image" accessibilityLabel={`QR : ${tr.share.link}`} style={styles.qr}>
                         <QRCode value={link} size={180} color={palette.light.ink} backgroundColor={palette.light.card} />
                     </View>
-                    <CopyButton value={link} what={tr.share.link} />
+                    <View style={{ flex: 1, minWidth: 200, gap: space.sm }}>
+                        <Text selectable numberOfLines={1} style={[t.mono, { color: color.ink }]}>{link}</Text>
+                        <CopyButton value={link} what={tr.share.link} />
+                    </View>
                 </View>
             ) : null}
 

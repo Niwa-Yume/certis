@@ -73,13 +73,14 @@ export default function IndexScreen() {
                             <Button label="Se connecter" variant="outlineLight" onPress={() => router.push('/login')} />
                         </View>
                     </Rise>
-                    <Rise delay={200} distance={28} scale={0.97} style={{ alignSelf: 'center' }}>
+                    {/* Sans fondu d'entrée : la photo est le plus grand élément, elle s'affiche dès qu'elle est là (LCP). */}
+                    <View style={{ alignSelf: 'center' }}>
                         <WatchVisual photo={SHOWCASE} label="TAG Heuer Carrera Calibre S" width={compact ? 200 : 280} height={compact ? 360 : 504}>
                             <Stamp delay={900} style={{ position: 'absolute', right: compact ? -12 : -24, bottom: compact ? 56 : 90 }}>
                                 <Seal number="SPÉCIMEN" size={compact ? 80 : 104} />
                             </Stamp>
                         </WatchVisual>
-                    </Rise>
+                    </View>
                 </Container>
             </View>
 
