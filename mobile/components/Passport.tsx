@@ -6,6 +6,7 @@ import { clock, longDate, registryNumber, shortDate, splitName } from '../lib/fo
 import { tr } from '../lib/i18n';
 import { type EventType, type Specs, describeEvent, downloadJson } from '../lib/registry';
 import { color, font, space, typeScale } from '../theme/tokens';
+import FaceLine, { type Face } from './Face';
 import { NoPhoto, usePhoto } from './WatchPhoto';
 import { Badge, Button, Icon, Notice, PieceName, TextField, TextLink, t, transition, useLayout } from './ui';
 
@@ -17,6 +18,8 @@ export type Verification = {
     // Pièce d'essai (ADR-0012) : à dire avant tout, pour qu'aucun acheteur ne s'y trompe.
     trial: boolean;
     imageCutout: boolean;
+    // La personne de la maison qui a émis le passeport, hors signature (null si la maison ne l'a pas renseignée).
+    issuedBy: Face | null;
     // Tout ce que voit l'acheteur vient du passeport signé par la maison (ADR-0004).
     passport: {
         issuer: { id: string; name: string };
@@ -87,9 +90,11 @@ export default function Passport({ result, nonce }: { result: Verification; nonc
                 </View>
             ) : null}
 
+            {result.issuedBy ? <FaceLine face={result.issuedBy} house={house} /> : null}
+
             <View style={{ gap: space.xs }}>
                 <Text style={t.caps}>{piece.brand} · {piece.reference}</Text>
-                <PieceName parts={splitName(piece.name)} size={typeScale.title} />
+                <PieceName parts={splitName(piece.name, piece.model)} size={typeScale.title} />
             </View>
             <Text style={[t.body, { color: color.slate }]}>{tr.verify.proves(piece.reference)}</Text>
 

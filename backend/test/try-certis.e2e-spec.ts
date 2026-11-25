@@ -194,4 +194,46 @@ describe('Trying Certis: trial piece, catalogue, explicit refusals (e2e)', () =>
       .expect(409)) as { body: { message: string } };
     expect(body.message).toMatch(/^You already own this watch: /);
   });
+
+  it('P9: a piece shows the face of the person who registered it, outside the signed passport', async () => {
+    const owner = await registerUser(app);
+    const issuer = await createIssuer(app);
+    const prisma = app.get(PrismaService);
+    await prisma.user.update({
+      where: { id: issuer.id },
+      data: { displayName: 'Claire Vasseur', title: 'Conseillère horlogère' },
+    });
+    const watch = (await mint(app, issuer, { ownerEmail: owner.email }))
+      .body as { id: string };
+
+    const { body } = await http(app)
+      .get(`/assets/${watch.id}`)
+      .set(auth(owner))
+      .expect(200);
+    expect(body.issuedBy).toEqual({
+      name: 'Claire Vasseur',
+      title: 'Conseillère horlogère',
+      photoUrl: null,
+    });
+    // Rien de cela n'entre dans le passeport signé : il reste vérifiable tel quel.
+    expect(JSON.stringify(body)).not.toContain('passport');
+    // Une maison qui n'a pas renseigné de visage : rien n'est inventé.
+    const other = await createIssuer(app);
+    const faceless = (await mint(app, other, { ownerEmail: owner.email }))
+      .body as { id: string };
+    const plain = await http(app)
+      .get(`/assets/${faceless.id}`)
+      .set(auth(owner))
+      .expect(200);
+    expect(plain.body.issuedBy).toBeNull();
+    expect(
+      (
+        await app
+          .get(RegistryService)
+          .verify(
+            await prisma.asset.findUniqueOrThrow({ where: { id: watch.id } }),
+          )
+      ).problem,
+    ).toBeNull();
+  });
 });

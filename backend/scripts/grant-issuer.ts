@@ -6,9 +6,10 @@ import { PrismaService } from '../src/prisma/prisma.service';
 
 // Fait d'un compte existant l'émetteur d'une maison, avec sa propre clé (ADR-0003).
 // Non destructif, donc utilisable sur une base de production : c'est l'accueil d'une maison.
-// Usage : npm run issuer:grant -- <e-mail du compte> "<nom de l'émetteur>"
+// Usage : npm run issuer:grant -- <e-mail du compte> "<nom de l'émetteur>" ["<nom affiché>" "<rôle>" "<photo>"]
+// Les trois derniers donnent un visage aux pièces que ce compte inscrira : le client le voit.
 async function main() {
-  const [email, name] = process.argv.slice(2);
+  const [email, name, displayName, title, photoUrl] = process.argv.slice(2);
   if (!email || !name) {
     console.error(
       'Usage : npm run issuer:grant -- <e-mail> "<nom de l\'émetteur>"',
@@ -32,6 +33,12 @@ async function main() {
       (await prisma.issuer.findFirst({ where: { name } })) ??
       (await issuers.create(name));
     await issuers.grant(user.id, issuer.id);
+    if (displayName) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { displayName, title: title ?? null, photoUrl: photoUrl ?? null },
+      });
+    }
     console.log(
       `${user.email} inscrit désormais au nom de « ${issuer.name} ».`,
     );

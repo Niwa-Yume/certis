@@ -136,11 +136,11 @@ export function Wordmark({ tone = color.ink, size = 13 }: { tone?: string; size?
 }
 
 /** « Méridienne » droit + « Petite Seconde » italique : le second membre porte l'accent par la forme, pas par la couleur. */
-export function PieceName({ parts, size, style, accent = color.ink, stacked = false }: {
-    parts: [string, string]; size: number; style?: StyleProp<TextStyle>; accent?: string; stacked?: boolean;
+export function PieceName({ parts, size, style, accent = color.ink, stacked = false, lines }: {
+    parts: [string, string]; size: number; style?: StyleProp<TextStyle>; accent?: string; stacked?: boolean; lines?: number;
 }) {
     return (
-        <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: size, lineHeight: size * 0.95 }, style]}>
+        <Text accessibilityRole="header" numberOfLines={lines} maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: size, lineHeight: size * 0.95 }, style]}>
             {parts[0]}
             {parts[1] ? <Text style={[t.italic, { color: accent }]}>{stacked ? '\n' : ' '}{parts[1]}</Text> : null}
         </Text>

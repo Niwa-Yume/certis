@@ -17,7 +17,15 @@ export type CatalogEntry = {
   bracelet: string;
   source: string;
   photo?: { imageUrl: string; imageCutout: boolean };
+  /** L'histoire de la référence, telle que la maison la raconte : un paragraphe. */
+  story?: string;
 };
+
+/** Le visage de la maison dans la démo : la personne qui inscrit les pièces. */
+export type Advisor = { name: string; title: string; photoUrl?: string };
+
+/** Un lien de la maison sur la fiche d'une pièce (service, boutique, histoire). */
+export type HouseLink = { label: string; url: string };
 
 const HOUSE = 'Maison Orvène';
 const SITE = 'https://orvene.example/collection/';
@@ -80,9 +88,16 @@ const local =
         house: string;
         catalog: CatalogEntry[];
         watches?: DemoWatch[];
+        links?: HouseLink[];
+        advisor?: Advisor;
       })
     : null;
 
 export const DEMO_HOUSE = local?.house ?? HOUSE;
 export const CATALOG = local?.catalog ?? ORVENE;
 export const DEMO_WATCHES = local?.watches;
+export const DEMO_LINKS: HouseLink[] = local?.links ?? [];
+export const DEMO_ADVISOR: Advisor = local?.advisor ?? {
+  name: 'Claire Vasseur',
+  title: 'Conseillère horlogère',
+};
