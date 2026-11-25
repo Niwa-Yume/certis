@@ -61,6 +61,11 @@ Le TBT (Total Blocking Time) sert ici d'estimation de l'INP : Lighthouse en navi
 **Seuils non atteints**
 - En Slow 4G, le LCP reste entre 3,7 et 6,2 s.
 - Le reste du délai vient du framework : react-native-web, react-dom et expo-router pèsent 357 Ko compressés et s'exécutent avant tout affichage.
-- La voie suivante est le pré-rendu statique d'Expo Router (`web.output: "static"`). Il change le routage sur Render, donc il est à décider avant d'être fait. Et il ne sert que les écrans sans données ; les écrans qui lisent l'API attendront toujours le JS.
+- **Pré-rendu statique essayé, puis écarté.** Avec `web.output: "static"` (branche locale `lot-6/prerendu`), les 13 pages sont pré-rendues et le texte de l'accueil est dans le HTML. Mais le plus grand élément reste la photo, dont react-native-web ne connaît l'adresse qu'une fois le JS exécuté. Les écrans qui lisent l'API attendent le JS de toute façon.
+  - Mesure en Slow 4G : accueil 3,7 s (inchangé), invitation 3,9 s (3,8 avant).
+  - Pour un coût réel : accessibilité Lighthouse de 100 à 96, blocage de 30 à 130 ms à l'hydratation, et des règles de routage à ajouter sur Render.
+- **Ce qui reste pour passer sous 2,5 s en Slow 4G** sort du périmètre du brief :
+  - un rendu serveur avec les données (un serveur, plus un site statique) ;
+  - ou un premier écran sans react-native-web.
 
 Les rapports Lighthouse complets (HTML) sont gardés hors dépôt avec les captures.
