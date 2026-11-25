@@ -2,12 +2,13 @@ import { useCallback, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import axios from 'axios';
 import { useFocusEffect, useRouter } from 'expo-router';
-import api, { explain } from '../lib/api';
+import api, { explain, stateOf } from '../lib/api';
+import { tr } from '../lib/i18n';
 import { ACCESS_TOKEN_KEY } from '../lib/auth';
 import { registryNumber, splitName } from '../lib/format';
 import { deleteItemAsync } from '../lib/storage';
 import { NoPhoto, usePhoto } from '../components/WatchPhoto';
-import { Badge, Button, Container, Glow, Notice, PieceName, Rise, Spinner, TextField, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
+import { Badge, Button, Container, Glow, Notice, PieceName, Rise, State, TextField, TextLink, Wordmark, t, transition, useLayout, web } from '../components/ui';
 import { color, space } from '../theme/tokens';
 
 type Asset = {
@@ -23,11 +24,11 @@ export default function DashboardScreen() {
     const { size, compact } = useLayout();
     const [assets, setAssets] = useState<Asset[] | null>(null);
     const [me, setMe] = useState<Me | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [failure, setFailure] = useState<unknown>(null);
 
     const load = useCallback(() => {
         let cancelled = false;
-        setError(null);
+        setFailure(null);
         // Le rôle décide de l'écran : seul un émetteur inscrit des pièces (ADR-0003).
         api.get('/auth/me').then((res) => !cancelled && setMe(res.data), () => undefined);
         api.get('/assets')
@@ -35,7 +36,7 @@ export default function DashboardScreen() {
             .catch((e) => {
                 if (cancelled) return;
                 if (axios.isAxiosError(e) && e.response?.status === 401) return router.replace('/');
-                setError(explain(e, 'Collection indisponible : réessayez dans un instant.'));
+                setFailure(e);
             });
         return () => { cancelled = true; };
     }, [router]);
@@ -63,7 +64,7 @@ export default function DashboardScreen() {
                 <View style={{ gap: 8, flexShrink: 1 }}>
                     <Text style={t.caps}>{issuer ? `${issuer.toUpperCase()} · ÉMETTEUR` : 'COLLECTION PRIVÉE'}</Text>
                     <Text accessibilityRole="header" maxFontSizeMultiplier={1.3} style={[t.serif, { fontSize: compact ? 48 : 72, lineHeight: compact ? 50 : 74 }]}>
-                        Vos <Text style={[t.italic, { color: color.seal }]}>pièces</Text>
+                        Vos <Text style={[t.italic, { color: color.ink }]}>pièces</Text>
                     </Text>
                     {assets ? (
                         <Text style={[t.body, { color: color.slate }]}>
@@ -75,24 +76,12 @@ export default function DashboardScreen() {
             </Container>
 
             <Container>
-                {error ? (
-                    <View style={styles.message}>
-                        <Notice message={error} />
-                        <Button label="Réessayer" variant="secondary" onPress={load} style={{ alignSelf: 'flex-start' }} />
-                    </View>
+                {failure ? (
+                    <State kind={stateOf(failure)} action={{ label: tr.retry, onPress: load }} />
                 ) : !assets ? (
-                    <View style={[styles.message, { alignItems: 'center' }]}>
-                        <Spinner size={64} track={color.hairline} />
-                    </View>
+                    <State kind="loading" />
                 ) : count === 0 ? (
-                    <View style={styles.message}>
-                        <Text style={t.lead}>{issuer ? 'Votre stock est vide.' : 'Votre collection est vide.'}</Text>
-                        <Text style={[t.body, { color: color.slate, maxWidth: 520 }]}>
-                            {issuer
-                                ? 'Inscrivez une pièce que vous avez examinée : vous signez son passeport, puis vous pouvez la remettre à son acheteur.'
-                                : 'Une pièce arrive dans votre collection quand son émetteur ou son propriétaire vous la cède : scannez le QR qu’il vous présente, depuis votre compte.'}
-                        </Text>
-                    </View>
+                    <State kind="empty" {...(issuer ? { title: 'Votre stock est vide', body: 'Inscrivez une pièce que vous avez examinée : vous signez son passeport, puis vous pouvez la remettre à son acheteur.' } : {})} />
                 ) : (
                     <View style={styles.grid}>
                         {assets.map((asset, i) => (
@@ -212,7 +201,7 @@ const styles = StyleSheet.create({
     grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -space.sm },
     card: { backgroundColor: color.card, borderWidth: 1, borderColor: color.hairline },
     cardHover: { transform: [{ translateY: -4 }], boxShadow: '0 22px 44px rgba(11,20,48,0.16)' },
-    cardPhoto: { height: 320, backgroundColor: color.seal, overflow: 'hidden' },
+    cardPhoto: { height: 320, backgroundColor: color.deep, overflow: 'hidden' },
     cardBody: { padding: 18, gap: 6 },
     cardMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderColor: color.hairline },
 });
